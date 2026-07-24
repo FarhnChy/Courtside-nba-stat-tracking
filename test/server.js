@@ -18,6 +18,10 @@ async function run() {
     assert.equal(home.status, 200);
     assert.match(await home.text(), /COURTSIDE/);
     assert.equal(home.headers.get('x-frame-options'), 'SAMEORIGIN');
+
+    const logo = await fetch(`${base}/courtside-logo.webp`);
+    assert.equal(logo.status, 200);
+    assert.equal(logo.headers.get('content-type'), 'image/webp');
   } finally {
     await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
   }
