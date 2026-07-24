@@ -251,8 +251,16 @@ main {
 .team-name { font-weight: 700; font-size: 14px; }
 .record { color: var(--muted); font-size: 10px; }
 .team-score { font: 600 24px Oswald; }
-.winner .team-score { color: #ff7782; font-weight: 700; }
+.winner .team-score { color: var(--text); font-weight: 700; }
 .win-arrow { margin-right: 7px; color: var(--red); font: 700 18px "DM Sans"; }
+.real-team-logo { object-fit: contain; background: transparent; border: 0; }
+.live-home { display: inline-flex; align-items: center; gap: 7px; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.avatar:disabled { cursor: default; opacity: .55; }
+.leader-button { width: 100%; color: inherit; background: transparent; text-align: left; cursor: pointer; }
+.leader-button:hover, .leader-button:focus-visible { background: rgba(90,168,255,.06); outline: none; }
+.leader-copy strong, .leader-copy small { display: block; }
+.standing-team { cursor: pointer; }
+.standing-team:hover, .standing-team:focus-visible { background: rgba(90,168,255,.07); outline: none; }
 
 .dashboard-grid {
   display: grid;

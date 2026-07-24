@@ -35,6 +35,9 @@
 .roster-heading p { margin-bottom: 3px; }
 .roster-heading span, .coach-list small { color: var(--muted); font-size: 10px; }
 .coach-list { display: grid; gap: 4px; text-align: right; }
+.coach-card { display: flex; justify-content: flex-end; align-items: center; gap: 9px; margin-top: 5px; }
+.coach-card > span:last-child { display: grid; }
+.coach-avatar { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--surface2); color: var(--blue); font: 600 12px Oswald; }
 .roster-table { width: 100%; min-width: 900px; border-collapse: collapse; font-size: 12px; }
 .roster-table th, .roster-table td { border-bottom: 1px solid var(--line); padding: 9px 12px; text-align: right; }
 .roster-table th:first-child, .roster-table td:first-child { text-align: left; }
@@ -46,7 +49,7 @@
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 .profile-row { cursor: pointer; }
 .profile-row:hover, .profile-row:focus { background: rgba(90,168,255,.06); outline: none; }
-.player-dialog { width: min(680px,calc(100vw - 28px)); max-height: 86vh; overflow: auto; border: 1px solid var(--line); border-radius: 12px; padding: 26px; background: var(--surface); color: var(--text); }
+.player-dialog { width: min(940px,calc(100vw - 28px)); max-height: 86vh; overflow: auto; border: 1px solid var(--line); border-radius: 12px; padding: 26px; background: var(--surface); color: var(--text); }
 .player-dialog::backdrop { background: rgba(2,7,14,.78); backdrop-filter: blur(4px); }
 .dialog-close { position: absolute; right: 14px; top: 12px; border: 0; background: transparent; color: var(--muted); font-size: 26px; cursor: pointer; }
 .player-profile-head { display: flex; align-items: center; gap: 18px; }
@@ -62,9 +65,10 @@
 .profile-stats small { color: var(--muted); font-size: 9px; }
 .profile-section { border-top: 1px solid var(--line); padding-top: 16px; margin-top: 16px; }
 .profile-section h3 { font: 600 16px Oswald; }
-.career-table { width: 100%; min-width: 720px; border-collapse: collapse; font-size: 10px; }
+.career-table { width: 100%; min-width: 820px; border-collapse: collapse; font-size: 11px; }
 .career-table th, .career-table td { padding: 9px 10px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
 .career-table th:first-child, .career-table td:first-child { text-align: left; }
+.career-table tbody tr:last-child { background: rgba(90,168,255,.08); }
 .award-list { display: flex; flex-wrap: wrap; gap: 7px; }
 .award-list span { padding: 6px 8px; border-radius: 5px; background: var(--surface2); font-size: 9px; }
 .profile-news { display: flex; justify-content: space-between; gap: 14px; padding: 10px 0; border-top: 1px solid var(--line); color: var(--text); text-decoration: none; font-size: 11px; }

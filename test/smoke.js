@@ -41,6 +41,9 @@ assert.equal(appSource.includes('selectScoreDate'), true, 'scoreboard dates shou
 assert.equal(appSource.includes('player.headshot'), true, 'game leaders should render available player photos');
 assert.equal(appSource.includes('NBA season history'), true, 'player profiles should include career season tables');
 assert.equal(appSource.includes('win-arrow'), true, 'final score cards should identify the winner without green market styling');
+assert.equal(appSource.includes('data-standing-team'), true, 'standings teams should open their roster');
+assert.equal(appSource.includes('data-leader-id'), true, 'game leaders should open player profiles');
+assert.equal(appSource.includes('real-team-logo'), true, 'score cards should use provider team logos');
 assert.equal(html.includes('id="calendarDate"'), true, 'date strip should include a calendar picker');
 assert.equal(html.includes('Boston Celtics'), false, 'published playoff UI should not hard-code Boston as the favorite');
 
