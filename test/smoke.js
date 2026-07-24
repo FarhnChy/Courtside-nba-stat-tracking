@@ -25,6 +25,7 @@ for (const route of ['/api/teams', '/api/injuries']) assert.equal(serverSource.i
 assert.equal(serverSource.includes('playerMatch'), true, 'server should expose player profiles');
 assert.equal(typeof adapter.normalizeTransactions, 'function');
 assert.equal(serverSource.includes('/api/transactions'), true, 'server should expose transactions');
+assert.equal(serverSource.includes('transactionsWithRosterReconciliation'), true, 'moves should reconcile stale transactions with current rosters');
 assert.equal(serverSource.includes('/api/finance/cap'), true, 'server should expose official cap thresholds');
 const finance = require('../lib/finance');
 assert.equal(finance.capOverview('2026-27').cap, 164961000);
@@ -47,6 +48,7 @@ assert.equal(appSource.includes('data-standing-team'), true, 'standings teams sh
 assert.equal(appSource.includes('data-leader-id'), true, 'game leaders should open player profiles');
 assert.equal(appSource.includes('real-team-logo'), true, 'score cards should use provider team logos');
 assert.equal(appSource.includes('data-score-team'), true, 'score-card logos should open team rosters');
+assert.equal(appSource.includes('data-summary-team'), true, 'expanded game logos should open team rosters');
 assert.equal(html.includes('data-roster-mode="coaches"'), true, 'team pages should offer a coaching staff view');
 assert.equal(appSource.includes('coaching-grid'), true, 'team pages should render coaching staff cards');
 assert.equal(html.includes('id="calendarDate"'), true, 'date strip should include a calendar picker');

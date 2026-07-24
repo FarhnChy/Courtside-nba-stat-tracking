@@ -107,6 +107,7 @@
 .transaction-panel > .muted { margin: 0 0 12px; }
 .transaction-item { display: grid; grid-template-columns: 46px 1fr; gap: 14px; padding: 16px 0; border-top: 1px solid var(--line); }
 .transaction-item > img { width: 46px; height: 46px; object-fit: contain; }
+.transaction-item > img.transaction-player-photo { border-radius: 50%; object-fit: cover; object-position: top; background: var(--surface2); }
 .transaction-item strong { font-size: 13px; }
 .transaction-item p { color: var(--muted); font-size: 12px; margin: 5px 0 0; }
 .transaction-link { display: inline-block; margin-top: 8px; color: var(--blue); font-size: 10px; text-decoration: none; }

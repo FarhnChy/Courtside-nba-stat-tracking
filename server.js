@@ -12,6 +12,16 @@ function json(res, status, body) {
   res.end(JSON.stringify(body));
 }
 
+async function transactionsWithRosterReconciliation() {
+  const base=await espn.transactions();
+  try {
+    const [market,directory]=await Promise.all([finance.freeAgents(),espn.teamsList()]);
+    const teams=new Map(directory.teams.map(team=>[team.abbreviation,team])); const text=base.transactions.map(item=>item.description.toLowerCase()).join('\n');
+    const additions=market.players.filter(player=>player.reconciled&&player.newTeam&&!text.includes(player.name.toLowerCase())).map(player=>{const team=teams.get(player.newTeam)||{};return {id:`roster-${player.id}-${player.newTeam}`,date:null,description:`Added ${player.name} to the current roster. Signing date and contract terms are not yet available from the transaction feed.`,type:'Signed',source:'roster-reconciliation',url:player.article||`https://www.espn.com/nba/team/transactions/_/name/${player.newTeam.toLowerCase()}`,player:{id:player.id,name:player.name,headshot:player.headshot},team:{id:team.id||player.newTeam,abbreviation:player.newTeam,displayName:team.displayName||player.newTeam,color:team.color||'#334155',logo:team.logo||null}}});
+    return {...base,count:base.transactions.length+additions.length,transactions:[...additions,...base.transactions]};
+  } catch(_){return base}
+}
+
 const server = http.createServer(async (req, res) => {
   const urlPath = decodeURIComponent(req.url.split('?')[0]);
   if (urlPath === '/api/health') return json(res, 200, { ok: true, provider: 'espn-site-api' });
@@ -67,7 +77,7 @@ const server = http.createServer(async (req, res) => {
     catch (error) { return json(res, 502, { error: 'Injury report unavailable', detail: error.message }); }
   }
   if (urlPath === '/api/transactions') {
-    try { return json(res, 200, await espn.transactions()); }
+    try { return json(res, 200, await transactionsWithRosterReconciliation()); }
     catch (error) { return json(res, 502, { error: 'Transactions unavailable', detail: error.message }); }
   }
   const playerMatch = urlPath.match(/^\/api\/players\/(\d+)$/);

@@ -263,6 +263,8 @@ main {
 .standing-team:hover, .standing-team:focus-visible { background: rgba(90,168,255,.07); outline: none; }
 .score-team-link { display: grid; place-items: center; width: 40px; padding: 0; border: 0; background: transparent; cursor: pointer; }
 .score-team-link:hover { transform: scale(1.08); }
+.summary-team-link { border: 0; background: transparent; color: inherit; cursor: pointer; }
+.summary-team-link:hover strong, .summary-team-link:focus-visible strong { color: var(--blue); }
 
 .dashboard-grid {
   display: grid;
