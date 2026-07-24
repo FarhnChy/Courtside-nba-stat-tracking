@@ -9,13 +9,19 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="live.css" />
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="#"><span class="brand-ball">C</span><span>COURTSIDE</span></a>
+    <a class="brand" href="#scores" aria-label="Courtside home"><img class="brand-mark" src="courtside-logo.webp" alt=""><span>COURTSIDE</span></a>
     <nav id="nav" aria-label="Main navigation">
       <button class="active" data-view="scores">Scores</button>
       <button data-view="standings">Standings</button>
+      <button data-view="teamsView">Teams</button>
+      <button data-view="injuriesView">Injuries</button>
+      <button data-view="transactionsView">Moves</button>
+      <button data-view="financeView">Finance</button>
+      <button data-view="freeAgentsView">Free Agents</button>
       <button data-view="predict">Predict</button>
       <button data-view="futures">Futures</button>
     </nav>
@@ -30,10 +36,10 @@
     </section>
 
     <section id="scores" class="view active-view">
-      <div class="section-heading"><div><p class="eyebrow">FRIDAY NIGHT BASKETBALL</p><h1>Tonight's games</h1></div><p class="muted">All times ET · Demo data</p></div>
+      <div class="section-heading"><div><p class="eyebrow">NBA GAME CENTER</p><h1>Daily games</h1></div><p class="muted" id="feedStatus" role="status" aria-live="polite">Connecting to live data…</p></div>
       <div class="score-grid" id="scoreGrid"></div>
       <div class="dashboard-grid">
-        <section class="panel game-center" id="gameCenter"></section>
+        <section class="panel game-center" id="gameCenter" aria-live="polite" aria-busy="false"></section>
         <aside class="side-stack">
           <section class="panel" id="leaders"></section>
           <section class="panel" id="injuries"></section>
@@ -42,7 +48,7 @@
     </section>
 
     <section id="standings" class="view">
-      <div class="section-heading"><div><p class="eyebrow">2025–26 SEASON</p><h1>Conference standings</h1></div><div class="segmented"><button class="active">East</button><button>West</button></div></div>
+      <div class="section-heading"><div><p class="eyebrow" id="standingsSeason">NBA SEASON</p><h1>Conference standings</h1></div><div class="segmented" id="conferencePicker"><button class="active" data-conference="east">East</button><button data-conference="west">West</button></div></div>
       <section class="panel table-panel" id="standingsTable"></section>
     </section>
 
@@ -51,11 +57,37 @@
       <div class="predict-grid"><section class="panel bracket" id="bracket"></section><aside class="panel model-card" id="modelCard"></aside></div>
     </section>
 
+    <section id="teamsView" class="view">
+      <div class="section-heading"><div><p class="eyebrow">ALL 30 CLUBS</p><h1>Teams & rosters</h1></div><select id="teamPicker" class="team-picker" aria-label="Select an NBA team"></select></div>
+      <section class="panel" id="rosterView"><div class="empty-state">Loading team directory…</div></section>
+    </section>
+
+    <section id="injuriesView" class="view">
+      <div class="section-heading"><div><p class="eyebrow">PLAYER AVAILABILITY</p><h1>League injury report</h1></div><p class="muted" id="injuryTimestamp">Loading updates…</p></div>
+      <div id="injuryReport" class="injury-grid"><div class="panel empty-state">Loading injury reports…</div></div>
+    </section>
+
+    <section id="transactionsView" class="view">
+      <div class="section-heading"><div><p class="eyebrow">LEAGUE ACTIVITY</p><h1>Transactions</h1></div><div class="transaction-filters"><select id="transactionTeam" class="team-picker" aria-label="Filter transactions by team"><option value="all">All teams</option></select><select id="transactionType" class="team-picker" aria-label="Filter transactions by type"><option value="all">All moves</option></select></div></div>
+      <section class="panel transaction-panel"><p class="muted" id="transactionTimestamp">Loading transactions…</p><div id="transactionList"></div></section>
+    </section>
+
+    <section id="financeView" class="view">
+      <div class="section-heading"><div><p class="eyebrow">ROSTER ECONOMICS</p><h1>Salary cap center</h1></div><select id="capSeason" class="team-picker" aria-label="Select cap season"><option>2026-27</option><option>2025-26</option></select></div>
+      <div id="capOverview"><section class="panel empty-state">Loading official cap thresholds…</section></div>
+    </section>
+
+    <section id="freeAgentsView" class="view">
+      <div class="section-heading"><div><p class="eyebrow">OFFSEASON MARKET</p><h1>Free agents</h1></div><div class="transaction-filters"><select id="freeAgentStatus" class="team-picker"><option value="Available">Available</option><option value="Signed">Signed</option><option value="all">All players</option></select><select id="freeAgentType" class="team-picker"><option value="all">UFA & RFA</option><option value="UFA">Unrestricted</option><option value="RFA">Restricted</option></select></div></div>
+      <section class="panel"><p class="muted" id="freeAgentTimestamp">Loading official tracker…</p><div id="freeAgentTable"><div class="empty-state">Loading free agents…</div></div></section>
+    </section>
+
     <section id="futures" class="view">
       <div class="section-heading"><div><p class="eyebrow">MODEL FORECASTS</p><h1>Season futures</h1></div><p class="muted">Updated after every game</p></div>
       <div class="futures-grid" id="futuresGrid"></div>
     </section>
   </main>
+  <dialog id="playerDialog" class="player-dialog" aria-labelledby="playerDialogTitle"><button class="dialog-close" id="closePlayerDialog" aria-label="Close player profile">×</button><div id="playerProfile"></div></dialog>
   <footer>COURTSIDE LABS <span>Independent basketball analytics concept · Not affiliated with the NBA or ESPN</span></footer>
   <script src="app.js"></script>
 </body>

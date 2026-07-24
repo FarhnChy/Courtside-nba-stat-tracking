@@ -4,12 +4,18 @@
 
 - [ ] Choose a licensed NBA data provider and document its terms, coverage, cost, and rate limits
 - [ ] Move the frontend to TypeScript and React/Next.js
-- [ ] Build a backend API with provider-independent adapters
+- [x] Build the first backend API adapter for scores and game summaries
 - [ ] Define normalized teams, players, games, plays, shots, injuries, officials, and predictions
 - [ ] Add PostgreSQL for durable game and historical data
-- [ ] Replace demo data with schedules, scores, box scores, rosters, standings, injuries, and officials
-- [ ] Add loading, empty, delayed-game, offline, missing-data, and provider-error states
-- [ ] Add unit, API-contract, accessibility, and end-to-end tests
+- [x] Expand the live schedules, scores, and full box-score slice to rosters, standings, and injuries
+- [x] Add current league transactions with team and move-type filtering
+- [x] Add verified contract, payroll, salary-cap, tax, and apron data
+- [x] Add official free-agent status, projected cap holds, and player/team contract options
+- [x] Polish roster and live box-score loading, accessibility, filtering, and error states
+- [x] Add roster search, position filters, keyboard interaction, and player profile cards
+- [x] Add loading, empty, offline, missing-data, and provider-error states
+- [x] Add smoke, normalization, API validation, and server tests
+- [ ] Add browser end-to-end and automated accessibility tests
 - [ ] Deploy preview and production environments with secrets stored outside Git
 
 **Milestone:** A deployed app showing real daily NBA schedules, scores, standings, rosters, and box scores through a documented backend API.
@@ -37,7 +43,7 @@
 - [ ] Simulate games, playoff series, brackets, seeding, conference winners, and Finals odds
 - [ ] Train shot-quality models when defender and tracking data are legally available
 - [ ] Forecast MVP, Rookie of the Year, and other awards with transparent features
-- [ ] Build a trade scenario evaluator before attempting speculative trade-likelihood predictions
+- [ ] Build a focused Fantasy Lab with configurable scoring, saved lineups, and schedule-aware projections
 - [ ] Track model version, input time, calibration, drift, and historical performance
 
 **Milestone:** Validated predictions with documented features, time-based testing, calibration metrics, and honest uncertainty.
@@ -48,7 +54,8 @@
 - [ ] Add Redis caching and live-update fan-out where measurements justify it
 - [ ] Secure sessions, validate external data, rate-limit APIs, and protect secrets
 - [ ] Complete keyboard, screen-reader, contrast, and responsive accessibility audits
-- [ ] Add CI checks for tests, formatting, accessibility, and production builds
+- [x] Add CI checks for the current automated test suite
+- [ ] Expand CI with formatting, browser accessibility, and production deployment checks
 - [ ] Monitor provider delay, stale games, duplicate events, API errors, and model drift
 - [ ] Add a custom domain, analytics, privacy controls, backups, and recovery procedures
 - [ ] Publish screenshots, an architecture diagram, a live demo, and versioned releases
