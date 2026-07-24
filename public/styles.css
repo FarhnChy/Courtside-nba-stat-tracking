@@ -261,6 +261,8 @@ main {
 .leader-copy strong, .leader-copy small { display: block; }
 .standing-team { cursor: pointer; }
 .standing-team:hover, .standing-team:focus-visible { background: rgba(90,168,255,.07); outline: none; }
+.score-team-link { display: grid; place-items: center; width: 40px; padding: 0; border: 0; background: transparent; cursor: pointer; }
+.score-team-link:hover { transform: scale(1.08); }
 
 .dashboard-grid {
   display: grid;
@@ -473,9 +475,9 @@ main {
   font-size: 11px;
 }
 
-.calendar-picker { position: relative; display: grid; place-items: center; width: 38px; height: 38px; color: var(--muted); cursor: pointer; }
+.calendar-picker { display: grid; place-items: center; width: 38px; height: 38px; border: 0; background: transparent; color: var(--muted); cursor: pointer; }
 .calendar-picker:hover { color: var(--text); }
-.calendar-picker input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.calendar-input { position: fixed; left: -9999px; width: 1px; height: 1px; opacity: 0; }
 
 .play time { color: var(--muted); }
 .play strong { display: block; font-size: 12px; margin-bottom: 2px; }

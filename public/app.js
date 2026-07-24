@@ -6,6 +6,7 @@ const teams = {
   MIN:{name:'Timberwolves',city:'Minnesota',color:'#0c2340'},PHX:{name:'Suns',city:'Phoenix',color:'#e56020'},
   ORL:{name:'Magic',city:'Orlando',color:'#178bd1'},PHI:{name:'76ers',city:'Philadelphia',color:'#d9283e'}
 };
+const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const games=[
  {id:1,away:'BOS',home:'NYK',as:87,hs:84,status:'LIVE',detail:'Q4 · 6:42',records:['44–16','38–22'],prob:[61,39]},
  {id:2,away:'DEN',home:'OKC',as:112,hs:118,status:'FINAL',detail:'Final',records:['40–21','48–12'],prob:[0,100]},
@@ -16,7 +17,7 @@ const logo=(code,cls='team-logo')=>teams[code]?.logo?`<img class="${cls} real-te
 function dateValue(date){return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`}
 function renderDates(){const root=document.querySelector('#dates');root.innerHTML='';for(let i=-3;i<=3;i++){const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()+i+dayOffset);root.innerHTML+=`<button class="date ${i===0?'active':''}" data-score-date="${dateValue(d)}"><span>${d.toLocaleDateString('en-US',{weekday:'short'})}</span><strong>${d.getDate()}</strong></button>`}root.querySelectorAll('[data-score-date]').forEach(button=>button.onclick=()=>selectScoreDate(button.dataset.scoreDate));const chosen=new Date();chosen.setDate(chosen.getDate()+dayOffset);const picker=document.querySelector('#calendarDate');if(picker)picker.value=dateValue(chosen)}
 function renderCards(){document.querySelector('#scoreGrid').innerHTML=games.map(g=>`<article class="score-card ${selected.id===g.id?'selected':''}" data-id="${g.id}"><div class="score-meta"><span class="${g.status==='LIVE'?'live':''}">${g.detail}</span><span>${g.status==='UPCOMING'?'MATCHUP':'NBA'}</span></div>${teamLine(g.away,g.records[0],g.as,g.status==='FINAL'&&g.as>g.hs)}${teamLine(g.home,g.records[1],g.hs,g.status==='FINAL'&&g.hs>g.as)}</article>`).join('');document.querySelectorAll('.score-card').forEach(c=>c.onclick=()=>{selected=games.find(g=>g.id==c.dataset.id);renderCards();renderGame()})}
-function teamLine(code,record,score,winner){return `<div class="team-row ${winner?'winner':''}">${logo(code)}<div><div class="team-name">${teams[code].city} <span class="team-full">${teams[code].name}</span></div><div class="record">${record}</div></div><div class="team-score">${winner?'<span class="win-arrow" aria-label="Winner">→</span>':''}${score??'—'}</div></div>`}
+function teamLine(code,record,score,winner){return `<div class="team-row ${winner?'winner':''}"><button class="score-team-link" data-score-team="${escapeHtml(teams[code]?.id||'')}" aria-label="Open ${escapeHtml(teams[code]?.city||code)} roster">${logo(code)}</button><div><div class="team-name">${teams[code].city} <span class="team-full">${teams[code].name}</span></div><div class="record">${record}</div></div><div class="team-score">${winner?'<span class="win-arrow" aria-label="Winner">→</span>':''}${score??'—'}</div></div>`}
 const shots=[['made',18,48],['miss',28,20],['made',37,67],['miss',48,87],['made',55,35],['made',64,71],['miss',73,17],['made',82,50],['miss',89,82],['made',43,13],['miss',67,43],['made',32,81]];
 const plays=[['6:42','J. Brunson','Driving layup made · 2 PTS'],['7:03','J. Tatum','25-foot three missed'],['7:18','K. Porziņģis','Defensive rebound'],['7:31','M. Bridges','Personal foul · 3rd'],['7:46','J. Brown','Pullup jumper made · 2 PTS']];
 function renderGame(){const g=selected,a=teams[g.away],h=teams[g.home];document.querySelector('#gameCenter').innerHTML=`<div class="panel-title"><h2>Game center</h2><span class="pill">${g.detail}</span></div><div class="game-scoreboard"><div class="big-team">${logo(g.away,'team-logo big-logo')}<div><strong>${a.name}</strong><div class="record">${g.records[0]}</div></div></div><div><div class="score-main">${g.as??'—'}<small>–</small>${g.hs??'—'}</div><div class="status-live">${g.status==='LIVE'?'● LIVE · '+g.detail:g.detail}</div></div><div class="big-team">${logo(g.home,'team-logo big-logo')}<div><strong>${h.name}</strong><div class="record">${g.records[1]}</div></div></div></div><div class="prob"><div class="prob-labels"><span>${g.away} ${g.prob[0]}%</span><span>LIVE WIN PROBABILITY</span><span>${g.home} ${g.prob[1]}%</span></div><div class="prob-bar"><span style="width:${g.prob[0]}%"></span><span style="width:${g.prob[1]}%"></span></div></div><div class="tabs"><button class="active">Shot chart</button><button>Team stats</button><button>Box score</button><button>Play-by-play</button></div><div class="court-wrap"><div class="court"><span class="hoop"></span>${shots.map(s=>`<span class="shot ${s[0]}" style="left:${s[1]}%;top:${s[2]}%">${s[0]==='made'?'○':'×'}</span>`).join('')}</div><div class="play-list">${plays.map(p=>`<div class="play"><time>${p[0]}</time><div><strong>${p[1]}</strong>${p[2]}</div></div>`).join('')}</div></div>`}
@@ -51,7 +52,6 @@ renderDates();renderCards();renderGame();renderSide();renderStandings();renderPr
 const live = { date: new Date(), timer: null, summaries: new Map(), source: 'demo' };
 const isoDate = date => `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
 function selectScoreDate(value) { const [year,month,day]=value.split('-').map(Number); const next=new Date(year,month-1,day,12); const today=new Date(); today.setHours(12,0,0,0); live.date=next; dayOffset=Math.round((next-today)/86400000); renderDates(); loadScoreboard(); }
-const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const statusLabel = status => status.state === 'in' && status.period ? `Q${status.period} · ${status.clock}` : status.detail;
 
 function installLiveGames(payload) {
@@ -63,7 +63,7 @@ function installLiveGames(payload) {
     return;
   }
   const normalized = payload.games.map(game => {
-    for (const side of [game.away, game.home]) teams[side.abbreviation] = { name: side.name, city: side.city, color: side.color, logo: side.logo };
+    for (const side of [game.away, game.home]) teams[side.abbreviation] = { id: side.id, name: side.name, city: side.city, color: side.color, logo: side.logo };
     return { id: game.id, away: game.away.abbreviation, home: game.home.abbreviation, as: game.away.score, hs: game.home.score, status: game.status.state === 'in' ? 'LIVE' : game.status.completed ? 'FINAL' : 'UPCOMING', detail: statusLabel(game.status), records: [game.away.record, game.home.record], prob: [50,50], raw: game };
   });
   const previousId = selected?.id;
@@ -156,6 +156,7 @@ function enhanceScoreCards() {
     card.setAttribute('aria-label', `${card.querySelectorAll('.team-name')[0]?.textContent || 'Away team'} versus ${card.querySelectorAll('.team-name')[1]?.textContent || 'home team'}`);
     card.onkeydown = event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); card.click(); setTimeout(enhanceScoreCards,0); } };
   });
+  document.querySelectorAll('.score-team-link[data-score-team]').forEach(button=>button.onclick=event=>{event.stopPropagation();if(button.dataset.scoreTeam)openTeamRoster(button.dataset.scoreTeam)});
 }
 
 document.querySelector('#scoreGrid').addEventListener('click', event => { const card = event.target.closest('.score-card'); if (card && live.source === 'live') setTimeout(() => { enhanceScoreCards(); loadGame(card.dataset.id); }, 0); });
@@ -163,6 +164,7 @@ enhanceScoreCards();
 document.querySelector('#prevDay').onclick = () => { live.date.setDate(live.date.getDate()-1); dayOffset--; renderDates(); loadScoreboard(); };
 document.querySelector('#nextDay').onclick = () => { live.date.setDate(live.date.getDate()+1); dayOffset++; renderDates(); loadScoreboard(); };
 document.querySelector('#calendarDate').onchange = event => { if (event.target.value) selectScoreDate(event.target.value); };
+document.querySelector('#calendarButton').onclick = () => { const picker=document.querySelector('#calendarDate'); if (typeof picker.showPicker==='function') picker.showPicker(); else picker.click(); };
 document.querySelector('#liveHome').onclick = () => { live.date=new Date(); dayOffset=0; renderDates(); activateView('scores'); loadScoreboard(); };
 loadScoreboard(); live.timer = setInterval(() => loadScoreboard(true), 20_000);
 
@@ -207,16 +209,19 @@ async function loadTeams() {
   } catch (error) { document.querySelector('#rosterView').innerHTML = '<div class="empty-state">Team directory is temporarily unavailable.</div>'; }
 }
 
-const rosterState = { roster: null, query: '', position: 'all' };
+const rosterState = { roster: null, query: '', position: 'all', mode: 'players' };
 function renderRosterData() {
   const roster = rosterState.roster; const root = document.querySelector('#rosterView');
   if (!roster) return;
   const query = rosterState.query.toLowerCase();
+  document.querySelectorAll('#rosterMode button').forEach(button=>button.classList.toggle('active',button.dataset.rosterMode===rosterState.mode));
   const players = roster.players.filter(player => (!query || player.name.toLowerCase().includes(query)) && (rosterState.position === 'all' || player.position === rosterState.position));
   const positions = [...new Set(roster.players.map(player=>player.position).filter(Boolean))].sort();
   root.innerHTML = `<div class="roster-heading">${roster.team.logo?`<img src="${escapeHtml(roster.team.logo)}" alt="">`:''}<div><p class="eyebrow">CURRENT ROSTER</p><h2>${escapeHtml(roster.team.displayName)}</h2><span>${roster.players.length} players · ${players.length} shown</span></div><div class="coach-list"><small>COACHING STAFF</small>${roster.coaches.length?roster.coaches.map(coach=>`<strong>${escapeHtml(coach.name)}</strong>`).join(''):'<strong>Not listed</strong>'}</div></div><div class="roster-tools"><label><span>Search roster</span><input id="rosterSearch" type="search" value="${escapeHtml(rosterState.query)}" placeholder="Player name"></label><label><span>Position</span><select id="rosterPosition"><option value="all">All positions</option>${positions.map(position=>`<option value="${escapeHtml(position)}" ${rosterState.position===position?'selected':''}>${escapeHtml(position)}</option>`).join('')}</select></label></div><div class="table-scroll"><table class="roster-table"><caption class="sr-only">${escapeHtml(roster.team.displayName)} current roster</caption><thead><tr><th>Player</th><th>#</th><th>Pos</th><th>Age</th><th>Height</th><th>Weight</th><th>Experience</th><th>College</th><th>Status</th></tr></thead><tbody>${players.map(player=>`<tr class="profile-row" data-player-id="${player.id}" tabindex="0"><td><div class="player-cell">${player.headshot?`<img src="${escapeHtml(player.headshot)}" alt="">`:'<span class="player-placeholder"></span>'}<strong>${escapeHtml(player.name)}</strong></div></td><td>${escapeHtml(player.jersey)}</td><td>${escapeHtml(player.position)}</td><td>${escapeHtml(player.age)}</td><td>${escapeHtml(player.height)}</td><td>${escapeHtml(player.weight)}</td><td>${player.experience===0?'R':escapeHtml(player.experience)}</td><td>${escapeHtml(player.college)}</td><td><span class="availability ${player.injuries.length?'limited':'active'}">${escapeHtml(player.injuries[0]?.status || player.status)}</span></td></tr>`).join('')}</tbody></table></div>${players.length?'':'<div class="empty-state">No roster players match this filter.</div>'}`;
-  const coachList = root.querySelector('.coach-list');
-  if (coachList) coachList.innerHTML = `<small>PROVIDER-LISTED COACHING STAFF</small>${roster.coaches.length?roster.coaches.map(coach=>`<div class="coach-card"><span class="coach-avatar">${escapeHtml(coach.name.split(' ').map(part=>part[0]).slice(0,2).join(''))}</span><span><strong>${escapeHtml(coach.name)}</strong><small>${coach.experience??0} years NBA coaching experience</small></span></div>`).join(''):'<strong>Not listed by the provider</strong>'}`;
+  const coachList = root.querySelector('.coach-list'); if (coachList) coachList.remove();
+  const rosterTools = root.querySelector('.roster-tools'); const playerTable = rosterTools?.nextElementSibling;
+  const coaching = document.createElement('section'); coaching.className='coaching-roster'; coaching.innerHTML=`<div class="coaching-heading"><p class="eyebrow">COACHING STAFF</p><h3>${roster.coaches.length} staff members</h3></div><div class="coaching-grid">${roster.coaches.length?roster.coaches.map(coach=>`<article class="coach-profile">${coach.headshot?`<img src="${escapeHtml(coach.headshot)}" alt="${escapeHtml(coach.name)}">`:`<span class="coach-avatar">${escapeHtml(coach.name.split(' ').map(part=>part[0]).slice(0,2).join(''))}</span>`}<div><strong>${escapeHtml(coach.name)}</strong><span>${escapeHtml(coach.role||'Coach')}</span></div></article>`).join(''):'<div class="empty-state">Coaching staff information is unavailable.</div>'}</div>`; root.append(coaching);
+  const showCoaches=rosterState.mode==='coaches'; if(rosterTools)rosterTools.hidden=showCoaches;if(playerTable)playerTable.hidden=showCoaches;coaching.hidden=!showCoaches;
   const search = document.querySelector('#rosterSearch'); const position = document.querySelector('#rosterPosition');
   search.oninput = () => { rosterState.query = search.value; renderRosterData(); const next=document.querySelector('#rosterSearch'); next.focus(); next.setSelectionRange(next.value.length,next.value.length); };
   position.onchange = () => { rosterState.position = position.value; renderRosterData(); };
@@ -237,8 +242,8 @@ async function openPlayerProfile(id, playerOverride = null, teamOverride = '') {
   root.innerHTML = `${header}<div class="empty-state compact-empty">Loading season statistics…</div>`; dialog.showModal();
   try {
     const response = await fetch(`/api/players/${id}`); if (!response.ok) throw new Error('Profile unavailable'); const profile=await response.json();
-    const history = profile.history || []; const latest = history[history.length-1];
-    root.innerHTML = `${header}${latest?`<div class="profile-stats">${['PTS','REB','AST','FG%'].map(label=>`<div><strong>${escapeHtml(latest.values[label]??'—')}</strong><small>${label}</small></div>`).join('')}</div><div class="profile-section"><h3>NBA season history</h3><div class="table-scroll"><table class="career-table"><thead><tr><th>Season</th><th>Team</th><th>GP</th><th>MIN</th><th>PTS</th><th>REB</th><th>AST</th><th>FG%</th><th>3P%</th><th>FT%</th><th>STL</th><th>BLK</th></tr></thead><tbody>${history.map(row=>`<tr><td><strong>${escapeHtml(row.season)}</strong></td><td>${escapeHtml(row.team)}</td>${['GP','MIN','PTS','REB','AST','FG%','3P%','FT%','STL','BLK'].map(label=>`<td>${escapeHtml(row.values[label]??'—')}</td>`).join('')}</tr>`).join('')}</tbody></table></div></div>`:'<div class="empty-state compact-empty">Career statistics are not currently available.</div>'}`;
+    const history = profile.history || []; const latest = history[history.length-1]; const detailedPlayer={...player,position:profile.positions||player.position}; const detailedHeader=playerProfileHeader(detailedPlayer,teamName);
+    root.innerHTML = `${detailedHeader}${latest?`<div class="profile-stats">${['PTS','REB','AST','FG%'].map(label=>`<div><strong>${escapeHtml(latest.values[label]??'—')}</strong><small>${label}</small></div>`).join('')}</div><div class="profile-section"><h3>NBA season history</h3><div class="table-scroll"><table class="career-table"><thead><tr><th>Season</th><th>Team</th><th>GP</th><th>MIN</th><th>PTS</th><th>REB</th><th>AST</th><th>FG%</th><th>3P%</th><th>FT%</th><th>STL</th><th>BLK</th></tr></thead><tbody>${history.map(row=>`<tr><td><strong>${escapeHtml(row.season)}</strong></td><td>${escapeHtml(row.team)}</td>${['GP','MIN','PTS','REB','AST','FG%','3P%','FT%','STL','BLK'].map(label=>`<td>${escapeHtml(row.values[label]??'—')}</td>`).join('')}</tr>`).join('')}</tbody></table></div></div>`:'<div class="empty-state compact-empty">Career statistics are not currently available.</div>'}${profile.awards?.length?`<div class="profile-section"><h3>Career accolades</h3><div class="accolade-grid">${profile.awards.map(award=>`<article><strong>${escapeHtml(award.count)} ${escapeHtml(award.name)}</strong><small>${escapeHtml((award.seasons||[]).join(' · '))}</small></article>`).join('')}</div></div>`:''}`;
   } catch(error) { root.innerHTML = `${header}<div class="empty-state compact-empty">Season statistics are temporarily unavailable.</div>`; }
 }
 
@@ -253,6 +258,8 @@ async function loadRoster(teamId) {
     rosterState.roster = roster; rosterState.query = ''; rosterState.position = 'all'; renderRosterData();
   } catch (error) { root.innerHTML = '<div class="empty-state">This roster is temporarily unavailable.</div>'; }
 }
+
+document.querySelectorAll('#rosterMode button').forEach(button=>button.onclick=()=>{rosterState.mode=button.dataset.rosterMode;renderRosterData()});
 
 async function loadInjuries() {
   const root = document.querySelector('#injuryReport');

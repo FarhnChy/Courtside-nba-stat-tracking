@@ -32,7 +32,7 @@
     <section class="date-strip">
       <button class="arrow" id="prevDay">‹</button>
       <div class="dates" id="dates"></div>
-      <label class="calendar-picker" title="Choose a date"><span aria-hidden="true">▦</span><span class="sr-only">Choose date</span><input id="calendarDate" type="date" aria-label="Choose scoreboard date"></label>
+      <button class="calendar-picker" id="calendarButton" type="button" title="Choose a date" aria-label="Open calendar">▦</button><input class="calendar-input" id="calendarDate" type="date" aria-label="Choose scoreboard date">
       <button class="arrow" id="nextDay">›</button>
     </section>
 
@@ -59,7 +59,7 @@
     </section>
 
     <section id="teamsView" class="view">
-      <div class="section-heading"><div><p class="eyebrow">ALL 30 CLUBS</p><h1>Teams & rosters</h1></div><select id="teamPicker" class="team-picker" aria-label="Select an NBA team"></select></div>
+      <div class="section-heading"><div><p class="eyebrow">ALL 30 CLUBS</p><h1>Teams & rosters</h1></div><div class="team-view-controls"><div class="segmented" id="rosterMode"><button class="active" data-roster-mode="players">Players</button><button data-roster-mode="coaches">Coaching staff</button></div><select id="teamPicker" class="team-picker" aria-label="Select an NBA team"></select></div></div>
       <section class="panel" id="rosterView"><div class="empty-state">Loading team directory…</div></section>
     </section>
 

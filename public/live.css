@@ -38,6 +38,16 @@
 .coach-card { display: flex; justify-content: flex-end; align-items: center; gap: 9px; margin-top: 5px; }
 .coach-card > span:last-child { display: grid; }
 .coach-avatar { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--surface2); color: var(--blue); font: 600 12px Oswald; }
+.team-view-controls { display: flex; align-items: center; gap: 10px; }
+.coaching-roster { border-top: 1px solid var(--line); padding-top: 20px; }
+.coaching-heading h3 { margin: 2px 0 16px; font: 600 20px Oswald; }
+.coaching-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; }
+.coach-profile { display: flex; align-items: center; gap: 12px; min-width: 0; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: rgba(90,168,255,.035); }
+.coach-profile img, .coach-profile .coach-avatar { flex: 0 0 58px; width: 58px; height: 58px; border-radius: 50%; object-fit: cover; object-position: top; background: var(--surface2); }
+.coach-profile div { min-width: 0; }
+.coach-profile strong, .coach-profile div span { display: block; }
+.coach-profile strong { font-size: 12px; }
+.coach-profile div span { margin-top: 3px; color: var(--muted); font-size: 10px; }
 .roster-table { width: 100%; min-width: 900px; border-collapse: collapse; font-size: 12px; }
 .roster-table th, .roster-table td { border-bottom: 1px solid var(--line); padding: 9px 12px; text-align: right; }
 .roster-table th:first-child, .roster-table td:first-child { text-align: left; }
@@ -69,6 +79,11 @@
 .career-table th, .career-table td { padding: 9px 10px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
 .career-table th:first-child, .career-table td:first-child { text-align: left; }
 .career-table tbody tr:last-child { background: rgba(90,168,255,.08); }
+.accolade-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; margin-top: 10px; }
+.accolade-grid article { padding: 11px 12px; border: 1px solid var(--line); border-radius: 7px; background: rgba(90,168,255,.04); }
+.accolade-grid strong, .accolade-grid small { display: block; }
+.accolade-grid strong { font-size: 11px; }
+.accolade-grid small { margin-top: 5px; color: var(--muted); font-size: 9px; line-height: 1.4; }
 .award-list { display: flex; flex-wrap: wrap; gap: 7px; }
 .award-list span { padding: 6px 8px; border-radius: 5px; background: var(--surface2); font-size: 9px; }
 .profile-news { display: flex; justify-content: space-between; gap: 14px; padding: 10px 0; border-top: 1px solid var(--line); color: var(--text); text-decoration: none; font-size: 11px; }
@@ -85,6 +100,8 @@
 .injury-card small, .injury-card p, .return-date { color: var(--muted); font-size: 10px; }
 .injury-card p { line-height: 1.45; margin: 7px 0; }
 @media(max-width:850px){.injury-grid{grid-template-columns:1fr}.roster-heading{grid-template-columns:60px 1fr}.roster-heading>img{width:54px;height:54px}.coach-list{grid-column:1/-1;text-align:left}.team-picker{min-width:150px;max-width:48vw}}
+@media(max-width:850px){.team-view-controls{align-items:flex-end;flex-direction:column}.coaching-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.coaching-grid{grid-template-columns:1fr}}
 .transaction-filters { display: flex; gap: 8px; }
 .transaction-panel > .muted { margin: 0 0 12px; }
 .transaction-item { display: grid; grid-template-columns: 46px 1fr; gap: 14px; padding: 16px 0; border-top: 1px solid var(--line); }
@@ -168,4 +185,5 @@
   .roster-tools label, .roster-tools input, .roster-tools select { min-width: 0; width: 100%; }
   .player-dialog { padding: 22px 18px; }
   .profile-stats { grid-template-columns: repeat(2, 1fr); }
+  .accolade-grid { grid-template-columns: 1fr; }
 }
