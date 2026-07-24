@@ -251,7 +251,8 @@ main {
 .team-name { font-weight: 700; font-size: 14px; }
 .record { color: var(--muted); font-size: 10px; }
 .team-score { font: 600 24px Oswald; }
-.winner .team-score { color: var(--green); }
+.winner .team-score { color: #ff7782; font-weight: 700; }
+.win-arrow { margin-right: 7px; color: var(--red); font: 700 18px "DM Sans"; }
 
 .dashboard-grid {
   display: grid;

@@ -62,6 +62,9 @@
 .profile-stats small { color: var(--muted); font-size: 9px; }
 .profile-section { border-top: 1px solid var(--line); padding-top: 16px; margin-top: 16px; }
 .profile-section h3 { font: 600 16px Oswald; }
+.career-table { width: 100%; min-width: 720px; border-collapse: collapse; font-size: 10px; }
+.career-table th, .career-table td { padding: 9px 10px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+.career-table th:first-child, .career-table td:first-child { text-align: left; }
 .award-list { display: flex; flex-wrap: wrap; gap: 7px; }
 .award-list span { padding: 6px 8px; border-radius: 5px; background: var(--surface2); font-size: 9px; }
 .profile-news { display: flex; justify-content: space-between; gap: 14px; padding: 10px 0; border-top: 1px solid var(--line); color: var(--text); text-decoration: none; font-size: 11px; }
@@ -84,6 +87,8 @@
 .transaction-item > img { width: 46px; height: 46px; object-fit: contain; }
 .transaction-item strong { font-size: 13px; }
 .transaction-item p { color: var(--muted); font-size: 12px; margin: 5px 0 0; }
+.transaction-link { display: inline-block; margin-top: 8px; color: var(--blue); font-size: 10px; text-decoration: none; }
+.transaction-link:hover { text-decoration: underline; }
 .transaction-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
 .transaction-meta time { color: var(--muted); font-size: 10px; }
 .move-type { color: var(--green); background: rgba(64,217,148,.11); border-radius: 20px; padding: 3px 7px; font-size: 9px; font-weight: 700; text-transform: uppercase; }

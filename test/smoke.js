@@ -20,6 +20,7 @@ assert.equal(typeof adapter.normalizeSummary, 'function');
 assert.equal(typeof adapter.normalizeStandings, 'function');
 assert.equal(serverSource.includes('/api/standings'), true, 'server should expose live standings');
 for (const method of ['normalizeTeams', 'normalizeRoster', 'normalizeInjuries']) assert.equal(typeof adapter[method], 'function');
+assert.equal(typeof adapter.normalizePlayerHistory, 'function');
 for (const route of ['/api/teams', '/api/injuries']) assert.equal(serverSource.includes(route), true, `server should expose ${route}`);
 assert.equal(serverSource.includes('playerMatch'), true, 'server should expose player profiles');
 assert.equal(typeof adapter.normalizeTransactions, 'function');
@@ -38,6 +39,8 @@ assert.equal(appSource.includes('viewRoutes'), true, 'primary screens should hav
 assert.equal(appSource.includes('.box-player[data-player-id]'), true, 'box-score players should open profiles');
 assert.equal(appSource.includes('selectScoreDate'), true, 'scoreboard dates should be directly selectable');
 assert.equal(appSource.includes('player.headshot'), true, 'game leaders should render available player photos');
+assert.equal(appSource.includes('NBA season history'), true, 'player profiles should include career season tables');
+assert.equal(appSource.includes('win-arrow'), true, 'final score cards should identify the winner without green market styling');
 assert.equal(html.includes('id="calendarDate"'), true, 'date strip should include a calendar picker');
 assert.equal(html.includes('Boston Celtics'), false, 'published playoff UI should not hard-code Boston as the favorite');
 
