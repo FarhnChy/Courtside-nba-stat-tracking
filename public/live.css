@@ -110,6 +110,9 @@
 .transaction-item > img.transaction-player-photo { border-radius: 50%; object-fit: cover; object-position: top; background: var(--surface2); }
 .transaction-item strong { font-size: 13px; }
 .transaction-item p { color: var(--muted); font-size: 12px; margin: 5px 0 0; }
+.move-contract { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin-top: 9px; }
+.move-contract strong { padding: 5px 8px; border-radius: 6px; background: rgba(90,168,255,.1); color: var(--blue); font-size: 11px; }
+.move-contract span { color: var(--muted); font-size: 10px; }
 .transaction-link { display: inline-block; margin-top: 8px; color: var(--blue); font-size: 10px; text-decoration: none; }
 .transaction-link:hover { text-decoration: underline; }
 .transaction-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }

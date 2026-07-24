@@ -1,0 +1,30 @@
+// Confirmed 2026 offseason contract terms reported in the ESPN buzz tracker
+// supplied on July 24, 2026. Rumors and unresolved negotiations are excluded.
+module.exports = [
+  ['2026-07-24','LeBron James','PHI','Signed',2,8000000,'Player option'],
+  ['2026-07-23','Jordan Walsh','BOS','Extension',3,15000000,null],
+  ['2026-07-20','Matisse Thybulle','LAL','Signed',1,3300000,null],
+  ['2026-07-13','Jordan McLaughlin','SAS','Re-signed',1,3300000,null],
+  ['2026-07-13','Ziaire Williams','LAL','Signed',1,3000000,null],
+  ['2026-07-10','Victor Wembanyama','SAS','Extension',5,252000000,'Player option in year 5','1641705'],
+  ['2026-07-09','Jordan Clarkson','NYK','Re-signed',1,3900000,null],
+  ['2026-07-08','Larry Nance Jr.','IND','Signed',1,4000000,null],
+  ['2026-07-07','Khris Middleton','WAS','Sign-and-trade',3,17600000,null],
+  ['2026-07-07','Kevon Looney','LAL','Signed',1,3900000,null],
+  ['2026-07-07','Donovan Mitchell','CLE','Extension',4,273000000,'Player option in 2030-31; full trade kicker','1628378'],
+  ['2026-07-06','Rui Hachimura','LAC','Signed',2,28000000,null],
+  ['2026-07-03','Josh Okogie','UTA','Signed',2,12000000,null],
+  ['2026-07-03','Andre Drummond','NYK','Signed',1,3900000,null],
+  ['2026-07-03','Jordan Miller','LAC','Re-signed',3,15300000,null],
+  ['2026-07-03','Javonte Green','DET','Re-signed',1,3950000,null],
+  ['2026-07-03','Neemias Queta','BOS','Extension',4,56000000,null],
+  ['2026-06-25','Mark Williams','PHX','Re-signed',3,38000000,null],
+  ['2026-06-25','Coby White','CHA','Re-signed',3,74000000,null],
+  ['2026-06-25','Al Horford','GSW','Re-signed',2,14000000,'Fully guaranteed; trade kicker'],
+  ['2026-06-24','Austin Reaves','LAL','Re-signed',4,185000000,'Player option in 2029-30'],
+  ['2026-06-22','Ayo Dosunmu','MIN','Re-signed',5,112000000,'Player option in year 5'],
+  ['2026-06-22','Trae Young','WAS','Extension',4,212000000,null],
+  ['2026-06-21','Jordan Goodwin','PHX','Re-signed',3,19000000,'Player option in year 3'],
+  ['2026-06-21','CJ McCollum','ATL','Extension',1,21000000,'Trade kicker'],
+  ['2026-06-20','Collin Gillespie','PHX','Re-signed',4,48000000,null]
+].map(([date, player, team, type, years, value, details, playerId]) => ({ date, player, playerId: playerId || null, team, type, contract: { years, value, details } }));

@@ -3,6 +3,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const espn = require('./lib/espn');
 const finance = require('./lib/finance');
+const offseasonContracts = require('./data/offseasonContracts');
+const offseasonTrades = require('./data/offseasonTrades');
 
 const root = path.join(__dirname, 'public');
 const types = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8', '.svg': 'image/svg+xml', '.webp': 'image/webp', '.png': 'image/png' };
@@ -16,9 +18,21 @@ async function transactionsWithRosterReconciliation() {
   const base=await espn.transactions();
   try {
     const [market,directory]=await Promise.all([finance.freeAgents(),espn.teamsList()]);
-    const teams=new Map(directory.teams.map(team=>[team.abbreviation,team])); const text=base.transactions.map(item=>item.description.toLowerCase()).join('\n');
-    const additions=market.players.filter(player=>player.reconciled&&player.newTeam&&!text.includes(player.name.toLowerCase())).map(player=>{const team=teams.get(player.newTeam)||{};return {id:`roster-${player.id}-${player.newTeam}`,date:null,description:`Added ${player.name} to the current roster. Signing date and contract terms are not yet available from the transaction feed.`,type:'Signed',source:'roster-reconciliation',url:player.article||`https://www.espn.com/nba/team/transactions/_/name/${player.newTeam.toLowerCase()}`,player:{id:player.id,name:player.name,headshot:player.headshot},team:{id:team.id||player.newTeam,abbreviation:player.newTeam,displayName:team.displayName||player.newTeam,color:team.color||'#334155',logo:team.logo||null}}});
-    return {...base,count:base.transactions.length+additions.length,transactions:[...additions,...base.transactions]};
+    const teamAliases={GSW:'GS',NOP:'NO',NYK:'NY',SAS:'SA',UTA:'UTAH',WAS:'WSH'};
+    const teams=new Map(directory.teams.map(team=>[team.abbreviation,team]));
+    const marketPlayers=new Map(market.players.map(player=>[player.name.toLowerCase(),player]));
+    const coveredPlayers=new Set();
+    const enriched=base.transactions.map(item=>{const description=item.description.toLowerCase();const matchedPlayer=market.players.find(player=>description.includes(player.name.toLowerCase()));const playerData=matchedPlayer?{id:matchedPlayer.id,name:matchedPlayer.name,headshot:matchedPlayer.headshot}:item.player;const report=offseasonContracts.find(entry=>(teamAliases[entry.team]||entry.team)===item.team.abbreviation&&description.includes(entry.player.toLowerCase()));if(!report)return {...item,player:playerData};coveredPlayers.add(report.player);const player=marketPlayers.get(report.player.toLowerCase());return {...item,contract:report.contract,source:'espn-2026-buzz',player:player?{id:player.id,name:player.name,headshot:player.headshot}:playerData};});
+    const reported=offseasonContracts.filter(entry=>!coveredPlayers.has(entry.player)).map(entry=>{const abbreviation=teamAliases[entry.team]||entry.team;const team=teams.get(abbreviation)||{};const player=marketPlayers.get(entry.player.toLowerCase());const playerId=player?.id||entry.playerId;return {id:`reported-${entry.date}-${entry.team}-${entry.player.toLowerCase().replace(/[^a-z0-9]+/g,'-')}`,date:`${entry.date}T12:00:00Z`,description:`${entry.type}: ${entry.player}.`,type:entry.type,source:'espn-2026-buzz',url:player?.article||'https://www.espn.com/nba/nba-free-agency/',contract:entry.contract,player:{id:playerId,name:entry.player,headshot:player?.headshot||(playerId?`https://cdn.nba.com/headshots/nba/latest/1040x760/${playerId}.png`:null)},team:{id:team.id||abbreviation,abbreviation,displayName:team.displayName||entry.team,color:team.color||'#334155',logo:team.logo||null}}});
+    const trades=offseasonTrades.map(entry=>{const abbreviation=teamAliases[entry.team]||entry.team;const team=teams.get(abbreviation)||{};return {id:`trade-${entry.date}-${entry.player.id}`,date:`${entry.date}T12:00:00Z`,description:entry.description,type:'Trade',source:'espn-2026-trade-tracker',url:entry.source,player:{...entry.player,headshot:`https://cdn.nba.com/headshots/nba/latest/1040x760/${entry.player.id}.png`},team:{id:team.id||abbreviation,abbreviation,displayName:team.displayName||entry.team,color:team.color||'#334155',logo:team.logo||null}}});
+    const text=[...enriched.map(item=>item.description.toLowerCase()),...reported.map(item=>item.description.toLowerCase())].join('\n');
+    const additions=market.players.filter(player=>player.reconciled&&player.newTeam&&player.article&&player.reportedAt&&!text.includes(player.name.toLowerCase())).map(player=>{const team=teams.get(player.newTeam)||{};return {id:`reported-signing-${player.id}-${player.newTeam}`,date:player.reportedAt,dateLabel:'Reported',description:`${player.articleLabel||'Reported signing'}: ${player.name}.`,type:'Signed',source:'nba-free-agent-tracker',url:player.article,player:{id:player.id,name:player.name,headshot:player.headshot},team:{id:team.id||player.newTeam,abbreviation:player.newTeam,displayName:team.displayName||player.newTeam,color:team.color||'#334155',logo:team.logo||null}}});
+    // A reconciled roster move is current but undated. Keep it immediately below
+    // the latest dated report instead of hiding it beneath the full dated feed.
+    const tradeNames=new Set(trades.map(item=>item.player.name.toLowerCase()));
+    const deduped=enriched.filter(item=>!([...tradeNames].some(name=>item.description.toLowerCase().includes(name))&&item.type==='Trade'));
+    const transactions=[...reported,...trades,...additions,...deduped].sort((a,b)=>(Date.parse(b.date)||0)-(Date.parse(a.date)||0));
+    return {...base,count:transactions.length,transactions};
   } catch(_){return base}
 }
 
