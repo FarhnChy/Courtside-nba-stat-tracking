@@ -48,6 +48,7 @@
 .coach-profile strong, .coach-profile div span { display: block; }
 .coach-profile strong { font-size: 12px; }
 .coach-profile div span { margin-top: 3px; color: var(--muted); font-size: 10px; }
+.coach-profile div small { display: block; margin-top: 4px; color: var(--gold); font-size: 9px; }
 .roster-table { width: 100%; min-width: 900px; border-collapse: collapse; font-size: 12px; }
 .roster-table th, .roster-table td { border-bottom: 1px solid var(--line); padding: 9px 12px; text-align: right; }
 .roster-table th:first-child, .roster-table td:first-child { text-align: left; }
