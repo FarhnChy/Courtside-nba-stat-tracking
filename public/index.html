@@ -32,6 +32,7 @@
     <section class="date-strip">
       <button class="arrow" id="prevDay">‹</button>
       <div class="dates" id="dates"></div>
+      <label class="calendar-picker" title="Choose a date"><span aria-hidden="true">▦</span><span class="sr-only">Choose date</span><input id="calendarDate" type="date" aria-label="Choose scoreboard date"></label>
       <button class="arrow" id="nextDay">›</button>
     </section>
 
@@ -53,7 +54,7 @@
     </section>
 
     <section id="predict" class="view">
-      <div class="section-heading"><div><p class="eyebrow">10,000 MONTE CARLO SIMULATIONS</p><h1>Playoff predictor</h1></div><button class="primary" id="simulate">Run simulation</button></div>
+      <div class="section-heading"><div><p class="eyebrow">MODEL DEVELOPMENT</p><h1>Playoff predictor</h1></div></div>
       <div class="predict-grid"><section class="panel bracket" id="bracket"></section><aside class="panel model-card" id="modelCard"></aside></div>
     </section>
 
@@ -83,7 +84,7 @@
     </section>
 
     <section id="futures" class="view">
-      <div class="section-heading"><div><p class="eyebrow">MODEL FORECASTS</p><h1>Season futures</h1></div><p class="muted">Updated after every game</p></div>
+      <div class="section-heading"><div><p class="eyebrow">MODEL DEVELOPMENT</p><h1>Season futures</h1></div></div>
       <div class="futures-grid" id="futuresGrid"></div>
     </section>
   </main>

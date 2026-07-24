@@ -13,19 +13,20 @@ const games=[
 ];
 let selected=games[0], dayOffset=0;
 const logo=(code,cls='team-logo')=>`<span class="${cls}" style="--team:${teams[code].color}">${code}</span>`;
-function renderDates(){const root=document.querySelector('#dates');root.innerHTML='';for(let i=-3;i<=3;i++){const d=new Date();d.setDate(d.getDate()+i+dayOffset);root.innerHTML+=`<div class="date ${i===0?'active':''}">${d.toLocaleDateString('en-US',{weekday:'short'})}<strong>${d.getDate()}</strong></div>`}}
+function dateValue(date){return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`}
+function renderDates(){const root=document.querySelector('#dates');root.innerHTML='';for(let i=-3;i<=3;i++){const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()+i+dayOffset);root.innerHTML+=`<button class="date ${i===0?'active':''}" data-score-date="${dateValue(d)}"><span>${d.toLocaleDateString('en-US',{weekday:'short'})}</span><strong>${d.getDate()}</strong></button>`}root.querySelectorAll('[data-score-date]').forEach(button=>button.onclick=()=>selectScoreDate(button.dataset.scoreDate));const chosen=new Date();chosen.setDate(chosen.getDate()+dayOffset);const picker=document.querySelector('#calendarDate');if(picker)picker.value=dateValue(chosen)}
 function renderCards(){document.querySelector('#scoreGrid').innerHTML=games.map(g=>`<article class="score-card ${selected.id===g.id?'selected':''}" data-id="${g.id}"><div class="score-meta"><span class="${g.status==='LIVE'?'live':''}">${g.detail}</span><span>${g.status==='UPCOMING'?'MATCHUP':'NBA'}</span></div>${teamLine(g.away,g.records[0],g.as,g.as>g.hs)}${teamLine(g.home,g.records[1],g.hs,g.hs>g.as)}</article>`).join('');document.querySelectorAll('.score-card').forEach(c=>c.onclick=()=>{selected=games.find(g=>g.id==c.dataset.id);renderCards();renderGame()})}
 function teamLine(code,record,score,winner){return `<div class="team-row ${winner?'winner':''}">${logo(code)}<div><div class="team-name">${teams[code].city} <span class="team-full">${teams[code].name}</span></div><div class="record">${record}</div></div><div class="team-score">${score??'—'}</div></div>`}
 const shots=[['made',18,48],['miss',28,20],['made',37,67],['miss',48,87],['made',55,35],['made',64,71],['miss',73,17],['made',82,50],['miss',89,82],['made',43,13],['miss',67,43],['made',32,81]];
 const plays=[['6:42','J. Brunson','Driving layup made · 2 PTS'],['7:03','J. Tatum','25-foot three missed'],['7:18','K. Porziņģis','Defensive rebound'],['7:31','M. Bridges','Personal foul · 3rd'],['7:46','J. Brown','Pullup jumper made · 2 PTS']];
 function renderGame(){const g=selected,a=teams[g.away],h=teams[g.home];document.querySelector('#gameCenter').innerHTML=`<div class="panel-title"><h2>Game center</h2><span class="pill">${g.detail}</span></div><div class="game-scoreboard"><div class="big-team">${logo(g.away,'team-logo big-logo')}<div><strong>${a.name}</strong><div class="record">${g.records[0]}</div></div></div><div><div class="score-main">${g.as??'—'}<small>–</small>${g.hs??'—'}</div><div class="status-live">${g.status==='LIVE'?'● LIVE · '+g.detail:g.detail}</div></div><div class="big-team">${logo(g.home,'team-logo big-logo')}<div><strong>${h.name}</strong><div class="record">${g.records[1]}</div></div></div></div><div class="prob"><div class="prob-labels"><span>${g.away} ${g.prob[0]}%</span><span>LIVE WIN PROBABILITY</span><span>${g.home} ${g.prob[1]}%</span></div><div class="prob-bar"><span style="width:${g.prob[0]}%"></span><span style="width:${g.prob[1]}%"></span></div></div><div class="tabs"><button class="active">Shot chart</button><button>Team stats</button><button>Box score</button><button>Play-by-play</button></div><div class="court-wrap"><div class="court"><span class="hoop"></span>${shots.map(s=>`<span class="shot ${s[0]}" style="left:${s[1]}%;top:${s[2]}%">${s[0]==='made'?'○':'×'}</span>`).join('')}</div><div class="play-list">${plays.map(p=>`<div class="play"><time>${p[0]}</time><div><strong>${p[1]}</strong>${p[2]}</div></div>`).join('')}</div></div>`}
-function renderSide(){document.querySelector('#leaders').innerHTML=`<div class="panel-title"><h2>Game leaders</h2><span class="pill">PTS</span></div>${[['J. Tatum','BOS · SF','31'],['J. Brunson','NYK · PG','27'],['J. Brown','BOS · SG','22']].map((x,i)=>`<div class="stat-row"><span class="rank">0${i+1}</span><div><strong>${x[0]}</strong><small>${x[1]}</small></div><span class="stat-value">${x[2]}</span></div>`).join('')}`;document.querySelector('#injuries').innerHTML=`<div class="panel-title"><h2>Injury report</h2><span class="pill">4 updates</span></div>${[['M. Robinson','NYK · C','OUT'],['A. Horford','BOS · C','GTD'],['O. Anunoby','NYK · SF','ACTIVE']].map(x=>`<div class="injury-row"><span>✚</span><div><strong>${x[0]}</strong><small>${x[1]}</small></div><span class="tag">${x[2]}</span></div>`).join('')}`}
+function renderSide(){document.querySelector('#leaders').innerHTML='<div class="panel-title"><h2>Game leaders</h2><span class="pill">PTS</span></div><div class="empty-state compact-empty">Select a game to load its scoring leaders.</div>';document.querySelector('#injuries').innerHTML=`<div class="panel-title"><h2>Injury report</h2><span class="pill">Demo</span></div>${[['M. Robinson','NYK · C','OUT'],['A. Horford','BOS · C','GTD'],['O. Anunoby','NYK · SF','ACTIVE']].map(x=>`<div class="injury-row"><span>✚</span><div><strong>${x[0]}</strong><small>${x[1]}</small></div><span class="tag">${x[2]}</span></div>`).join('')}`}
 const standings=[['CLE',49,11,'.817','—','8–2'],['BOS',44,16,'.733','5.0','7–3'],['NYK',38,22,'.633','11.0','6–4'],['MIL',35,25,'.583','14.0','7–3'],['ORL',33,28,'.541','16.5','5–5'],['PHI',31,29,'.517','18.0','6–4']];
 function renderStandings(){document.querySelector('#standingsTable').innerHTML=`<table class="standings-table"><thead><tr><th>#</th><th>Team</th><th>W</th><th>L</th><th>PCT</th><th>GB</th><th>L10</th></tr></thead><tbody>${standings.map((r,i)=>`<tr><td>${i+1}</td><td>${logo(r[0],'mini-logo')}<b>${teams[r[0]].city} ${teams[r[0]].name}</b></td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td>${r[5]}</td></tr>`).join('')}</tbody></table>`}
 const match=(a,ap,b,bp)=>`<div class="matchup"><div class="fav"><span>${a}</span><b>${ap}%</b></div><div><span>${b}</span><span>${bp}%</span></div></div>`;
-function renderPredict(random=false){let n=random?()=>Math.floor(55+Math.random()*30):()=>72;document.querySelector('#bracket').innerHTML=`<div class="panel-title"><h2>Eastern Conference</h2><span class="pill">Projected bracket</span></div><div class="rounds"><div><div class="round-title">First round</div>${match('1 CLE',91,'8 ATL',9)}${match('4 MIL',66,'5 ORL',34)}${match('2 BOS',88,'7 MIA',12)}${match('3 NYK',71,'6 IND',29)}</div><div><div class="round-title">Semifinals</div>${match('1 CLE',57,'4 MIL',43)}${match('2 BOS',n(),'3 NYK',100-n())}</div><div><div class="round-title">Conference final</div>${match('2 BOS',58,'1 CLE',42)}<div class="round-title" style="margin-top:35px">Finals winner</div>${match('BOS',54,'OKC',46)}</div></div>`;document.querySelector('#modelCard').innerHTML=`<div class="panel-title"><h2>Model outlook</h2><span class="pill">v0.1</span></div><div class="champion">${logo('BOS','team-logo big-logo')}<small class="muted">TITLE FAVORITE</small><br><strong>Boston Celtics</strong><p><b style="color:var(--green)">24.8%</b> championship odds</p></div>${[['Net rating',86],['Recent form',73],['Schedule strength',61],['Rest & travel',48],['Injury health',76]].map(x=>`<div class="factor"><div class="factor-head"><span>${x[0]}</span><b>${x[1]}</b></div><div class="factor-track"><span style="width:${x[1]}%"></span></div></div>`).join('')}`}
+function renderPredict(){document.querySelector('#bracket').innerHTML='<div class="empty-state feature-hold"><strong>Playoff model coming later</strong><br>This section will use current rosters, standings, injuries, and team strength once the model is ready.</div>';document.querySelector('#modelCard').innerHTML='<div class="empty-state feature-hold"><strong>No forecast published</strong><br>There is currently no title favorite or championship probability.</div>'}
 const futures=[['NBA champion',[['BOS','24.8%'],['OKC','22.1%'],['CLE','15.6%'],['DEN','12.4%']]],['MVP award',[['OKC','S. Gilgeous-Alexander'],['DEN','N. Jokić'],['MIL','G. Antetokounmpo'],['BOS','J. Tatum']]],['No. 1 seed',[['CLE','East · 78%'],['OKC','West · 84%'],['BOS','East · 19%'],['DEN','West · 11%']]]];
-function renderFutures(){document.querySelector('#futuresGrid').innerHTML=futures.map(f=>`<section class="panel future-card"><h2>${f[0]}</h2>${f[1].map(x=>`<div class="odds-row">${logo(x[0],'mini-logo')}<span>${teams[x[0]].city} ${teams[x[0]].name}</span><b>${x[1]}</b></div>`).join('')}</section>`).join('')}
+function renderFutures(){document.querySelector('#futuresGrid').innerHTML='<section class="panel empty-state feature-hold"><strong>Season futures coming later</strong><br>No current odds or award predictions are published yet.</section>'}
 const viewRoutes = { scores:'scores', standings:'standings', teams:'teamsView', injuries:'injuriesView', moves:'transactionsView', finance:'financeView', 'free-agents':'freeAgentsView', predict:'predict', futures:'futures' };
 const routeForView = viewId => Object.entries(viewRoutes).find(([,id]) => id === viewId)?.[0] || 'scores';
 function activateView(viewId, updateUrl = true) {
@@ -43,12 +44,13 @@ document.querySelectorAll('#nav button').forEach(button => button.onclick = () =
 const openRoute = () => activateView(viewRoutes[location.hash.slice(1)] || 'scores', false);
 window.addEventListener('hashchange', openRoute);
 openRoute();
-document.querySelector('#prevDay').onclick=()=>{dayOffset--;renderDates()};document.querySelector('#nextDay').onclick=()=>{dayOffset++;renderDates()};document.querySelector('#simulate').onclick=()=>{const b=document.querySelector('#simulate');b.textContent='Simulating…';setTimeout(()=>{renderPredict(true);b.textContent='Run simulation'},550)};
+document.querySelector('#prevDay').onclick=()=>{dayOffset--;renderDates()};document.querySelector('#nextDay').onclick=()=>{dayOffset++;renderDates()};
 renderDates();renderCards();renderGame();renderSide();renderStandings();renderPredict();renderFutures();
 
 // Live data layer. The demo above remains an offline fallback.
 const live = { date: new Date(), timer: null, summaries: new Map(), source: 'demo' };
 const isoDate = date => `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+function selectScoreDate(value) { const [year,month,day]=value.split('-').map(Number); const next=new Date(year,month-1,day,12); const today=new Date(); today.setHours(12,0,0,0); live.date=next; dayOffset=Math.round((next-today)/86400000); renderDates(); loadScoreboard(); }
 const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const statusLabel = status => status.state === 'in' && status.period ? `Q${status.period} · ${status.clock}` : status.detail;
 
@@ -57,6 +59,7 @@ function installLiveGames(payload) {
     games.splice(0, games.length);
     document.querySelector('#scoreGrid').innerHTML = '<div class="empty-state">No NBA games scheduled for this date.</div>';
     document.querySelector('#gameCenter').innerHTML = '<div class="empty-state"><strong>No games today</strong><br>Use the date arrows to browse the schedule.</div>';
+    document.querySelector('#leaders').innerHTML = '<div class="panel-title"><h2>Game leaders</h2><span class="pill">PTS</span></div><div class="empty-state compact-empty">No game is selected.</div>';
     return;
   }
   const normalized = payload.games.map(game => {
@@ -82,6 +85,7 @@ async function loadScoreboard(quiet = false) {
 
 function summaryTabs(summary, active = 'box') {
   const game = selected;
+  renderGameLeaders(summary);
   const button = (id, label) => `<button class="summary-tab ${active===id?'active':''}" data-summary-tab="${id}">${label}</button>`;
   const content = active === 'box' ? renderBoxScore(summary.boxscore) : active === 'stats' ? renderTeamStats(summary.teamStats) : renderPlayByPlay(summary.plays);
   const lineTeams = [summary.game?.away, summary.game?.home].filter(Boolean); const periods = Math.max(4,...lineTeams.map(team=>team.lineScores?.length||0));
@@ -95,6 +99,20 @@ function summaryTabs(summary, active = 'box') {
       headshot: button.dataset.playerHeadshot, jersey: button.dataset.playerJersey
     }, button.dataset.teamName);
   });
+}
+
+function renderGameLeaders(summary) {
+  const root = document.querySelector('#leaders');
+  const players = (summary.boxscore || []).flatMap(group => group.sections.flatMap(section => {
+    const pointsIndex = section.labels.findIndex(label => String(label).toUpperCase() === 'PTS');
+    if (pointsIndex < 0) return [];
+    return section.athletes
+      .filter(player => !player.didNotPlay && Number.isFinite(Number(player.stats[pointsIndex])))
+      .map(player => ({ name: player.name, team: group.team.abbreviation, position: player.position, points: Number(player.stats[pointsIndex]), headshot: player.headshot }));
+  })).sort((a, b) => b.points - a.points).slice(0, 3);
+  root.innerHTML = `<div class="panel-title"><h2>Game leaders</h2><span class="pill">PTS</span></div>${players.length
+    ? players.map((player,index)=>`<div class="stat-row leader-row"><span class="rank">${String(index+1).padStart(2,'0')}</span>${player.headshot?`<img class="leader-photo" src="${escapeHtml(player.headshot)}" alt="">`:'<span class="player-placeholder leader-photo"></span>'}<div><strong>${escapeHtml(player.name)}</strong><small>${escapeHtml([player.team,player.position].filter(Boolean).join(' · '))}</small></div><span class="stat-value">${player.points}</span></div>`).join('')
+    : '<div class="empty-state compact-empty">Scoring leaders will appear when box-score stats are available.</div>'}`;
 }
 
 function renderBoxScore(groups) {
@@ -143,6 +161,7 @@ document.querySelector('#scoreGrid').addEventListener('click', event => { const 
 enhanceScoreCards();
 document.querySelector('#prevDay').onclick = () => { live.date.setDate(live.date.getDate()-1); dayOffset--; renderDates(); loadScoreboard(); };
 document.querySelector('#nextDay').onclick = () => { live.date.setDate(live.date.getDate()+1); dayOffset++; renderDates(); loadScoreboard(); };
+document.querySelector('#calendarDate').onchange = event => { if (event.target.value) selectScoreDate(event.target.value); };
 loadScoreboard(); live.timer = setInterval(() => loadScoreboard(true), 20_000);
 
 const liveStandings = { conference: 'east', data: null };
@@ -326,7 +345,7 @@ async function loadCapHolds(abbreviation) {
 const freeAgentState = { players: [], status: 'Available', type: 'all' };
 function renderFreeAgents() {
   const players = freeAgentState.players.filter(player => (freeAgentState.status === 'all' || player.availability === freeAgentState.status) && (freeAgentState.type === 'all' || player.type === freeAgentState.type));
-  document.querySelector('#freeAgentTable').innerHTML = players.length ? `<div class="table-scroll"><table class="free-agent-table"><thead><tr><th>Player</th><th>Pos</th><th>Age</th><th>Type</th><th>Option/status</th><th>Previous</th><th>New team</th><th>PPG</th><th>RPG</th><th>APG</th></tr></thead><tbody>${players.map(player=>`<tr><td><strong>${escapeHtml(player.name)}</strong></td><td>${escapeHtml(player.position)}</td><td>${player.age??'-'}</td><td><span class="fa-type ${player.type.toLowerCase()}">${escapeHtml(player.type)}</span></td><td>${player.option?`<span class="fa-option">${escapeHtml(player.option)}</span>`:escapeHtml(player.availability)}</td><td>${escapeHtml(player.oldTeam||'—')}</td><td>${escapeHtml(player.newTeam||'—')}</td><td>${player.stats.ppg.toFixed(1)}</td><td>${player.stats.rpg.toFixed(1)}</td><td>${player.stats.apg.toFixed(1)}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty-state">No free agents match these filters.</div>';
+  document.querySelector('#freeAgentTable').innerHTML = players.length ? `<div class="table-scroll"><table class="free-agent-table"><thead><tr><th>Player</th><th>Pos</th><th>Age</th><th>Type</th><th>Option/status</th><th>Previous</th><th>New team</th><th>PPG</th><th>RPG</th><th>APG</th></tr></thead><tbody>${players.map(player=>`<tr><td><div class="player-cell"><img src="${escapeHtml(player.headshot)}" alt=""><strong>${escapeHtml(player.name)}</strong></div></td><td>${escapeHtml(player.position)}</td><td>${player.age??'-'}</td><td><span class="fa-type ${player.type.toLowerCase()}">${escapeHtml(player.type)}</span></td><td>${player.option?`<span class="fa-option">${escapeHtml(player.option)}</span>`:escapeHtml(player.availability)}</td><td>${escapeHtml(player.oldTeam||'—')}</td><td>${escapeHtml(player.newTeam||'—')}</td><td>${player.stats.ppg.toFixed(1)}</td><td>${player.stats.rpg.toFixed(1)}</td><td>${player.stats.apg.toFixed(1)}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty-state">No free agents match these filters.</div>';
 }
 
 async function loadFreeAgents() {

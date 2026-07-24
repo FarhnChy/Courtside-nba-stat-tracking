@@ -36,5 +36,9 @@ assert.equal(serverSource.includes('cap-holds'), true, 'server should expose tea
 const appSource = fs.readFileSync(path.join(root, 'public/app.js'), 'utf8');
 assert.equal(appSource.includes('viewRoutes'), true, 'primary screens should have shareable routes');
 assert.equal(appSource.includes('.box-player[data-player-id]'), true, 'box-score players should open profiles');
+assert.equal(appSource.includes('selectScoreDate'), true, 'scoreboard dates should be directly selectable');
+assert.equal(appSource.includes('player.headshot'), true, 'game leaders should render available player photos');
+assert.equal(html.includes('id="calendarDate"'), true, 'date strip should include a calendar picker');
+assert.equal(html.includes('Boston Celtics'), false, 'published playoff UI should not hard-code Boston as the favorite');
 
 console.log('✓ App shell, assets, and core product surfaces verified');
