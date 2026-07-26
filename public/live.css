@@ -63,6 +63,29 @@
 .player-dialog { width: min(940px,calc(100vw - 28px)); max-height: 86vh; overflow: auto; border: 1px solid var(--line); border-radius: 12px; padding: 26px; background: var(--surface); color: var(--text); }
 .player-dialog::backdrop { background: rgba(2,7,14,.78); backdrop-filter: blur(4px); }
 .dialog-close { position: absolute; right: 14px; top: 12px; border: 0; background: transparent; color: var(--muted); font-size: 26px; cursor: pointer; }
+.user-hub-dialog { width: min(820px,calc(100vw - 28px)); max-height: 88vh; overflow: auto; border: 1px solid var(--line); border-radius: 14px; padding: 26px; background: var(--surface); color: var(--text); }
+.user-hub-dialog::backdrop { background: rgba(2,7,14,.72); backdrop-filter: blur(4px); }
+.hub-heading h2 { margin: 2px 0 5px; font: 600 28px Oswald; }
+.hub-heading > p:last-child, .hub-section > p, .hub-note { color: var(--muted); font-size: 11px; }
+.hub-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; margin-top: 22px; }
+.hub-section { border: 1px solid var(--line); border-radius: 9px; padding: 16px; min-width: 0; }
+.hub-section h3 { margin: 0 0 12px; font: 600 17px Oswald; }
+.hub-about, .hub-fantasy { grid-column: 1 / -1; }
+.theme-picker, .hub-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.theme-picker button, .primary-action, .secondary-action, .hub-link { border: 1px solid var(--line); border-radius: 7px; padding: 9px 13px; background: var(--surface2); cursor: pointer; }
+.theme-picker button.active, .primary-action { background: var(--red); border-color: var(--red); color: white; font-weight: 700; }
+.hub-link { margin-top: 9px; color: var(--blue); }
+.hub-link:disabled { opacity: .45; cursor: default; }
+.hub-field { display: grid; gap: 5px; margin: 9px 0; color: var(--muted); font-size: 9px; text-transform: uppercase; }
+.hub-field select, .hub-field input { width: 100%; padding: 9px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--text); }
+.setting-row { display: flex; justify-content: space-between; gap: 12px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--line); }
+.setting-row strong, .setting-row small { display: block; }
+.setting-row small { color: var(--muted); margin-top: 2px; font-size: 9px; }
+.setting-row input { accent-color: var(--red); width: 17px; height: 17px; }
+.hub-about details { padding: 9px 0; border-top: 1px solid var(--line); font-size: 11px; }
+.hub-about summary { cursor: pointer; font-weight: 700; }
+.hub-about a { color: var(--blue); font-size: 11px; }
+.hub-about p { color: var(--muted); font-size: 11px; line-height: 1.5; }
 .player-profile-head { display: flex; align-items: center; gap: 18px; }
 .player-profile-head > img { width: 90px; height: 90px; border-radius: 50%; object-fit: cover; background: var(--surface2); }
 .profile-placeholder { display: grid; place-items: center; flex: 0 0 90px; width: 90px; height: 90px; border-radius: 50%; background: var(--surface2); color: var(--muted); font: 600 25px Oswald; }
@@ -191,4 +214,7 @@
   .player-dialog { padding: 22px 18px; }
   .profile-stats { grid-template-columns: repeat(2, 1fr); }
   .accolade-grid { grid-template-columns: 1fr; }
+  .hub-grid { grid-template-columns: 1fr; }
+  .hub-about, .hub-fantasy { grid-column: auto; }
+  .user-hub-dialog { padding: 22px 16px; }
 }

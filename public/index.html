@@ -25,7 +25,7 @@
       <button data-view="predict">Predict</button>
       <button data-view="futures">Futures</button>
     </nav>
-    <div class="top-actions"><button class="live-home" id="liveHome" title="Go to today's scores"><span class="live-dot"></span> LIVE</button><button class="avatar" disabled aria-label="Account profile unavailable" title="Account profiles are not available yet">●</button></div>
+    <div class="top-actions"><button class="live-home" id="liveHome" title="Go to today's scores"><span class="live-dot"></span> LIVE</button><button class="avatar" id="userHubButton" aria-label="Open preferences and fantasy hub" title="Preferences and fantasy hub"><span id="avatarContent">★</span></button></div>
   </header>
 
   <main>
@@ -88,6 +88,17 @@
       <div class="futures-grid" id="futuresGrid"></div>
     </section>
   </main>
+  <dialog id="userHubDialog" class="user-hub-dialog" aria-labelledby="userHubTitle">
+    <button class="dialog-close" id="closeUserHub" aria-label="Close preferences">×</button>
+    <div class="hub-heading"><p class="eyebrow">YOUR COURTSIDE</p><h2 id="userHubTitle">Preferences & fantasy</h2><p>Personalize this browser without creating an account.</p></div>
+    <div class="hub-grid">
+      <section class="hub-section"><h3>Appearance</h3><div class="theme-picker" role="group" aria-label="Color theme"><button data-theme-choice="dark">Dark</button><button data-theme-choice="light">Light</button></div></section>
+      <section class="hub-section"><h3>Favorite team</h3><label class="hub-field"><span>Team</span><select id="favoriteTeam"><option value="">No favorite selected</option></select></label><button class="hub-link" id="openFavoriteTeam" disabled>Open team page</button></section>
+      <section class="hub-section hub-fantasy"><h3>Fantasy team</h3><p id="fantasyStatus">No fantasy league saved yet.</p><div class="hub-actions"><button class="primary-action" id="startFantasy">Start fantasy team</button><button class="secondary-action" id="checkFantasy">Check my league</button></div><form id="fantasyForm" hidden><label class="hub-field"><span>League name</span><input id="fantasyLeagueName" maxlength="40" required placeholder="Friends League"></label><label class="hub-field"><span>Team name</span><input id="fantasyTeamName" maxlength="40" required placeholder="My Team"></label><button class="primary-action" type="submit">Save league</button></form></section>
+      <section class="hub-section"><h3>Notifications</h3><label class="setting-row"><span><strong>Game alerts</strong><small>Browser alerts for your favorite team</small></span><input type="checkbox" data-notification="games"></label><label class="setting-row"><span><strong>Injury updates</strong><small>Track availability changes</small></span><input type="checkbox" data-notification="injuries"></label><label class="setting-row"><span><strong>League moves</strong><small>Trades and signings</small></span><input type="checkbox" data-notification="moves"></label><p class="hub-note" id="notificationNote">Preferences are saved on this device.</p></section>
+      <section class="hub-section hub-about"><h3>About & help</h3><p>Courtside combines NBA scores, standings, rosters, moves, and salary context in one independent dashboard.</p><details><summary>How is my information stored?</summary><p>Theme, favorite team, fantasy names, and notification preferences stay in this browser using local storage.</p></details><details><summary>Is fantasy connected to a provider?</summary><p>Not yet. This first version saves your league shortcut; live ESPN or Yahoo league syncing requires a future account connection.</p></details><a href="https://github.com/FarhnChy/Courtside-nba-stat-tracking/issues" target="_blank" rel="noreferrer">Report a problem ↗</a></section>
+    </div>
+  </dialog>
   <dialog id="playerDialog" class="player-dialog" aria-labelledby="playerDialogTitle"><button class="dialog-close" id="closePlayerDialog" aria-label="Close player profile">×</button><div id="playerProfile"></div></dialog>
   <footer>COURTSIDE LABS <span>Independent basketball analytics concept · Not affiliated with the NBA or ESPN</span></footer>
   <script src="app.js"></script>

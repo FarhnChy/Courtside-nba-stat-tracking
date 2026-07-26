@@ -14,6 +14,7 @@ for (const file of ['public/index.html', 'public/styles.css', 'public/app.js', '
 
 const html = fs.readFileSync(path.join(root, 'public/index.html'), 'utf8');
 assert.equal(html.includes('>FM</button>'), false, 'account placeholder should not display developer initials');
+for (const id of ['userHubButton','userHubDialog','favoriteTeam','fantasyForm']) assert.equal(html.includes(`id="${id}"`), true, `user hub should include ${id}`);
 for (const label of ['Scores', 'Standings', 'Predict', 'Futures', 'gameCenter']) {
   assert.match(html, new RegExp(label), `app should include ${label}`);
 }
@@ -58,6 +59,8 @@ assert.equal(appSource.includes('Career accolades'), true, 'player profiles shou
 assert.equal(appSource.includes("picker.showPicker()"), true, 'calendar button should explicitly open one date picker');
 assert.equal(appSource.includes('win-arrow'), false, 'final score cards should not use a winner arrow');
 assert.equal(appSource.includes('winning-score'), true, 'final game details should emphasize the winning score');
+assert.equal(appSource.includes("localStorage.getItem('courtsideHub')"), true, 'user hub preferences should persist locally');
+assert.equal(appSource.includes('applyTheme'), true, 'user hub should support theme selection');
 assert.equal(appSource.includes('data-standing-team'), true, 'standings teams should open their roster');
 assert.equal(appSource.includes('data-leader-id'), true, 'game leaders should open player profiles');
 assert.equal(appSource.includes('real-team-logo'), true, 'score cards should use provider team logos');

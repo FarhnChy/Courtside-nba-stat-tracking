@@ -7,6 +7,52 @@ const teams = {
   ORL:{name:'Magic',city:'Orlando',color:'#178bd1'},PHI:{name:'76ers',city:'Philadelphia',color:'#d9283e'}
 };
 const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+const savedHub = (() => { try { return JSON.parse(localStorage.getItem('courtsideHub') || '{}'); } catch (_) { return {}; } })();
+const hubState = {
+  theme: savedHub.theme === 'light' ? 'light' : 'dark',
+  favoriteTeam: savedHub.favoriteTeam || '',
+  fantasy: savedHub.fantasy || null,
+  notifications: { games:false, injuries:false, moves:false, ...(savedHub.notifications || {}) },
+  teams: []
+};
+const saveHub = () => localStorage.setItem('courtsideHub', JSON.stringify({ theme:hubState.theme, favoriteTeam:hubState.favoriteTeam, fantasy:hubState.fantasy, notifications:hubState.notifications }));
+function applyTheme(theme) {
+  hubState.theme = theme === 'light' ? 'light' : 'dark';
+  document.documentElement.dataset.theme = hubState.theme;
+  document.querySelector('meta[name="theme-color"]').content = hubState.theme === 'light' ? '#f4f6fa' : '#09111f';
+  document.querySelectorAll('[data-theme-choice]').forEach(button=>button.classList.toggle('active',button.dataset.themeChoice===hubState.theme));
+  saveHub();
+}
+function updateHubIdentity() {
+  const favorite = hubState.teams.find(team=>String(team.id)===String(hubState.favoriteTeam));
+  const avatar = document.querySelector('#avatarContent');
+  avatar.innerHTML = favorite?.logo ? `<img src="${escapeHtml(favorite.logo)}" alt="">` : '★';
+  const open = document.querySelector('#openFavoriteTeam'); open.disabled = !favorite;
+  open.textContent = favorite ? `Open ${favorite.abbreviation || 'team'} page` : 'Open team page';
+}
+function renderFantasyStatus() {
+  const root = document.querySelector('#fantasyStatus');
+  root.innerHTML = hubState.fantasy ? `<strong>${escapeHtml(hubState.fantasy.team)}</strong> · ${escapeHtml(hubState.fantasy.league)}<br><small>Saved locally · provider syncing is not connected yet</small>` : 'No fantasy league saved yet.';
+}
+function populateFavoriteTeams(teamList) {
+  hubState.teams = teamList;
+  const picker = document.querySelector('#favoriteTeam');
+  picker.innerHTML = '<option value="">No favorite selected</option>' + teamList.map(team=>`<option value="${escapeHtml(team.id)}">${escapeHtml(team.displayName)}</option>`).join('');
+  picker.value = hubState.favoriteTeam;
+  updateHubIdentity();
+}
+applyTheme(hubState.theme);
+document.querySelector('#userHubButton').onclick=()=>{renderFantasyStatus();document.querySelector('#userHubDialog').showModal()};
+document.querySelector('#closeUserHub').onclick=()=>document.querySelector('#userHubDialog').close();
+document.querySelector('#userHubDialog').onclick=event=>{if(event.target===event.currentTarget)event.currentTarget.close()};
+document.querySelectorAll('[data-theme-choice]').forEach(button=>button.onclick=()=>applyTheme(button.dataset.themeChoice));
+document.querySelector('#favoriteTeam').onchange=event=>{hubState.favoriteTeam=event.target.value;saveHub();updateHubIdentity()};
+document.querySelector('#openFavoriteTeam').onclick=()=>{if(hubState.favoriteTeam){document.querySelector('#userHubDialog').close();openTeamRoster(hubState.favoriteTeam)}};
+document.querySelectorAll('[data-notification]').forEach(input=>{input.checked=Boolean(hubState.notifications[input.dataset.notification]);input.onchange=()=>{hubState.notifications[input.dataset.notification]=input.checked;saveHub();document.querySelector('#notificationNote').textContent='Preferences saved. Browser delivery will be added with live alert support.'}});
+const showFantasyForm = () => { const form=document.querySelector('#fantasyForm');form.hidden=false;document.querySelector('#fantasyLeagueName').value=hubState.fantasy?.league||'';document.querySelector('#fantasyTeamName').value=hubState.fantasy?.team||'';document.querySelector('#fantasyLeagueName').focus() };
+document.querySelector('#startFantasy').onclick=showFantasyForm;
+document.querySelector('#checkFantasy').onclick=()=>{if(hubState.fantasy)renderFantasyStatus();else showFantasyForm()};
+document.querySelector('#fantasyForm').onsubmit=event=>{event.preventDefault();hubState.fantasy={league:document.querySelector('#fantasyLeagueName').value.trim(),team:document.querySelector('#fantasyTeamName').value.trim()};saveHub();event.currentTarget.hidden=true;renderFantasyStatus()};
 const games=[
  {id:1,away:'BOS',home:'NYK',as:87,hs:84,status:'LIVE',detail:'Q4 · 6:42',records:['44–16','38–22'],prob:[61,39]},
  {id:2,away:'DEN',home:'OKC',as:112,hs:118,status:'FINAL',detail:'Final',records:['40–21','48–12'],prob:[0,100]},
@@ -208,6 +254,7 @@ async function loadTeams() {
     const response = await fetch('/api/teams'); if (!response.ok) throw new Error('Teams unavailable');
     const payload = await response.json();
     picker.innerHTML = payload.teams.map(team => `<option value="${team.id}">${escapeHtml(team.displayName)}</option>`).join('');
+    populateFavoriteTeams(payload.teams);
     picker.onchange = () => loadRoster(picker.value);
     if (payload.teams[0]) loadRoster(payload.teams[0].id);
   } catch (error) { document.querySelector('#rosterView').innerHTML = '<div class="empty-state">Team directory is temporarily unavailable.</div>'; }
