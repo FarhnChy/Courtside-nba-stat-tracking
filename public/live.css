@@ -142,21 +142,32 @@
 .transaction-meta time { color: var(--muted); font-size: 10px; }
 .move-type { color: var(--green); background: rgba(64,217,148,.11); border-radius: 20px; padding: 3px 7px; font-size: 9px; font-weight: 700; text-transform: uppercase; }
 @media(min-width:851px) and (max-width:1100px){nav{gap:12px}.brand{margin-right:22px}nav button{font-size:12px}}
-.cap-grid { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 12px; }
-.cap-card { padding: 18px; }
-.cap-card small, .exception-panel small { display: block; color: var(--muted); font-size: 10px; text-transform: uppercase; }
-.cap-card strong { display: block; margin: 8px 0 14px; font: 600 21px Oswald; }
-.cap-card p, .finance-next p { margin: 9px 0 0; color: var(--muted); font-size: 10px; line-height: 1.4; }
-.cap-meter { height: 5px; background: var(--line); border-radius: 5px; overflow: hidden; }
+.cap-grid { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 7px; }
+.cap-card { padding: 10px 12px; }
+.cap-card small, .exception-panel small { display: block; color: var(--muted); font-size: 8px; text-transform: uppercase; }
+.cap-card strong { display: block; margin: 3px 0 6px; font: 600 16px Oswald; }
+.cap-card p, .finance-next p { margin: 5px 0 0; color: var(--muted); font-size: 8px; line-height: 1.25; }
+.cap-meter { height: 3px; background: var(--line); border-radius: 5px; overflow: hidden; }
 .cap-meter span { display: block; height: 100%; background: var(--green); }
 .level-2 .cap-meter span, .level-3 .cap-meter span { background: var(--gold); }
 .level-4 .cap-meter span { background: var(--red); }
-.exception-panel { display: grid; grid-template-columns: 1.5fr repeat(3,1fr) auto; align-items: center; gap: 18px; margin-top: 14px; }
-.exception-panel strong { display: block; margin-top: 5px; }
-.exception-panel a { color: var(--blue); font-size: 11px; text-decoration: none; }
+.exception-panel { display: grid; grid-template-columns: 1.25fr repeat(3,.8fr); align-items: center; gap: 10px; width: min(680px,100%); padding: 11px 13px; margin: 8px 0 0; }
+.exception-panel .eyebrow { margin-bottom: 3px; font-size: 8px; }
+.exception-panel h2 { font-size: 15px; }
+.exception-panel strong { display: block; margin-top: 3px; font: 600 14px Oswald; }
+.exception-panel a { grid-column: 1 / -1; justify-self: start; color: var(--blue); font-size: 9px; text-decoration: none; }
+.finance-layout { display: grid; grid-template-columns: minmax(330px,.72fr) minmax(0,1.55fr); grid-template-areas: "overview payroll" "contracts contracts"; gap: 14px; align-items: start; }
+.finance-overview-column { grid-area: overview; min-width: 0; }
+.finance-overview-column .cap-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+.finance-overview-column .cap-card:last-child { grid-column: 1 / -1; }
+.finance-overview-column .exception-panel { grid-template-columns: repeat(2,minmax(0,1fr)); width: 100%; }
+#payrollRoot { display: contents; }
+.payroll-panel { grid-area: payroll; margin: 0; min-width: 0; }
+.contract-panel { grid-area: contracts; min-width: 0; }
+.payroll-loading { grid-area: payroll; }
 .finance-next { margin-top: 14px; border-style: dashed; }
-@media(max-width:1000px){.cap-grid{grid-template-columns:repeat(2,1fr)}.exception-panel{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:600px){.cap-grid{grid-template-columns:1fr}.exception-panel{grid-template-columns:1fr}}
+@media(max-width:1000px){.finance-layout{grid-template-columns:1fr;grid-template-areas:"overview" "payroll" "contracts"}.finance-overview-column .cap-grid{grid-template-columns:repeat(3,1fr)}.finance-overview-column .cap-card:last-child{grid-column:auto}.cap-grid{grid-template-columns:repeat(3,1fr)}.exception-panel{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.cap-grid{grid-template-columns:repeat(2,1fr)}.exception-panel{grid-template-columns:repeat(2,1fr)}}
 .payroll-panel, .contract-panel { margin-top: 14px; }
 .source-note { margin: 5px 0 0; color: var(--muted); font-size: 9px; text-align: right; }
 .payroll-table, .contract-table { width: 100%; min-width: 720px; border-collapse: collapse; font-size: 11px; }

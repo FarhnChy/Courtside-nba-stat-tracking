@@ -67,6 +67,7 @@ assert.equal(appSource.includes('real-team-logo'), true, 'score cards should use
 assert.equal(appSource.includes('move-contract'), true, 'transaction cards should render contract terms');
 assert.equal(appSource.includes('data-score-team'), true, 'score-card logos should open team rosters');
 assert.equal(appSource.includes('data-summary-team'), true, 'expanded game logos should open team rosters');
+assert.equal(appSource.includes('data-free-agent-id'), true, 'free-agent players should open detailed profiles');
 assert.equal(html.includes('data-roster-mode="coaches"'), true, 'team pages should offer a coaching staff view');
 assert.equal(appSource.includes('coaching-grid'), true, 'team pages should render coaching staff cards');
 assert.equal(html.includes('id="calendarDate"'), true, 'date strip should include a calendar picker');
