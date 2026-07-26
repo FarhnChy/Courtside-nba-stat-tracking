@@ -251,8 +251,7 @@ main {
 .team-name { font-weight: 700; font-size: 14px; }
 .record { color: var(--muted); font-size: 10px; }
 .team-score { font: 600 24px Oswald; }
-.winner .team-score { color: var(--text); font-weight: 700; }
-.win-arrow { margin-right: 7px; color: var(--red); font: 700 18px "DM Sans"; }
+.winner .team-score, .winning-score { color: var(--red); font-weight: 800; }
 .real-team-logo { object-fit: contain; background: transparent; border: 0; }
 .live-home { display: inline-flex; align-items: center; gap: 7px; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; }
 .avatar:disabled { cursor: default; opacity: .55; }
