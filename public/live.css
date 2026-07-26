@@ -156,19 +156,19 @@
 .exception-panel h2 { font-size: 15px; }
 .exception-panel strong { display: block; margin-top: 3px; font: 600 14px Oswald; }
 .exception-panel a { grid-column: 1 / -1; justify-self: start; color: var(--blue); font-size: 9px; text-decoration: none; }
-.finance-layout { display: grid; grid-template-columns: minmax(330px,.72fr) minmax(0,1.55fr); grid-template-areas: "overview payroll" "contracts contracts"; gap: 14px; align-items: start; }
-.finance-overview-column { grid-area: overview; min-width: 0; }
+.finance-layout { display: grid; grid-template-columns: minmax(300px,.72fr) minmax(0,1.28fr); grid-template-areas: "overview overview" "payroll contracts"; gap: 14px; align-items: start; }
+.finance-overview-column { grid-area: overview; width: min(680px,100%); min-width: 0; }
 .finance-overview-column .cap-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
 .finance-overview-column .cap-card:last-child { grid-column: 1 / -1; }
 .finance-overview-column .exception-panel { grid-template-columns: repeat(2,minmax(0,1fr)); width: 100%; }
 #payrollRoot { display: contents; }
-.payroll-panel { grid-area: payroll; margin: 0; min-width: 0; }
+.payroll-panel { grid-area: payroll; min-width: 0; }
 .contract-panel { grid-area: contracts; min-width: 0; }
 .payroll-loading { grid-area: payroll; }
 .finance-next { margin-top: 14px; border-style: dashed; }
 @media(max-width:1000px){.finance-layout{grid-template-columns:1fr;grid-template-areas:"overview" "payroll" "contracts"}.finance-overview-column .cap-grid{grid-template-columns:repeat(3,1fr)}.finance-overview-column .cap-card:last-child{grid-column:auto}.cap-grid{grid-template-columns:repeat(3,1fr)}.exception-panel{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:600px){.cap-grid{grid-template-columns:repeat(2,1fr)}.exception-panel{grid-template-columns:repeat(2,1fr)}}
-.payroll-panel, .contract-panel { margin-top: 14px; }
+.payroll-panel, .contract-panel { margin-top: 0; }
 .source-note { margin: 5px 0 0; color: var(--muted); font-size: 9px; text-align: right; }
 .payroll-table, .contract-table { width: 100%; min-width: 720px; border-collapse: collapse; font-size: 11px; }
 .payroll-table th, .payroll-table td, .contract-table th, .contract-table td { padding: 11px 12px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
@@ -182,6 +182,16 @@
 .payroll-status.warning { color: var(--gold); background: rgba(255,204,102,.12); }
 .payroll-status.good { color: var(--green); background: rgba(64,217,148,.12); }
 .payroll-status.neutral { color: var(--blue); background: rgba(90,168,255,.12); }
+.compact-payroll-scroll { max-height: 560px; overflow: auto; }
+.compact-payroll-table { min-width: 510px; font-size: 10px; }
+.compact-payroll-table th, .compact-payroll-table td { padding: 8px 9px; }
+.contract-controls { display: grid; grid-template-columns: 1fr minmax(150px,.65fr) minmax(135px,.55fr); gap: 10px; align-items: end; margin-bottom: 14px; }
+.contract-controls h2 { margin: 0; }
+.contract-controls label { display: grid; gap: 4px; color: var(--muted); font-size: 8px; text-transform: uppercase; }
+.contract-controls .team-picker { min-width: 0; width: 100%; }
+.selected-team-heading { display: flex; justify-content: space-between; gap: 12px; align-items: start; }
+.selected-team-heading h3 { margin: 0; font: 600 18px Oswald; }
+.show-cap-holds { margin-top: 12px; }
 .current-contract { background: rgba(90,168,255,.07); color: var(--blue); font-weight: 700; }
 .source-link { color: var(--blue); text-decoration: none; font-size: 10px; }
 .contract-key { color: var(--muted); font-size: 9px; margin: 7px 0 0; }
@@ -203,6 +213,7 @@
 .cap-hold-note { color: var(--muted); font-size: 9px; line-height: 1.45; }
 
 @media(max-width:850px) {
+  .contract-controls { grid-template-columns: 1fr; }
   html, body { max-width: 100%; overflow-x: hidden; }
   .topbar { min-width: 0; overflow: hidden; }
   .brand { flex: 0 0 auto; }

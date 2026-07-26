@@ -68,6 +68,8 @@ assert.equal(appSource.includes('move-contract'), true, 'transaction cards shoul
 assert.equal(appSource.includes('data-score-team'), true, 'score-card logos should open team rosters');
 assert.equal(appSource.includes('data-summary-team'), true, 'expanded game logos should open team rosters');
 assert.equal(appSource.includes('data-free-agent-id'), true, 'free-agent players should open detailed profiles');
+assert.equal(appSource.includes('id="contractSeason"'), true, 'team finances should allow contract-season selection');
+assert.equal(appSource.includes('I want to see projected cap holds'), true, 'cap holds should remain optional until requested');
 assert.equal(html.includes('data-roster-mode="coaches"'), true, 'team pages should offer a coaching staff view');
 assert.equal(appSource.includes('coaching-grid'), true, 'team pages should render coaching staff cards');
 assert.equal(html.includes('id="calendarDate"'), true, 'date strip should include a calendar picker');
