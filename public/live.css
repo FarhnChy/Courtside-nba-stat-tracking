@@ -157,16 +157,16 @@
 .exception-panel strong { display: block; margin-top: 3px; font: 600 14px Oswald; }
 .exception-panel a { grid-column: 1 / -1; justify-self: start; color: var(--blue); font-size: 9px; text-decoration: none; }
 .finance-layout { display: grid; grid-template-columns: minmax(300px,.72fr) minmax(0,1.28fr); grid-template-areas: "overview overview" "payroll contracts"; gap: 14px; align-items: start; }
-.finance-overview-column { grid-area: overview; width: min(680px,100%); min-width: 0; }
-.finance-overview-column .cap-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
-.finance-overview-column .cap-card:last-child { grid-column: 1 / -1; }
-.finance-overview-column .exception-panel { grid-template-columns: repeat(2,minmax(0,1fr)); width: 100%; }
+.finance-overview-column { grid-area: overview; display: grid; grid-template-columns: minmax(0,1fr) 290px; gap: 10px; width: 100%; min-width: 0; }
+.finance-overview-column .cap-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
+.finance-overview-column .cap-card:last-child { grid-column: auto; }
+.finance-overview-column .exception-panel { grid-template-columns: repeat(2,minmax(0,1fr)); width: 100%; height: 100%; margin: 0; align-content: center; }
 #payrollRoot { display: contents; }
 .payroll-panel { grid-area: payroll; min-width: 0; }
 .contract-panel { grid-area: contracts; min-width: 0; }
 .payroll-loading { grid-area: payroll; }
 .finance-next { margin-top: 14px; border-style: dashed; }
-@media(max-width:1000px){.finance-layout{grid-template-columns:1fr;grid-template-areas:"overview" "payroll" "contracts"}.finance-overview-column .cap-grid{grid-template-columns:repeat(3,1fr)}.finance-overview-column .cap-card:last-child{grid-column:auto}.cap-grid{grid-template-columns:repeat(3,1fr)}.exception-panel{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:1000px){.finance-layout{grid-template-columns:1fr;grid-template-areas:"overview" "payroll" "contracts"}.finance-overview-column{grid-template-columns:1fr}.finance-overview-column .cap-grid{grid-template-columns:repeat(3,1fr)}.finance-overview-column .cap-card:last-child{grid-column:auto}.cap-grid{grid-template-columns:repeat(3,1fr)}.exception-panel{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:600px){.cap-grid{grid-template-columns:repeat(2,1fr)}.exception-panel{grid-template-columns:repeat(2,1fr)}}
 .payroll-panel, .contract-panel { margin-top: 0; }
 .source-note { margin: 5px 0 0; color: var(--muted); font-size: 9px; text-align: right; }
