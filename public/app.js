@@ -12,6 +12,8 @@ async function fetchApi(url) {
   for(let attempt=0;attempt<2;attempt++)try{const response=await window.fetch(url);if(!response.ok)throw new Error(`Request failed (${response.status})`);try{localStorage.setItem(`apiCache:${url}`,await response.clone().text())}catch(_){}return response}catch(error){lastError=error}
   const cached=localStorage.getItem(`apiCache:${url}`);if(cached!=null)return new Response(cached,{status:200,headers:{'content-type':'application/json','x-courtside-cache':'stale'}});throw lastError;
 }
+const loadingState = (kind='cards') => `<div class="loading-state ${kind}" aria-label="Loading content" aria-busy="true">${Array.from({length:kind==='table'?6:3},(_,index)=>`<span class="skeleton skeleton-${index}"></span>`).join('')}</div>`;
+const errorState = (message,retry) => `<div class="empty-state designed-empty"><strong>${escapeHtml(message)}</strong><span>Live data could not be refreshed. Saved data will appear automatically when available.</span><button class="secondary-action" data-retry="${retry}">Try again</button></div>`;
 const savedHub = (() => { try { return JSON.parse(localStorage.getItem('courtsideHub') || '{}'); } catch (_) { return {}; } })();
 const hubState = {
   theme: savedHub.theme === 'light' ? 'light' : 'dark',
@@ -109,8 +111,8 @@ const statusLabel = status => status.state === 'in' && status.period ? `Q${statu
 function installLiveGames(payload) {
   if (!payload.games.length) {
     games.splice(0, games.length);
-    document.querySelector('#scoreGrid').innerHTML = '<div class="empty-state">No NBA games scheduled for this date.</div>';
-    document.querySelector('#gameCenter').innerHTML = '<div class="empty-state"><strong>No games today</strong><br>Use the date arrows to browse the schedule.</div>';
+    document.querySelector('#scoreGrid').innerHTML = '<div class="empty-state designed-empty schedule-empty"><strong>No NBA games scheduled</strong><span>This date is clear. Browse another day or catch up around the league.</span><div><button class="secondary-action" data-empty-view="transactionsView">Latest moves</button><button class="secondary-action" data-empty-view="standings">Standings</button></div></div>';
+    document.querySelector('#gameCenter').innerHTML = '<div class="empty-state designed-empty"><strong>Nothing on the scoreboard today</strong><span>Game details will appear here as soon as a matchup is selected.</span></div>';
     document.querySelector('#leaders').innerHTML = '<div class="panel-title"><h2>Game leaders</h2><span class="pill">PTS</span></div><div class="empty-state compact-empty">No game is selected.</div>';
     return;
   }
@@ -239,12 +241,12 @@ function renderLiveStandings() {
 function openTeamRoster(teamId) { const picker=document.querySelector('#teamPicker'); if ([...picker.options].some(option=>option.value===teamId)) picker.value=teamId; activateView('teamsView'); loadRoster(teamId); }
 
 async function loadStandings() {
-  const root = document.querySelector('#standingsTable'); root.innerHTML = '<div class="empty-state">Loading East and West standings…</div>';
+  const root = document.querySelector('#standingsTable'); root.innerHTML = loadingState('table');
   try {
     const response = await fetchApi(`/api/standings?season=${currentSeasonEndYear()}`);
     if (!response.ok) throw new Error('Standings unavailable');
     liveStandings.data = await response.json(); renderLiveStandings();
-  } catch (error) { root.innerHTML = '<div class="empty-state">Live standings are temporarily unavailable.</div>'; }
+  } catch (error) { root.innerHTML = errorState('Standings are temporarily unavailable','standings'); }
 }
 
 document.querySelectorAll('#conferencePicker button').forEach(button => button.onclick = () => {
@@ -256,6 +258,7 @@ loadStandings();
 
 async function loadTeams() {
   const picker = document.querySelector('#teamPicker');
+  document.querySelector('#rosterView').innerHTML=loadingState('table');
   try {
     const response = await fetchApi('/api/teams'); if (!response.ok) throw new Error('Teams unavailable');
     const payload = await response.json();
@@ -263,7 +266,7 @@ async function loadTeams() {
     populateFavoriteTeams(payload.teams);
     picker.onchange = () => loadRoster(picker.value);
     if (payload.teams[0]) loadRoster(payload.teams[0].id);
-  } catch (error) { document.querySelector('#rosterView').innerHTML = '<div class="empty-state">Team directory is temporarily unavailable.</div>'; }
+  } catch (error) { document.querySelector('#rosterView').innerHTML = errorState('Team directory is temporarily unavailable','teams'); }
 }
 
 const rosterState = { roster: null, query: '', position: 'all', mode: 'players' };
@@ -309,25 +312,26 @@ document.querySelector('#closePlayerDialog').onclick=()=>document.querySelector(
 document.querySelector('#playerDialog').onclick=event=>{if(event.target===event.currentTarget)event.currentTarget.close()};
 
 async function loadRoster(teamId) {
-  const root = document.querySelector('#rosterView'); root.innerHTML = '<div class="empty-state">Loading roster and coaches…</div>';
+  const root = document.querySelector('#rosterView'); root.innerHTML = loadingState('table');
   try {
     const response = await fetchApi(`/api/teams/${teamId}/roster`); if (!response.ok) throw new Error('Roster unavailable');
     const roster = await response.json();
     rosterState.roster = roster; rosterState.query = ''; rosterState.position = 'all'; renderTeamDashboard(roster); renderRosterData();
-  } catch (error) { root.innerHTML = '<div class="empty-state">This roster is temporarily unavailable.</div>'; }
+  } catch (error) { root.innerHTML = errorState('This roster is temporarily unavailable','roster'); }
 }
 
 document.querySelectorAll('#rosterMode button').forEach(button=>button.onclick=()=>{rosterState.mode=button.dataset.rosterMode;renderRosterData()});
 
 async function loadInjuries() {
   const root = document.querySelector('#injuryReport');
+  root.innerHTML=loadingState('cards');
   try {
     const response = await fetchApi('/api/injuries'); if (!response.ok) throw new Error('Injuries unavailable');
     const payload = await response.json();
     document.querySelector('#injuryTimestamp').textContent = payload.timestamp ? `Updated ${new Date(payload.timestamp).toLocaleString()}` : 'Current report';
     root.innerHTML = payload.teams.length ? payload.teams.map(team => `<section class="panel injury-team"><div class="panel-title"><h2>${escapeHtml(team.displayName)}</h2><span class="pill">${team.injuries.length} listed</span></div>${team.injuries.map(item=>`<article class="injury-card">${item.headshot?`<img src="${escapeHtml(item.headshot)}" alt="">`:'<span class="player-placeholder"></span>'}<div><button class="injury-player" data-injury-player="${escapeHtml(item.athleteId||'')}" data-player-name="${escapeHtml(item.player)}" data-player-position="${escapeHtml(item.position)}" data-player-headshot="${escapeHtml(item.headshot||'')}" data-team-name="${escapeHtml(team.displayName)}"><strong>${escapeHtml(item.player)}</strong></button><small>${escapeHtml(item.position)} · ${item.date?new Date(item.date).toLocaleDateString():'Date unavailable'}</small><p>${escapeHtml(item.shortComment || item.detail || 'No additional details provided.')}</p>${item.returnDate?`<span class="return-date">Expected return: ${escapeHtml(item.returnDate)}</span>`:''}</div><span class="availability limited">${escapeHtml(item.status)}</span></article>`).join('')}</section>`).join('') : '<div class="panel empty-state">No current injuries are listed.</div>';
     root.querySelectorAll('.injury-player[data-injury-player]').forEach(button => button.onclick = () => openPlayerProfile(button.dataset.injuryPlayer, { name: button.dataset.playerName, position: button.dataset.playerPosition, headshot: button.dataset.playerHeadshot }, button.dataset.teamName));
-  } catch (error) { root.innerHTML = '<div class="panel empty-state">The injury report is temporarily unavailable.</div>'; }
+  } catch (error) { root.innerHTML = `<section class="panel">${errorState('The injury report is temporarily unavailable','injuries')}</section>`; }
 }
 
 loadTeams(); loadInjuries();
@@ -340,6 +344,7 @@ function renderTransactions() {
 }
 
 async function loadTransactions() {
+  document.querySelector('#transactionList').innerHTML=loadingState('cards');
   try {
     const response = await fetchApi('/api/transactions'); if (!response.ok) throw new Error('Transactions unavailable');
     const payload = await response.json(); transactionState.data = payload.transactions;
@@ -353,21 +358,21 @@ async function loadTransactions() {
     teamPicker.onchange = () => { transactionState.team = teamPicker.value; renderTransactions(); };
     typePicker.onchange = () => { transactionState.type = typePicker.value; renderTransactions(); };
     renderTransactions();
-  } catch (error) { document.querySelector('#transactionList').innerHTML = '<div class="empty-state">Transactions are temporarily unavailable.</div>'; }
+  } catch (error) { document.querySelector('#transactionList').innerHTML = errorState('Transactions are temporarily unavailable','transactions'); }
 }
 loadTransactions();
 
 const money = value => new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(value);
 async function loadCapOverview() {
   const season = document.querySelector('#capSeason').value;
-  const root = document.querySelector('#capOverview'); root.innerHTML = '<section class="panel empty-state">Loading official cap thresholds…</section>';
+  const root = document.querySelector('#capOverview'); root.innerHTML = `<section class="panel">${loadingState('cards')}</section>`;
   try {
     const response = await fetchApi(`/api/finance/cap?season=${season}`); if (!response.ok) throw new Error('Cap data unavailable');
     const cap = await response.json();
     const levels = [['Salary cap',cap.cap],['Minimum payroll',cap.minimum],['Luxury tax',cap.tax],['First apron',cap.firstApron],['Second apron',cap.secondApron]];
     root.innerHTML = `<div class="finance-layout"><div class="finance-overview-column"><div class="cap-grid">${levels.map((level,index)=>`<section class="panel cap-card level-${index}"><small>${level[0]}</small><strong>${money(level[1])}</strong><div class="cap-meter"><span style="width:${Math.round(level[1]/cap.secondApron*100)}%"></span></div>${index?`<p>${money(level[1]-cap.cap)} ${level[1]>=cap.cap?'above':'below'} the salary cap</p>`:'<p>Base team spending limit</p>'}</section>`).join('')}</div><section class="panel exception-panel"><div><p class="eyebrow">MID-LEVEL EXCEPTIONS</p><h2>Available mechanisms</h2></div>${[['Non-taxpayer MLE',cap.exceptions.nonTaxpayerMidLevel],['Taxpayer MLE',cap.exceptions.taxpayerMidLevel],['Room MLE',cap.exceptions.roomMidLevel]].map(item=>`<div><small>${item[0]}</small><strong>${money(item[1])}</strong></div>`).join('')}<a href="${escapeHtml(cap.source)}" target="_blank" rel="noreferrer">Official NBA release ↗</a></section></div><div id="payrollRoot"><section class="panel empty-state payroll-loading">Loading team payroll commitments…</section></div></div>`;
     loadPayrolls(season, cap);
-  } catch (error) { root.innerHTML = '<section class="panel empty-state">Official cap information is temporarily unavailable.</section>'; }
+  } catch (error) { root.innerHTML = `<section class="panel">${errorState('Official cap information is temporarily unavailable','finance')}</section>`; }
 }
 document.querySelector('#capSeason').onchange = loadCapOverview;
 loadCapOverview();
@@ -393,7 +398,7 @@ async function loadPayrolls(season, cap) {
     picker.onchange=refreshContracts; seasonPicker.onchange=refreshContracts;
     document.querySelectorAll('[data-payroll-team]').forEach(row=>{const open=()=>{picker.value=row.dataset.payrollTeam;refreshContracts()};row.onclick=open;row.onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();open()}}});
     refreshContracts();
-  } catch (error) { root.innerHTML = '<section class="panel empty-state">Team payrolls are temporarily unavailable.</section>'; }
+  } catch (error) { root.innerHTML = `<section class="panel">${errorState('Team payrolls are temporarily unavailable','finance')}</section>`; }
 }
 
 async function loadTeamContracts(abbreviation, season) {
@@ -422,11 +427,13 @@ function renderFreeAgents() {
   const score=player=>(Number(player.stats?.ppg)||0)+(Number(player.stats?.rpg)||0)*.7+(Number(player.stats?.apg)||0)*.8;
   const players = freeAgentState.players.filter(player => (freeAgentState.status === 'all' || player.availability === freeAgentState.status) && (freeAgentState.type === 'all' || player.type === freeAgentState.type) && (freeAgentState.position==='all'||player.position===freeAgentState.position) && (!freeAgentState.query||player.name.toLowerCase().includes(freeAgentState.query))).sort((a,b)=>freeAgentState.sort==='name'?a.name.localeCompare(b.name):freeAgentState.sort==='age'?(a.age??99)-(b.age??99):freeAgentState.sort==='ppg'?(b.stats?.ppg||0)-(a.stats?.ppg||0):score(b)-score(a));
   document.querySelector('#freeAgentTable').innerHTML = players.length ? `<div class="table-scroll"><table class="free-agent-table"><thead><tr><th>Player</th><th>Pos</th><th>Age</th><th>Type</th><th>Option/status</th><th>Previous</th><th>New team</th><th>PPG</th><th>RPG</th><th>APG</th></tr></thead><tbody>${players.map(player=>`<tr><td><button class="box-player free-agent-player" data-free-agent-id="${escapeHtml(player.id||'')}" data-player-name="${escapeHtml(player.name)}" data-player-position="${escapeHtml(player.position)}" data-player-headshot="${escapeHtml(player.headshot||'')}" data-team-name="${escapeHtml(player.newTeam||player.oldTeam||'NBA free agent')}"><span class="player-cell">${player.headshot?`<img src="${escapeHtml(player.headshot)}" alt="">`:'<span class="player-placeholder"></span>'}<strong>${escapeHtml(player.name)}</strong></span></button></td><td>${escapeHtml(player.position)}</td><td>${player.age??'-'}</td><td><span class="fa-type ${player.type.toLowerCase()}">${escapeHtml(player.type)}</span></td><td>${player.option?`<span class="fa-option">${escapeHtml(player.option)}</span>`:escapeHtml(player.availability)}</td><td>${escapeHtml(player.oldTeam||'—')}</td><td>${escapeHtml(player.newTeam||'—')}</td><td>${player.stats.ppg.toFixed(1)}</td><td>${player.stats.rpg.toFixed(1)}</td><td>${player.stats.apg.toFixed(1)}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty-state">No free agents match these filters.</div>';
+  if(!players.length)document.querySelector('#freeAgentTable').innerHTML='<div class="empty-state designed-empty"><strong>No free agents match</strong><span>Try changing the search, position, status, or free-agent type.</span><button class="secondary-action" data-clear-free-agents>Clear filters</button></div>';
   document.querySelectorAll('.free-agent-player[data-free-agent-id]').forEach(button=>button.onclick=()=>openPlayerProfile(button.dataset.freeAgentId,{name:button.dataset.playerName,position:button.dataset.playerPosition,headshot:button.dataset.playerHeadshot},button.dataset.teamName));
   if(freeAgentState.sort==='best'&&freeAgentState.status==='Available')document.querySelectorAll('.free-agent-player .player-cell').forEach((cell,index)=>{if(index<10)cell.insertAdjacentHTML('beforeend',`<span class="best-available-rank">#${index+1} best available</span>`)});
 }
 
 async function loadFreeAgents() {
+  document.querySelector('#freeAgentTable').innerHTML=loadingState('table');
   try {
     const response = await fetchApi('/api/free-agents'); if (!response.ok) throw new Error('Free agents unavailable');
     const payload = await response.json(); freeAgentState.players = payload.players;
@@ -435,7 +442,7 @@ async function loadFreeAgents() {
     position.innerHTML='<option value="all">All positions</option>'+[...new Set(payload.players.map(player=>player.position).filter(Boolean))].sort().map(value=>`<option>${escapeHtml(value)}</option>`).join('');
     status.onchange=()=>{freeAgentState.status=status.value;localStorage.setItem('freeAgentStatus',status.value);renderFreeAgents()}; type.onchange=()=>{freeAgentState.type=type.value;localStorage.setItem('freeAgentType',type.value);renderFreeAgents()}; position.onchange=()=>{freeAgentState.position=position.value;renderFreeAgents()};sort.onchange=()=>{freeAgentState.sort=sort.value;renderFreeAgents()};search.oninput=()=>{freeAgentState.query=search.value.trim().toLowerCase();renderFreeAgents()};
     renderFreeAgents();
-  } catch (error) { document.querySelector('#freeAgentTable').innerHTML = '<div class="empty-state">The free-agent tracker is temporarily unavailable.</div>'; }
+  } catch (error) { document.querySelector('#freeAgentTable').innerHTML = errorState('The free-agent tracker is temporarily unavailable','free-agents'); }
 }
 loadFreeAgents();
 
@@ -468,3 +475,4 @@ document.querySelector('#closeComparison').onclick=()=>document.querySelector('#
 function openTransactionDetail(item){if(!item)return;const root=document.querySelector('#transactionDetail');root.innerHTML=`<p class="eyebrow">${escapeHtml(item.type)} · ${item.date?new Date(item.date).toLocaleDateString():'Date unavailable'}</p><h2 id="transactionDialogTitle">${escapeHtml(item.team.displayName)}</h2><div class="transaction-detail-head">${item.player?.headshot?`<img src="${escapeHtml(item.player.headshot)}" alt="">`:item.team.logo?`<img src="${escapeHtml(item.team.logo)}" alt="">`:''}<p>${escapeHtml(item.description)}</p></div>${item.contract?`<section class="profile-section"><h3>Contract terms</h3><p>${item.contract.years} year${item.contract.years===1?'':'s'} · ${money(item.contract.value)}${item.contract.details?` · ${escapeHtml(item.contract.details)}`:''}</p></section>`:''}<section class="profile-section"><h3>Verification</h3><p>This move is shown from the linked league or reporting source.</p><a class="source-link" href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">Open original source ↗</a></section>`;document.querySelector('#transactionDialog').showModal()}
 document.querySelector('#closeTransactionDialog').onclick=()=>document.querySelector('#transactionDialog').close();
 document.querySelectorAll('[data-refresh]').forEach(button=>button.onclick=()=>{button.disabled=true;button.textContent='Refreshing…';const tasks={transactions:loadTransactions,'free-agents':loadFreeAgents,standings:loadStandings,injuries:loadInjuries,finance:loadCapOverview};const task=tasks[button.dataset.refresh]?.();Promise.resolve(task).finally(()=>{button.disabled=false;button.textContent='Refresh'})});
+document.body.addEventListener('click',event=>{const view=event.target.closest('[data-empty-view]');if(view)activateView(view.dataset.emptyView);const retry=event.target.closest('[data-retry]');if(retry){const tasks={transactions:loadTransactions,'free-agents':loadFreeAgents,standings:loadStandings,injuries:loadInjuries,finance:loadCapOverview,teams:loadTeams,roster:()=>loadRoster(document.querySelector('#teamPicker').value)};tasks[retry.dataset.retry]?.()}if(event.target.closest('[data-clear-free-agents]')){freeAgentState.status='all';freeAgentState.type='all';freeAgentState.position='all';freeAgentState.sort='best';freeAgentState.query='';document.querySelector('#freeAgentStatus').value='all';document.querySelector('#freeAgentType').value='all';document.querySelector('#freeAgentPosition').value='all';document.querySelector('#freeAgentSort').value='best';document.querySelector('#freeAgentSearch').value='';renderFreeAgents()}});
