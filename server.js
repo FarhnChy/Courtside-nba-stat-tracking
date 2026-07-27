@@ -8,6 +8,7 @@ const offseasonTrades = require('./data/offseasonTrades');
 
 const root = path.join(__dirname, 'public');
 const types = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8', '.svg': 'image/svg+xml', '.webp': 'image/webp', '.png': 'image/png' };
+let searchCache = null;
 
 function json(res, status, body) {
   res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'strict-origin-when-cross-origin' });
@@ -36,9 +37,31 @@ async function transactionsWithRosterReconciliation() {
   } catch(_){return base}
 }
 
+async function searchableDirectory() {
+  if (searchCache && Date.now() - searchCache.time < 600_000) return searchCache.items;
+  const [directory, market, board] = await Promise.all([espn.teamsList(), finance.freeAgents().catch(()=>({players:[]})), espn.scoreboard().catch(()=>({games:[]}))]);
+  const rosters = await Promise.all(directory.teams.map(async team => { try { return await espn.roster(team.id); } catch (_) { return null; } }));
+  const players = new Map();
+  for (const roster of rosters.filter(Boolean)) for (const player of roster.players) players.set(String(player.id), { kind:'player', id:player.id, name:player.name, subtitle:`${roster.team.displayName} · ${player.position}`, headshot:player.headshot, teamName:roster.team.displayName, position:player.position });
+  const rosterNames=new Set([...players.values()].map(player=>player.name.toLowerCase()));
+  for (const player of market.players) if (!players.has(String(player.id))&&!rosterNames.has(player.name.toLowerCase())) players.set(String(player.id), { kind:'player', id:player.id, name:player.name, subtitle:`Free agent · ${player.position}`, headshot:player.headshot, teamName:player.newTeam||player.oldTeam||'NBA free agent', position:player.position });
+  const items = [
+    ...directory.teams.map(team=>({kind:'team',id:team.id,name:team.displayName,subtitle:team.abbreviation,logo:team.logo})),
+    ...players.values(),
+    ...(board.games||[]).map(game=>({kind:'game',id:game.id,name:`${game.away.displayName} at ${game.home.displayName}`,subtitle:game.status.detail,away:game.away.abbreviation,home:game.home.abbreviation}))
+  ];
+  searchCache={time:Date.now(),items}; return items;
+}
+
 const server = http.createServer(async (req, res) => {
   const urlPath = decodeURIComponent(req.url.split('?')[0]);
   if (urlPath === '/api/health') return json(res, 200, { ok: true, provider: 'espn-site-api' });
+  if (urlPath === '/api/search') {
+    const query = new URL(req.url, 'http://localhost').searchParams.get('q')?.trim() || '';
+    if (query.length < 2 || query.length > 60) return json(res, 400, { error: 'Search must contain 2 to 60 characters' });
+    try { const needle=query.toLowerCase(); const results=(await searchableDirectory()).filter(item=>`${item.name} ${item.subtitle}`.toLowerCase().includes(needle)).slice(0,20); return json(res,200,{query,results,retrievedAt:new Date().toISOString()}); }
+    catch (error) { return json(res,502,{error:'Search unavailable',detail:error.message}); }
+  }
   if (urlPath === '/api/finance/cap') {
     try {
       const season = new URL(req.url, 'http://localhost').searchParams.get('season') || '2026-27';

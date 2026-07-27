@@ -7,6 +7,11 @@ const teams = {
   ORL:{name:'Magic',city:'Orlando',color:'#178bd1'},PHI:{name:'76ers',city:'Philadelphia',color:'#d9283e'}
 };
 const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+async function fetchApi(url) {
+  let lastError;
+  for(let attempt=0;attempt<2;attempt++)try{const response=await window.fetch(url);if(!response.ok)throw new Error(`Request failed (${response.status})`);try{localStorage.setItem(`apiCache:${url}`,await response.clone().text())}catch(_){}return response}catch(error){lastError=error}
+  const cached=localStorage.getItem(`apiCache:${url}`);if(cached!=null)return new Response(cached,{status:200,headers:{'content-type':'application/json','x-courtside-cache':'stale'}});throw lastError;
+}
 const savedHub = (() => { try { return JSON.parse(localStorage.getItem('courtsideHub') || '{}'); } catch (_) { return {}; } })();
 const hubState = {
   theme: savedHub.theme === 'light' ? 'light' : 'dark',
@@ -29,6 +34,7 @@ function updateHubIdentity() {
   avatar.innerHTML = favorite?.logo ? `<img src="${escapeHtml(favorite.logo)}" alt="">` : '★';
   const open = document.querySelector('#openFavoriteTeam'); open.disabled = !favorite;
   open.textContent = favorite ? `Open ${favorite.abbreviation || 'team'} page` : 'Open team page';
+  renderFavoriteDashboard();
 }
 function renderFantasyStatus() {
   const root = document.querySelector('#fantasyStatus');
@@ -122,7 +128,7 @@ async function loadScoreboard(quiet = false) {
   const status = document.querySelector('#feedStatus');
   if (status && !quiet) status.textContent = 'Loading live NBA data…';
   try {
-    const response = await fetch(`/api/scoreboard?date=${isoDate(live.date)}`);
+    const response = await fetchApi(`/api/scoreboard?date=${isoDate(live.date)}`);
     if (!response.ok) throw new Error('Feed unavailable');
     const payload = await response.json(); live.source = 'live'; installLiveGames(payload);
     if (status) status.textContent = `${payload.season || 'NBA'} · Live feed · refreshes every 20s`;
@@ -235,7 +241,7 @@ function openTeamRoster(teamId) { const picker=document.querySelector('#teamPick
 async function loadStandings() {
   const root = document.querySelector('#standingsTable'); root.innerHTML = '<div class="empty-state">Loading East and West standings…</div>';
   try {
-    const response = await fetch(`/api/standings?season=${currentSeasonEndYear()}`);
+    const response = await fetchApi(`/api/standings?season=${currentSeasonEndYear()}`);
     if (!response.ok) throw new Error('Standings unavailable');
     liveStandings.data = await response.json(); renderLiveStandings();
   } catch (error) { root.innerHTML = '<div class="empty-state">Live standings are temporarily unavailable.</div>'; }
@@ -251,7 +257,7 @@ loadStandings();
 async function loadTeams() {
   const picker = document.querySelector('#teamPicker');
   try {
-    const response = await fetch('/api/teams'); if (!response.ok) throw new Error('Teams unavailable');
+    const response = await fetchApi('/api/teams'); if (!response.ok) throw new Error('Teams unavailable');
     const payload = await response.json();
     picker.innerHTML = payload.teams.map(team => `<option value="${team.id}">${escapeHtml(team.displayName)}</option>`).join('');
     populateFavoriteTeams(payload.teams);
@@ -261,6 +267,7 @@ async function loadTeams() {
 }
 
 const rosterState = { roster: null, query: '', position: 'all', mode: 'players' };
+let currentProfileCandidate = null;
 function renderRosterData() {
   const roster = rosterState.roster; const root = document.querySelector('#rosterView');
   if (!roster) return;
@@ -282,18 +289,18 @@ function renderRosterData() {
 function playerProfileHeader(player, teamName) {
   const bio = [player.position, player.height, player.weight, player.age && player.age !== '-' ? `Age ${player.age}` : ''].filter(Boolean).join(' · ');
   const portrait = player.headshot ? `<img src="${escapeHtml(player.headshot)}" alt="${escapeHtml(player.name)} headshot">` : `<span class="profile-placeholder" aria-hidden="true">${escapeHtml(player.name?.split(' ').map(part=>part[0]).slice(0,2).join('')||'NBA')}</span>`;
-  return `<div class="player-profile-head">${portrait}<div><p class="eyebrow">${escapeHtml(teamName)}${player.jersey?` · #${escapeHtml(player.jersey)}`:''}</p><h2 id="playerDialogTitle">${escapeHtml(player.name)}</h2>${bio?`<p>${escapeHtml(bio)}</p>`:''}</div></div>`;
+  return `<div class="player-profile-head">${portrait}<div><p class="eyebrow">${escapeHtml(teamName)}${player.jersey?` · #${escapeHtml(player.jersey)}`:''}</p><h2 id="playerDialogTitle">${escapeHtml(player.name)}</h2>${bio?`<p>${escapeHtml(bio)}</p>`:''}<button class="secondary-action add-comparison" data-compare-player="${escapeHtml(player.id||'')}">Add to comparison</button></div></div>`;
 }
 
 async function openPlayerProfile(id, playerOverride = null, teamOverride = '') {
   const player = playerOverride || rosterState.roster?.players.find(item => String(item.id) === String(id)); if (!player || !id) return;
-  const teamName = teamOverride || rosterState.roster?.team?.displayName || 'NBA';
+  const teamName = teamOverride || rosterState.roster?.team?.displayName || 'NBA'; currentProfileCandidate={...player,id,teamName};
   const dialog = document.querySelector('#playerDialog'); const root = document.querySelector('#playerProfile');
   const header = playerProfileHeader(player, teamName);
   root.innerHTML = `${header}<div class="empty-state compact-empty">Loading season statistics…</div>`; dialog.showModal();
   try {
-    const response = await fetch(`/api/players/${id}`); if (!response.ok) throw new Error('Profile unavailable'); const profile=await response.json();
-    const history = profile.history || []; const latest = history[history.length-1]; const detailedPlayer={...player,position:profile.positions||player.position}; const detailedHeader=playerProfileHeader(detailedPlayer,teamName);
+    const response = await fetchApi(`/api/players/${id}`); if (!response.ok) throw new Error('Profile unavailable'); const profile=await response.json();
+    const history = profile.history || []; const latest = history[history.length-1]; const detailedPlayer={...player,position:profile.positions||player.position}; const detailedHeader=playerProfileHeader(detailedPlayer,teamName); currentProfileCandidate={...detailedPlayer,id,teamName,profile,latest};
     root.innerHTML = `${detailedHeader}${latest?`<div class="profile-stats">${['PTS','REB','AST','FG%'].map(label=>`<div><strong>${escapeHtml(latest.values[label]??'—')}</strong><small>${label}</small></div>`).join('')}</div><div class="profile-section"><h3>NBA season history</h3><div class="table-scroll"><table class="career-table"><thead><tr><th>Season</th><th>Team</th><th>GP</th><th>MIN</th><th>PTS</th><th>REB</th><th>AST</th><th>FG%</th><th>3P%</th><th>FT%</th><th>STL</th><th>BLK</th></tr></thead><tbody>${history.map(row=>`<tr><td><strong>${escapeHtml(row.season)}</strong></td><td>${escapeHtml(row.team)}</td>${['GP','MIN','PTS','REB','AST','FG%','3P%','FT%','STL','BLK'].map(label=>`<td>${escapeHtml(row.values[label]??'—')}</td>`).join('')}</tr>`).join('')}</tbody></table></div></div>`:'<div class="empty-state compact-empty">Career statistics are not currently available.</div>'}${profile.awards?.length?`<div class="profile-section"><h3>Career accolades</h3><div class="accolade-grid">${profile.awards.map(award=>`<article><strong>${escapeHtml(award.count)} ${escapeHtml(award.name)}</strong><small>${escapeHtml((award.seasons||[]).join(' · '))}</small></article>`).join('')}</div></div>`:''}`;
   } catch(error) { root.innerHTML = `${header}<div class="empty-state compact-empty">Season statistics are temporarily unavailable.</div>`; }
 }
@@ -304,9 +311,9 @@ document.querySelector('#playerDialog').onclick=event=>{if(event.target===event.
 async function loadRoster(teamId) {
   const root = document.querySelector('#rosterView'); root.innerHTML = '<div class="empty-state">Loading roster and coaches…</div>';
   try {
-    const response = await fetch(`/api/teams/${teamId}/roster`); if (!response.ok) throw new Error('Roster unavailable');
+    const response = await fetchApi(`/api/teams/${teamId}/roster`); if (!response.ok) throw new Error('Roster unavailable');
     const roster = await response.json();
-    rosterState.roster = roster; rosterState.query = ''; rosterState.position = 'all'; renderRosterData();
+    rosterState.roster = roster; rosterState.query = ''; rosterState.position = 'all'; renderTeamDashboard(roster); renderRosterData();
   } catch (error) { root.innerHTML = '<div class="empty-state">This roster is temporarily unavailable.</div>'; }
 }
 
@@ -315,7 +322,7 @@ document.querySelectorAll('#rosterMode button').forEach(button=>button.onclick=(
 async function loadInjuries() {
   const root = document.querySelector('#injuryReport');
   try {
-    const response = await fetch('/api/injuries'); if (!response.ok) throw new Error('Injuries unavailable');
+    const response = await fetchApi('/api/injuries'); if (!response.ok) throw new Error('Injuries unavailable');
     const payload = await response.json();
     document.querySelector('#injuryTimestamp').textContent = payload.timestamp ? `Updated ${new Date(payload.timestamp).toLocaleString()}` : 'Current report';
     root.innerHTML = payload.teams.length ? payload.teams.map(team => `<section class="panel injury-team"><div class="panel-title"><h2>${escapeHtml(team.displayName)}</h2><span class="pill">${team.injuries.length} listed</span></div>${team.injuries.map(item=>`<article class="injury-card">${item.headshot?`<img src="${escapeHtml(item.headshot)}" alt="">`:'<span class="player-placeholder"></span>'}<div><button class="injury-player" data-injury-player="${escapeHtml(item.athleteId||'')}" data-player-name="${escapeHtml(item.player)}" data-player-position="${escapeHtml(item.position)}" data-player-headshot="${escapeHtml(item.headshot||'')}" data-team-name="${escapeHtml(team.displayName)}"><strong>${escapeHtml(item.player)}</strong></button><small>${escapeHtml(item.position)} · ${item.date?new Date(item.date).toLocaleDateString():'Date unavailable'}</small><p>${escapeHtml(item.shortComment || item.detail || 'No additional details provided.')}</p>${item.returnDate?`<span class="return-date">Expected return: ${escapeHtml(item.returnDate)}</span>`:''}</div><span class="availability limited">${escapeHtml(item.status)}</span></article>`).join('')}</section>`).join('') : '<div class="panel empty-state">No current injuries are listed.</div>';
@@ -329,11 +336,12 @@ const transactionState = { data: [], team: 'all', type: 'all' };
 function renderTransactions() {
   const filtered = transactionState.data.filter(item => (transactionState.team === 'all' || item.team.id === transactionState.team) && (transactionState.type === 'all' || item.type === transactionState.type));
   document.querySelector('#transactionList').innerHTML = filtered.length ? `<div class="transaction-list">${filtered.map(item=>`<article class="transaction-item">${item.player?.headshot?`<img class="transaction-player-photo" src="${escapeHtml(item.player.headshot)}" alt="${escapeHtml(item.player.name)}">`:item.team.logo?`<img src="${escapeHtml(item.team.logo)}" alt="">`:''}<div><div class="transaction-meta"><span class="move-type">${escapeHtml(item.type)}</span><time>${item.date?`${item.dateLabel?`${escapeHtml(item.dateLabel)} `:''}${new Date(item.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}`:'Date unavailable'}</time></div><strong>${escapeHtml(item.team.displayName)}</strong><p>${escapeHtml(item.description)}</p>${item.contract?`<div class="move-contract"><strong>${item.contract.years} year${item.contract.years===1?'':'s'} · ${money(item.contract.value)}</strong>${item.contract.details?`<span>${escapeHtml(item.contract.details)}</span>`:''}</div>`:''}<a class="transaction-link" href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">View source ↗</a></div></article>`).join('')}</div>` : '<div class="empty-state">No transactions match these filters.</div>';
+  document.querySelectorAll('.transaction-item').forEach((card,index)=>{card.tabIndex=0;const open=event=>{if(event?.target?.closest('a'))return;openTransactionDetail(filtered[index])};card.onclick=open;card.onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();open(event)}}});
 }
 
 async function loadTransactions() {
   try {
-    const response = await fetch('/api/transactions'); if (!response.ok) throw new Error('Transactions unavailable');
+    const response = await fetchApi('/api/transactions'); if (!response.ok) throw new Error('Transactions unavailable');
     const payload = await response.json(); transactionState.data = payload.transactions;
     document.querySelector('#transactionTimestamp').textContent = `${payload.transactions.length} recent moves${payload.timestamp?` · Updated ${new Date(payload.timestamp).toLocaleString()}`:''}`;
     const teamPicker = document.querySelector('#transactionTeam');
@@ -354,7 +362,7 @@ async function loadCapOverview() {
   const season = document.querySelector('#capSeason').value;
   const root = document.querySelector('#capOverview'); root.innerHTML = '<section class="panel empty-state">Loading official cap thresholds…</section>';
   try {
-    const response = await fetch(`/api/finance/cap?season=${season}`); if (!response.ok) throw new Error('Cap data unavailable');
+    const response = await fetchApi(`/api/finance/cap?season=${season}`); if (!response.ok) throw new Error('Cap data unavailable');
     const cap = await response.json();
     const levels = [['Salary cap',cap.cap],['Minimum payroll',cap.minimum],['Luxury tax',cap.tax],['First apron',cap.firstApron],['Second apron',cap.secondApron]];
     root.innerHTML = `<div class="finance-layout"><div class="finance-overview-column"><div class="cap-grid">${levels.map((level,index)=>`<section class="panel cap-card level-${index}"><small>${level[0]}</small><strong>${money(level[1])}</strong><div class="cap-meter"><span style="width:${Math.round(level[1]/cap.secondApron*100)}%"></span></div>${index?`<p>${money(level[1]-cap.cap)} ${level[1]>=cap.cap?'above':'below'} the salary cap</p>`:'<p>Base team spending limit</p>'}</section>`).join('')}</div><section class="panel exception-panel"><div><p class="eyebrow">MID-LEVEL EXCEPTIONS</p><h2>Available mechanisms</h2></div>${[['Non-taxpayer MLE',cap.exceptions.nonTaxpayerMidLevel],['Taxpayer MLE',cap.exceptions.taxpayerMidLevel],['Room MLE',cap.exceptions.roomMidLevel]].map(item=>`<div><small>${item[0]}</small><strong>${money(item[1])}</strong></div>`).join('')}<a href="${escapeHtml(cap.source)}" target="_blank" rel="noreferrer">Official NBA release ↗</a></section></div><div id="payrollRoot"><section class="panel empty-state payroll-loading">Loading team payroll commitments…</section></div></div>`;
@@ -375,7 +383,7 @@ function payrollStatus(value, cap) {
 async function loadPayrolls(season, cap) {
   const root = document.querySelector('#payrollRoot');
   try {
-    const response = await fetch('/api/finance/payrolls'); if (!response.ok) throw new Error('Payrolls unavailable');
+    const response = await fetchApi('/api/finance/payrolls'); if (!response.ok) throw new Error('Payrolls unavailable');
     const payload = await response.json();
     if (!payload.seasons.includes(season)) { root.innerHTML = '<section class="panel empty-state">Historical team payroll commitments are not available from this source.</section>'; return; }
     const ranked = [...payload.teams].sort((a,b)=>(b.salaries[season]||0)-(a.salaries[season]||0));
@@ -391,7 +399,7 @@ async function loadPayrolls(season, cap) {
 async function loadTeamContracts(abbreviation, season) {
   const root = document.querySelector('#contractContent'); root.innerHTML = '<div class="empty-state">Loading player contracts…</div>';
   try {
-    const response = await fetch(`/api/finance/teams/${abbreviation}/contracts`); if (!response.ok) throw new Error('Contracts unavailable');
+    const response = await fetchApi(`/api/finance/teams/${abbreviation}/contracts`); if (!response.ok) throw new Error('Contracts unavailable');
     const payload = await response.json();
     const start = Math.max(0,payload.seasons.indexOf(season)); const future = payload.seasons.slice(start,start+2); if(!future.length)future.push(...payload.seasons.slice(0,2));
     root.innerHTML = `<div class="selected-team-heading"><div><h3>${escapeHtml(abbreviation)} salary commitments</h3><p class="contract-key"><span class="option-badge player">PO</span> Player option <span class="option-badge team">TO</span> Team option</p></div><a class="source-link" href="${escapeHtml(payload.source)}" target="_blank" rel="noreferrer">View source ↗</a></div><div class="table-scroll"><table class="contract-table"><thead><tr><th>Player</th><th>Age</th>${future.map(year=>`<th>${year}</th>`).join('')}<th>Guaranteed</th></tr></thead><tbody>${payload.players.map(player=>`<tr><td><strong>${escapeHtml(player.name)}</strong></td><td>${player.age??'-'}</td>${future.map(year=>`<td class="${year===season?'current-contract':''}">${player.salaries[year]?money(player.salaries[year]):'—'}${player.options?.[year]?`<span class="option-badge ${player.options[year]==='Player option'?'player':'team'}" title="${escapeHtml(player.options[year])}">${player.options[year]==='Player option'?'PO':'TO'}</span>`:''}</td>`).join('')}<td>${player.guaranteed?money(player.guaranteed):'—'}</td></tr>`).join('')}</tbody></table></div><button class="secondary-action show-cap-holds" id="showCapHolds">I want to see projected cap holds</button><div id="capHoldPanel" hidden></div>`;
@@ -402,28 +410,61 @@ async function loadTeamContracts(abbreviation, season) {
 async function loadCapHolds(abbreviation) {
   const root = document.querySelector('#capHoldPanel');
   try {
-    const response = await fetch(`/api/finance/teams/${abbreviation}/cap-holds`); if (!response.ok) throw new Error('Cap holds unavailable');
+    const response = await fetchApi(`/api/finance/teams/${abbreviation}/cap-holds`); if (!response.ok) throw new Error('Cap holds unavailable');
     const payload = await response.json();
     const rows = payload.holds.flatMap(player => Object.entries(player.holds).filter(([,amount])=>amount>0).map(([season,amount])=>({...player,season,amount}))).sort((a,b)=>a.season.localeCompare(b.season)||b.amount-a.amount);
     root.innerHTML = `<div class="cap-hold-heading"><div><p class="eyebrow">PROJECTED CAP HOLDS</p><h3>Upcoming free-agent charges</h3></div><a class="source-link" href="${escapeHtml(payload.source)}" target="_blank" rel="noreferrer">SalarySwish source ↗</a></div>${rows.length?`<div class="table-scroll"><table class="cap-hold-table"><thead><tr><th>Player</th><th>FA type</th><th>Position</th><th>Season</th><th>Cap hold</th></tr></thead><tbody>${rows.map(row=>`<tr><td><strong>${escapeHtml(row.name)}</strong></td><td><span class="fa-type ${row.type.toLowerCase()}">${row.type}</span></td><td>${escapeHtml(row.position)}</td><td>${row.season}</td><td>${money(row.amount)}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty-state">No projected cap holds are listed.</div>'}<p class="cap-hold-note">Cap holds are projected offseason placeholders and can change when a player signs or a team renounces its rights.</p>`;
   } catch (error) { root.innerHTML = '<div class="empty-state">Projected cap holds are temporarily unavailable.</div>'; }
 }
 
-const freeAgentState = { players: [], status: localStorage.getItem('freeAgentStatus') || 'Available', type: localStorage.getItem('freeAgentType') || 'all' };
+const freeAgentState = { players: [], status: localStorage.getItem('freeAgentStatus') || 'Available', type: localStorage.getItem('freeAgentType') || 'all', position:'all', sort:'best', query:'' };
 function renderFreeAgents() {
-  const players = freeAgentState.players.filter(player => (freeAgentState.status === 'all' || player.availability === freeAgentState.status) && (freeAgentState.type === 'all' || player.type === freeAgentState.type));
+  const score=player=>(Number(player.stats?.ppg)||0)+(Number(player.stats?.rpg)||0)*.7+(Number(player.stats?.apg)||0)*.8;
+  const players = freeAgentState.players.filter(player => (freeAgentState.status === 'all' || player.availability === freeAgentState.status) && (freeAgentState.type === 'all' || player.type === freeAgentState.type) && (freeAgentState.position==='all'||player.position===freeAgentState.position) && (!freeAgentState.query||player.name.toLowerCase().includes(freeAgentState.query))).sort((a,b)=>freeAgentState.sort==='name'?a.name.localeCompare(b.name):freeAgentState.sort==='age'?(a.age??99)-(b.age??99):freeAgentState.sort==='ppg'?(b.stats?.ppg||0)-(a.stats?.ppg||0):score(b)-score(a));
   document.querySelector('#freeAgentTable').innerHTML = players.length ? `<div class="table-scroll"><table class="free-agent-table"><thead><tr><th>Player</th><th>Pos</th><th>Age</th><th>Type</th><th>Option/status</th><th>Previous</th><th>New team</th><th>PPG</th><th>RPG</th><th>APG</th></tr></thead><tbody>${players.map(player=>`<tr><td><button class="box-player free-agent-player" data-free-agent-id="${escapeHtml(player.id||'')}" data-player-name="${escapeHtml(player.name)}" data-player-position="${escapeHtml(player.position)}" data-player-headshot="${escapeHtml(player.headshot||'')}" data-team-name="${escapeHtml(player.newTeam||player.oldTeam||'NBA free agent')}"><span class="player-cell">${player.headshot?`<img src="${escapeHtml(player.headshot)}" alt="">`:'<span class="player-placeholder"></span>'}<strong>${escapeHtml(player.name)}</strong></span></button></td><td>${escapeHtml(player.position)}</td><td>${player.age??'-'}</td><td><span class="fa-type ${player.type.toLowerCase()}">${escapeHtml(player.type)}</span></td><td>${player.option?`<span class="fa-option">${escapeHtml(player.option)}</span>`:escapeHtml(player.availability)}</td><td>${escapeHtml(player.oldTeam||'—')}</td><td>${escapeHtml(player.newTeam||'—')}</td><td>${player.stats.ppg.toFixed(1)}</td><td>${player.stats.rpg.toFixed(1)}</td><td>${player.stats.apg.toFixed(1)}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty-state">No free agents match these filters.</div>';
   document.querySelectorAll('.free-agent-player[data-free-agent-id]').forEach(button=>button.onclick=()=>openPlayerProfile(button.dataset.freeAgentId,{name:button.dataset.playerName,position:button.dataset.playerPosition,headshot:button.dataset.playerHeadshot},button.dataset.teamName));
+  if(freeAgentState.sort==='best'&&freeAgentState.status==='Available')document.querySelectorAll('.free-agent-player .player-cell').forEach((cell,index)=>{if(index<10)cell.insertAdjacentHTML('beforeend',`<span class="best-available-rank">#${index+1} best available</span>`)});
 }
 
 async function loadFreeAgents() {
   try {
-    const response = await fetch('/api/free-agents'); if (!response.ok) throw new Error('Free agents unavailable');
+    const response = await fetchApi('/api/free-agents'); if (!response.ok) throw new Error('Free agents unavailable');
     const payload = await response.json(); freeAgentState.players = payload.players;
-    document.querySelector('#freeAgentTimestamp').textContent = `${payload.players.length} tracked players · Official NBA tracker · Retrieved ${new Date(payload.retrievedAt).toLocaleString()}`;
-    const status = document.querySelector('#freeAgentStatus'); const type = document.querySelector('#freeAgentType'); status.value=freeAgentState.status;type.value=freeAgentState.type;
-    status.onchange=()=>{freeAgentState.status=status.value;localStorage.setItem('freeAgentStatus',status.value);renderFreeAgents()}; type.onchange=()=>{freeAgentState.type=type.value;localStorage.setItem('freeAgentType',type.value);renderFreeAgents()};
+    document.querySelector('#freeAgentTimestamp').textContent = `${payload.players.length} tracked players · Official NBA tracker · Retrieved ${new Date(payload.retrievedAt).toLocaleString()} · Best available uses recent PPG, RPG and APG`;
+    const status = document.querySelector('#freeAgentStatus'); const type = document.querySelector('#freeAgentType'); const position=document.querySelector('#freeAgentPosition'); const sort=document.querySelector('#freeAgentSort'); const search=document.querySelector('#freeAgentSearch'); status.value=freeAgentState.status;type.value=freeAgentState.type;
+    position.innerHTML='<option value="all">All positions</option>'+[...new Set(payload.players.map(player=>player.position).filter(Boolean))].sort().map(value=>`<option>${escapeHtml(value)}</option>`).join('');
+    status.onchange=()=>{freeAgentState.status=status.value;localStorage.setItem('freeAgentStatus',status.value);renderFreeAgents()}; type.onchange=()=>{freeAgentState.type=type.value;localStorage.setItem('freeAgentType',type.value);renderFreeAgents()}; position.onchange=()=>{freeAgentState.position=position.value;renderFreeAgents()};sort.onchange=()=>{freeAgentState.sort=sort.value;renderFreeAgents()};search.oninput=()=>{freeAgentState.query=search.value.trim().toLowerCase();renderFreeAgents()};
     renderFreeAgents();
   } catch (error) { document.querySelector('#freeAgentTable').innerHTML = '<div class="empty-state">The free-agent tracker is temporarily unavailable.</div>'; }
 }
 loadFreeAgents();
+
+// Cross-feature navigation and personalized surfaces.
+const comparisonState = [];
+let searchTimer = null;
+const searchDialog=document.querySelector('#searchDialog');
+document.querySelector('#searchButton').onclick=()=>{searchDialog.showModal();setTimeout(()=>document.querySelector('#globalSearchInput').focus(),0)};
+document.querySelector('#closeSearch').onclick=()=>searchDialog.close();
+searchDialog.onclick=event=>{if(event.target===searchDialog)searchDialog.close()};
+document.querySelector('#globalSearchInput').oninput=event=>{clearTimeout(searchTimer);const query=event.target.value.trim();const root=document.querySelector('#searchResults');if(query.length<2){root.innerHTML='<div class="empty-state compact-empty">Enter at least two characters.</div>';return}root.innerHTML='<div class="empty-state compact-empty">Searching players, teams, and games…</div>';searchTimer=setTimeout(async()=>{try{const response=await fetch(`/api/search?q=${encodeURIComponent(query)}`);if(!response.ok)throw new Error();const payload=await response.json();root.innerHTML=payload.results.length?payload.results.map((item,index)=>`<button class="search-result" data-search-index="${index}">${item.logo||item.headshot?`<img src="${escapeHtml(item.logo||item.headshot)}" alt="">`:'<span class="search-icon">⌕</span>'}<span><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(item.subtitle)}</small></span><em>${escapeHtml(item.kind)}</em></button>`).join(''):'<div class="empty-state compact-empty">No matching players, teams, or games.</div>';root.querySelectorAll('[data-search-index]').forEach(button=>button.onclick=()=>{const item=payload.results[Number(button.dataset.searchIndex)];searchDialog.close();if(item.kind==='team')openTeamRoster(item.id);else if(item.kind==='player')openPlayerProfile(item.id,{id:item.id,name:item.name,position:item.position,headshot:item.headshot},item.teamName);else{activateView('scores');const game=games.find(game=>String(game.id)===String(item.id));if(game){selected=game;renderCards();loadGame(game.id)}}})}catch(_){root.innerHTML='<div class="empty-state compact-empty">Search is temporarily unavailable. Try again.</div>'}},250)};
+
+async function renderFavoriteDashboard() {
+  const root=document.querySelector('#favoriteDashboard'); const favorite=hubState.teams.find(team=>String(team.id)===String(hubState.favoriteTeam));
+  if(!favorite){root.hidden=true;return}root.hidden=false;root.innerHTML='<div class="panel empty-state compact-empty">Loading your favorite team…</div>';
+  try{const [roster,standingPayload,injuryPayload,movesPayload]=await Promise.all([fetch(`/api/teams/${favorite.id}/roster`).then(r=>r.ok?r.json():Promise.reject()),fetch(`/api/standings?season=${currentSeasonEndYear()}`).then(r=>r.ok?r.json():null),fetch('/api/injuries').then(r=>r.ok?r.json():null),fetch('/api/transactions').then(r=>r.ok?r.json():null)]);const standing=standingPayload?.conferences.flatMap(group=>group.teams).find(team=>String(team.id)===String(favorite.id));const injuries=injuryPayload?.teams.find(team=>team.displayName===favorite.displayName)?.injuries||[];const moves=(movesPayload?.transactions||[]).filter(item=>item.team.abbreviation===favorite.abbreviation||String(item.team.id)===String(favorite.id)).slice(0,2);const game=games.find(item=>item.away===favorite.abbreviation||item.home===favorite.abbreviation);root.innerHTML=`<div class="favorite-head">${favorite.logo?`<img src="${escapeHtml(favorite.logo)}" alt="">`:''}<div><p class="eyebrow">YOUR TEAM</p><h2>${escapeHtml(favorite.displayName)}</h2><p>${standing?`${standing.wins}–${standing.losses} · ${standing.seed} seed`:'Season record loading'}</p></div><button class="secondary-action" id="favoriteTeamPage">Open team dashboard</button></div><div class="favorite-metrics"><div><small>Next/current game</small><strong>${game?`${game.away} ${game.detail} ${game.home}`:'No game today'}</strong></div><div><small>Roster</small><strong>${roster.players.length} players</strong></div><div><small>Injuries</small><strong>${injuries.length} listed</strong></div><div><small>Latest move</small><strong>${escapeHtml(moves[0]?.description||'No recent move')}</strong></div></div>`;document.querySelector('#favoriteTeamPage').onclick=()=>openTeamRoster(favorite.id)}catch(_){root.innerHTML='<div class="panel empty-state compact-empty">Favorite-team summary is temporarily unavailable.</div>'}
+}
+
+async function renderTeamDashboard(roster) {
+  const root=document.querySelector('#teamDashboard');root.innerHTML='<section class="panel empty-state compact-empty">Loading team dashboard…</section>';
+  try{const [standingPayload,injuryPayload,movesPayload]=await Promise.all([fetch(`/api/standings?season=${currentSeasonEndYear()}`).then(r=>r.ok?r.json():null),fetch('/api/injuries').then(r=>r.ok?r.json():null),fetch('/api/transactions').then(r=>r.ok?r.json():null)]);const standing=standingPayload?.conferences.flatMap(group=>group.teams).find(team=>String(team.id)===String(roster.team.id));const injuries=injuryPayload?.teams.find(team=>team.displayName===roster.team.displayName)?.injuries||[];const moves=(movesPayload?.transactions||[]).filter(item=>item.team.abbreviation===roster.team.abbreviation).slice(0,3);root.innerHTML=`<section class="team-summary-grid"><article class="panel"><small>Season</small><strong>${standing?`${standing.wins}–${standing.losses}`:'—'}</strong><span>${standing?`${standing.seed} seed · ${standing.lastTen} last 10`:'Standings unavailable'}</span></article><article class="panel"><small>Availability</small><strong>${injuries.length}</strong><span>players on injury report</span></article><article class="panel"><small>Roster</small><strong>${roster.players.length}</strong><span>${roster.coaches.length} coaches listed</span></article><article class="panel team-recent-moves"><small>Recent moves</small>${moves.length?moves.map(move=>`<span>${escapeHtml(move.description)}</span>`).join(''):'<span>No recent moves.</span>'}</article></section>`}catch(_){root.innerHTML=''}
+}
+
+function updateCompareTray(){const tray=document.querySelector('#compareTray');tray.hidden=!comparisonState.length;document.querySelector('#compareCount').textContent=`${comparisonState.length} player${comparisonState.length===1?'':'s'} selected`;document.querySelector('#openComparison').disabled=comparisonState.length<2}
+document.querySelector('#playerDialog').addEventListener('click',event=>{if(!event.target.closest('.add-comparison')||!currentProfileCandidate)return;if(!comparisonState.some(player=>String(player.id)===String(currentProfileCandidate.id))&&comparisonState.length<3)comparisonState.push(currentProfileCandidate);updateCompareTray()});
+document.querySelector('#clearComparison').onclick=()=>{comparisonState.splice(0);updateCompareTray()};
+document.querySelector('#openComparison').onclick=()=>{const labels=['PTS','REB','AST','FG%','3P%','FT%'];document.querySelector('#comparisonContent').innerHTML=`<h2 id="comparisonTitle">Player comparison</h2><div class="comparison-grid">${comparisonState.map(player=>`<article>${player.headshot?`<img src="${escapeHtml(player.headshot)}" alt="">`:''}<h3>${escapeHtml(player.name)}</h3><p>${escapeHtml(player.teamName)} · ${escapeHtml(player.position)}</p>${labels.map(label=>`<div><span>${label}</span><strong>${escapeHtml(player.latest?.values?.[label]??'—')}</strong></div>`).join('')}</article>`).join('')}</div>`;document.querySelector('#comparisonDialog').showModal()};
+document.querySelector('#closeComparison').onclick=()=>document.querySelector('#comparisonDialog').close();
+
+function openTransactionDetail(item){if(!item)return;const root=document.querySelector('#transactionDetail');root.innerHTML=`<p class="eyebrow">${escapeHtml(item.type)} · ${item.date?new Date(item.date).toLocaleDateString():'Date unavailable'}</p><h2 id="transactionDialogTitle">${escapeHtml(item.team.displayName)}</h2><div class="transaction-detail-head">${item.player?.headshot?`<img src="${escapeHtml(item.player.headshot)}" alt="">`:item.team.logo?`<img src="${escapeHtml(item.team.logo)}" alt="">`:''}<p>${escapeHtml(item.description)}</p></div>${item.contract?`<section class="profile-section"><h3>Contract terms</h3><p>${item.contract.years} year${item.contract.years===1?'':'s'} · ${money(item.contract.value)}${item.contract.details?` · ${escapeHtml(item.contract.details)}`:''}</p></section>`:''}<section class="profile-section"><h3>Verification</h3><p>This move is shown from the linked league or reporting source.</p><a class="source-link" href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">Open original source ↗</a></section>`;document.querySelector('#transactionDialog').showModal()}
+document.querySelector('#closeTransactionDialog').onclick=()=>document.querySelector('#transactionDialog').close();
+document.querySelectorAll('[data-refresh]').forEach(button=>button.onclick=()=>{button.disabled=true;button.textContent='Refreshing…';const tasks={transactions:loadTransactions,'free-agents':loadFreeAgents,standings:loadStandings,injuries:loadInjuries,finance:loadCapOverview};const task=tasks[button.dataset.refresh]?.();Promise.resolve(task).finally(()=>{button.disabled=false;button.textContent='Refresh'})});

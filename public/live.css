@@ -1,4 +1,49 @@
 .brand-mark { width: 38px; height: 38px; display: block; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(255,125,35,.16)); }
+.global-search { margin-right: 18px; }
+.global-search button { display: flex; gap: 7px; align-items: center; padding: 8px 11px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); color: var(--muted); cursor: pointer; font-size: 10px; }
+.search-dialog { width: min(680px,calc(100vw - 28px)); max-height: 80vh; overflow: auto; border: 1px solid var(--line); border-radius: 12px; padding: 24px; background: var(--surface); color: var(--text); }
+.search-dialog::backdrop { background: rgba(2,7,14,.76); backdrop-filter: blur(4px); }
+.search-dialog h2 { margin-top: 0; font: 600 24px Oswald; }
+#globalSearchInput { width: 100%; padding: 13px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--text); }
+#searchResults { margin-top: 10px; }
+.search-result { display: grid; grid-template-columns: 42px 1fr auto; gap: 11px; align-items: center; width: 100%; padding: 10px; border: 0; border-bottom: 1px solid var(--line); background: transparent; text-align: left; cursor: pointer; }
+.search-result:hover, .search-result:focus-visible { background: rgba(90,168,255,.07); outline: none; }
+.search-result img, .search-icon { width: 38px; height: 38px; object-fit: contain; border-radius: 50%; background: var(--surface2); }
+.search-icon { display: grid; place-items: center; }
+.search-result strong, .search-result small { display: block; }
+.search-result small, .search-result em { color: var(--muted); font-size: 9px; font-style: normal; }
+.favorite-dashboard { margin-top: 24px; padding: 18px; border: 1px solid var(--line); border-radius: 10px; background: linear-gradient(120deg,var(--surface),var(--surface2)); }
+.favorite-head { display: flex; gap: 13px; align-items: center; }
+.favorite-head img { width: 58px; height: 58px; object-fit: contain; }
+.favorite-head h2, .favorite-head p { margin: 2px 0; }
+.favorite-head button { margin-left: auto; }
+.favorite-metrics { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 8px; margin-top: 14px; }
+.favorite-metrics div { padding: 10px; border: 1px solid var(--line); border-radius: 7px; min-width: 0; }
+.favorite-metrics small, .favorite-metrics strong { display: block; }
+.favorite-metrics small { color: var(--muted); font-size: 8px; text-transform: uppercase; }
+.favorite-metrics strong { margin-top: 4px; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.team-dashboard { margin-bottom: 14px; }
+.team-summary-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 9px; }
+.team-summary-grid .panel { padding: 13px; }
+.team-summary-grid small, .team-summary-grid strong, .team-summary-grid span { display: block; }
+.team-summary-grid small { color: var(--muted); font-size: 8px; text-transform: uppercase; }
+.team-summary-grid strong { margin: 5px 0; font: 600 22px Oswald; }
+.team-summary-grid span { color: var(--muted); font-size: 9px; margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.compare-tray { position: fixed; z-index: 20; left: 50%; bottom: 20px; transform: translateX(-50%); display: flex; align-items: center; gap: 9px; padding: 10px 13px; border: 1px solid var(--line); border-radius: 30px; background: var(--surface); box-shadow: 0 12px 35px #0008; font-size: 10px; }
+.compare-tray[hidden] { display: none; }
+.compare-tray button { padding: 6px 10px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface2); cursor: pointer; }
+.comparison-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; }
+.comparison-grid article { padding: 15px; border: 1px solid var(--line); border-radius: 9px; }
+.comparison-grid img { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; }
+.comparison-grid h3 { margin: 7px 0 2px; }
+.comparison-grid p { color: var(--muted); font-size: 9px; }
+.comparison-grid article div { display: flex; justify-content: space-between; padding: 7px 0; border-top: 1px solid var(--line); }
+.transaction-item { cursor: pointer; }
+.transaction-item:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+.transaction-detail-head { display: flex; gap: 18px; align-items: center; margin: 18px 0; }
+.transaction-detail-head img { width: 90px; height: 90px; object-fit: contain; border-radius: 50%; background: var(--surface2); }
+.refresh-button { padding: 9px 11px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); cursor: pointer; }
+.best-available-rank { padding: 3px 6px; border-radius: 12px; background: rgba(239,63,79,.12); color: var(--red); font-size: 7px; text-transform: uppercase; }
 .empty-state { padding: 42px 24px; text-align: center; color: var(--muted); width: 100%; }
 .summary-content { min-width: 0; }
 .table-scroll { overflow-x: auto; margin-bottom: 22px; }
@@ -126,7 +171,7 @@
 @media(max-width:850px){.injury-grid{grid-template-columns:1fr}.roster-heading{grid-template-columns:60px 1fr}.roster-heading>img{width:54px;height:54px}.coach-list{grid-column:1/-1;text-align:left}.team-picker{min-width:150px;max-width:48vw}}
 @media(max-width:850px){.team-view-controls{align-items:flex-end;flex-direction:column}.coaching-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:560px){.coaching-grid{grid-template-columns:1fr}}
-.transaction-filters { display: flex; gap: 8px; }
+.transaction-filters { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
 .transaction-panel > .muted { margin: 0 0 12px; }
 .transaction-item { display: grid; grid-template-columns: 46px 1fr; gap: 14px; padding: 16px 0; border-top: 1px solid var(--line); }
 .transaction-item > img { width: 46px; height: 46px; object-fit: contain; }
@@ -213,6 +258,10 @@
 .cap-hold-note { color: var(--muted); font-size: 9px; line-height: 1.45; }
 
 @media(max-width:850px) {
+  .global-search { margin-left: auto; margin-right: 4px; }
+  .global-search button span { display: none; }
+  .favorite-metrics, .team-summary-grid { grid-template-columns: repeat(2,1fr); }
+  .comparison-grid { grid-template-columns: 1fr; }
   .contract-controls { grid-template-columns: 1fr; }
   html, body { max-width: 100%; overflow-x: hidden; }
   .topbar { min-width: 0; overflow: hidden; }

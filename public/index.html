@@ -14,6 +14,7 @@
 <body>
   <header class="topbar">
     <a class="brand" href="#scores" aria-label="Courtside home"><img class="brand-mark" src="courtside-logo.webp" alt=""><span>COURTSIDE</span></a>
+    <div class="global-search"><button id="searchButton" aria-label="Search Courtside">⌕ <span>Search</span></button></div>
     <nav id="nav" aria-label="Main navigation">
       <button class="active" data-view="scores">Scores</button>
       <button data-view="standings">Standings</button>
@@ -37,6 +38,7 @@
     </section>
 
     <section id="scores" class="view active-view">
+      <section id="favoriteDashboard" class="favorite-dashboard" hidden></section>
       <div class="section-heading"><div><p class="eyebrow">NBA GAME CENTER</p><h1>Daily games</h1></div><p class="muted" id="feedStatus" role="status" aria-live="polite">Connecting to live data…</p></div>
       <div class="score-grid" id="scoreGrid"></div>
       <div class="dashboard-grid">
@@ -49,7 +51,7 @@
     </section>
 
     <section id="standings" class="view">
-      <div class="section-heading"><div><p class="eyebrow" id="standingsSeason">NBA SEASON</p><h1>Conference standings</h1></div><div class="segmented" id="conferencePicker"><button class="active" data-conference="east">East</button><button data-conference="west">West</button></div></div>
+      <div class="section-heading"><div><p class="eyebrow" id="standingsSeason">NBA SEASON</p><h1>Conference standings</h1></div><div class="transaction-filters"><button class="refresh-button" data-refresh="standings">Refresh</button><div class="segmented" id="conferencePicker"><button class="active" data-conference="east">East</button><button data-conference="west">West</button></div></div></div>
       <section class="panel table-panel" id="standingsTable"></section>
     </section>
 
@@ -60,26 +62,26 @@
 
     <section id="teamsView" class="view">
       <div class="section-heading"><div><p class="eyebrow">ALL 30 CLUBS</p><h1>Teams & rosters</h1></div><div class="team-view-controls"><div class="segmented" id="rosterMode"><button class="active" data-roster-mode="players">Players</button><button data-roster-mode="coaches">Coaching staff</button></div><select id="teamPicker" class="team-picker" aria-label="Select an NBA team"></select></div></div>
-      <section class="panel" id="rosterView"><div class="empty-state">Loading team directory…</div></section>
+      <div id="teamDashboard" class="team-dashboard"></div><section class="panel" id="rosterView"><div class="empty-state">Loading team directory…</div></section>
     </section>
 
     <section id="injuriesView" class="view">
-      <div class="section-heading"><div><p class="eyebrow">PLAYER AVAILABILITY</p><h1>League injury report</h1></div><p class="muted" id="injuryTimestamp">Loading updates…</p></div>
+      <div class="section-heading"><div><p class="eyebrow">PLAYER AVAILABILITY</p><h1>League injury report</h1></div><div class="transaction-filters"><button class="refresh-button" data-refresh="injuries">Refresh</button><p class="muted" id="injuryTimestamp">Loading updates…</p></div></div>
       <div id="injuryReport" class="injury-grid"><div class="panel empty-state">Loading injury reports…</div></div>
     </section>
 
     <section id="transactionsView" class="view">
-      <div class="section-heading"><div><p class="eyebrow">LEAGUE ACTIVITY</p><h1>Transactions</h1></div><div class="transaction-filters"><select id="transactionTeam" class="team-picker" aria-label="Filter transactions by team"><option value="all">All teams</option></select><select id="transactionType" class="team-picker" aria-label="Filter transactions by type"><option value="all">All moves</option></select></div></div>
+      <div class="section-heading"><div><p class="eyebrow">LEAGUE ACTIVITY</p><h1>Transactions</h1></div><div class="transaction-filters"><button class="refresh-button" data-refresh="transactions">Refresh</button><select id="transactionTeam" class="team-picker" aria-label="Filter transactions by team"><option value="all">All teams</option></select><select id="transactionType" class="team-picker" aria-label="Filter transactions by type"><option value="all">All moves</option></select></div></div>
       <section class="panel transaction-panel"><p class="muted" id="transactionTimestamp">Loading transactions…</p><div id="transactionList"></div></section>
     </section>
 
     <section id="financeView" class="view">
-      <div class="section-heading"><div><p class="eyebrow">ROSTER ECONOMICS</p><h1>Salary cap center</h1></div><select id="capSeason" class="team-picker" aria-label="Select cap season"><option>2026-27</option><option>2025-26</option></select></div>
+      <div class="section-heading"><div><p class="eyebrow">ROSTER ECONOMICS</p><h1>Salary cap center</h1></div><div class="transaction-filters"><button class="refresh-button" data-refresh="finance">Refresh</button><select id="capSeason" class="team-picker" aria-label="Select cap season"><option>2026-27</option><option>2025-26</option></select></div></div>
       <div id="capOverview"><section class="panel empty-state">Loading official cap thresholds…</section></div>
     </section>
 
     <section id="freeAgentsView" class="view">
-      <div class="section-heading"><div><p class="eyebrow">OFFSEASON MARKET</p><h1>Free agents</h1></div><div class="transaction-filters"><select id="freeAgentStatus" class="team-picker"><option value="Available">Available</option><option value="Signed">Signed</option><option value="all">All players</option></select><select id="freeAgentType" class="team-picker"><option value="all">UFA & RFA</option><option value="UFA">Unrestricted</option><option value="RFA">Restricted</option></select></div></div>
+      <div class="section-heading"><div><p class="eyebrow">OFFSEASON MARKET</p><h1>Free agents</h1></div><div class="transaction-filters"><button class="refresh-button" data-refresh="free-agents">Refresh</button><input id="freeAgentSearch" class="team-picker" type="search" placeholder="Search player"><select id="freeAgentPosition" class="team-picker"><option value="all">All positions</option></select><select id="freeAgentSort" class="team-picker"><option value="best">Best available</option><option value="ppg">Points</option><option value="age">Youngest</option><option value="name">Name</option></select><select id="freeAgentStatus" class="team-picker"><option value="Available">Available</option><option value="Signed">Signed</option><option value="all">All players</option></select><select id="freeAgentType" class="team-picker"><option value="all">UFA & RFA</option><option value="UFA">Unrestricted</option><option value="RFA">Restricted</option></select></div></div>
       <section class="panel"><p class="muted" id="freeAgentTimestamp">Loading official tracker…</p><div id="freeAgentTable"><div class="empty-state">Loading free agents…</div></div></section>
     </section>
 
@@ -88,6 +90,10 @@
       <div class="futures-grid" id="futuresGrid"></div>
     </section>
   </main>
+  <dialog id="searchDialog" class="search-dialog" aria-labelledby="searchTitle"><button class="dialog-close" id="closeSearch" aria-label="Close search">×</button><h2 id="searchTitle">Search Courtside</h2><input id="globalSearchInput" type="search" placeholder="Player, team, or game" autocomplete="off"><div id="searchResults"><div class="empty-state compact-empty">Start typing to search.</div></div></dialog>
+  <div id="compareTray" class="compare-tray" hidden><span id="compareCount">0 players selected</span><button id="openComparison">Compare</button><button id="clearComparison">Clear</button></div>
+  <dialog id="comparisonDialog" class="player-dialog" aria-labelledby="comparisonTitle"><button class="dialog-close" id="closeComparison" aria-label="Close comparison">×</button><div id="comparisonContent"><h2 id="comparisonTitle">Player comparison</h2></div></dialog>
+  <dialog id="transactionDialog" class="player-dialog transaction-dialog" aria-labelledby="transactionDialogTitle"><button class="dialog-close" id="closeTransactionDialog" aria-label="Close transaction">×</button><div id="transactionDetail"></div></dialog>
   <dialog id="userHubDialog" class="user-hub-dialog" aria-labelledby="userHubTitle">
     <button class="dialog-close" id="closeUserHub" aria-label="Close preferences">×</button>
     <div class="hub-heading"><p class="eyebrow">YOUR COURTSIDE</p><h2 id="userHubTitle">Preferences & fantasy</h2><p>Personalize this browser without creating an account.</p></div>

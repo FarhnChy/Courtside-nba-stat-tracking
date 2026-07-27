@@ -70,6 +70,9 @@ assert.equal(appSource.includes('data-summary-team'), true, 'expanded game logos
 assert.equal(appSource.includes('data-free-agent-id'), true, 'free-agent players should open detailed profiles');
 assert.equal(appSource.includes('id="contractSeason"'), true, 'team finances should allow contract-season selection');
 assert.equal(appSource.includes('I want to see projected cap holds'), true, 'cap holds should remain optional until requested');
+for (const feature of ['renderFavoriteDashboard','renderTeamDashboard','comparisonState','openTransactionDetail','best-available-rank','fetchApi']) assert.equal(appSource.includes(feature), true, `app should include ${feature}`);
+assert.equal(serverSource.includes('/api/search'), true, 'server should expose global player and team search');
+for (const id of ['searchDialog','favoriteDashboard','comparisonDialog','transactionDialog','freeAgentSort']) assert.equal(html.includes(`id="${id}"`), true, `app shell should include ${id}`);
 assert.equal(html.includes('data-roster-mode="coaches"'), true, 'team pages should offer a coaching staff view');
 assert.equal(appSource.includes('coaching-grid'), true, 'team pages should render coaching staff cards');
 assert.equal(html.includes('id="calendarDate"'), true, 'date strip should include a calendar picker');

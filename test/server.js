@@ -13,6 +13,8 @@ async function run() {
 
     const badDate = await fetch(`${base}/api/scoreboard?date=not-a-date`);
     assert.equal(badDate.status, 400);
+    const shortSearch = await fetch(`${base}/api/search?q=a`);
+    assert.equal(shortSearch.status, 400);
 
     const home = await fetch(base);
     assert.equal(home.status, 200);
