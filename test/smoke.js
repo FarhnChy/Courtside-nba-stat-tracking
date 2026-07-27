@@ -72,6 +72,8 @@ assert.equal(appSource.includes('id="contractSeason"'), true, 'team finances sho
 assert.equal(appSource.includes('I want to see projected cap holds'), true, 'cap holds should remain optional until requested');
 for (const feature of ['renderFavoriteDashboard','renderTeamDashboard','comparisonState','openTransactionDetail','best-available-rank','fetchApi']) assert.equal(appSource.includes(feature), true, `app should include ${feature}`);
 for (const feature of ['loadingState','errorState','data-clear-free-agents','data-empty-view']) assert.equal(appSource.includes(feature), true, `loading and empty states should include ${feature}`);
+for (const feature of ['bracketState','conferenceBracket','7–8 game','9–10 game','For No. 8 seed','nba-final']) assert.equal(appSource.includes(feature), true, `custom playoff bracket should include ${feature}`);
+assert.equal(html.includes('data-predict-mode="custom"'), true, 'predictor should offer a saved custom bracket mode');
 assert.equal(serverSource.includes('/api/search'), true, 'server should expose global player and team search');
 for (const id of ['searchDialog','favoriteDashboard','comparisonDialog','transactionDialog','freeAgentSort']) assert.equal(html.includes(`id="${id}"`), true, `app shell should include ${id}`);
 assert.equal(html.includes('data-roster-mode="coaches"'), true, 'team pages should offer a coaching staff view');
