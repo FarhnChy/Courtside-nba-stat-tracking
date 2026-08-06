@@ -8,6 +8,8 @@
 - [ ] Define normalized teams, players, games, plays, shots, injuries, officials, and predictions
 - [ ] Add PostgreSQL for durable game and historical data
 - [ ] Replace demo data with schedules, scores, box scores, rosters, standings, injuries, and officials
+- [x] Add a local/private ESPN public-endpoint provider for schedules, scores, rosters, standings, summaries, and transactions
+- [ ] Add NBA.com stats integration for shot chart coordinates and deeper official stat surfaces
 - [ ] Add loading, empty, delayed-game, offline, missing-data, and provider-error states
 - [ ] Add unit, API-contract, accessibility, and end-to-end tests
 - [ ] Deploy preview and production environments with secrets stored outside Git

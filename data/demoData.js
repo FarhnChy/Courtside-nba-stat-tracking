@@ -13,7 +13,22 @@ const teams = {
   PHI: { code: 'PHI', name: '76ers', city: 'Philadelphia', conference: 'East', color: '#d9283e' },
   ATL: { code: 'ATL', name: 'Hawks', city: 'Atlanta', conference: 'East', color: '#c8102e' },
   MIA: { code: 'MIA', name: 'Heat', city: 'Miami', conference: 'East', color: '#98002e' },
-  IND: { code: 'IND', name: 'Pacers', city: 'Indiana', conference: 'East', color: '#002d62' }
+  IND: { code: 'IND', name: 'Pacers', city: 'Indiana', conference: 'East', color: '#002d62' },
+  BKN: { code: 'BKN', name: 'Nets', city: 'Brooklyn', conference: 'East', color: '#111111' },
+  CHA: { code: 'CHA', name: 'Hornets', city: 'Charlotte', conference: 'East', color: '#1d8cab' },
+  CHI: { code: 'CHI', name: 'Bulls', city: 'Chicago', conference: 'East', color: '#ce1141' },
+  DAL: { code: 'DAL', name: 'Mavericks', city: 'Dallas', conference: 'West', color: '#00538c' },
+  DET: { code: 'DET', name: 'Pistons', city: 'Detroit', conference: 'East', color: '#1d42ba' },
+  HOU: { code: 'HOU', name: 'Rockets', city: 'Houston', conference: 'West', color: '#ce1141' },
+  LAC: { code: 'LAC', name: 'Clippers', city: 'LA', conference: 'West', color: '#c8102e' },
+  MEM: { code: 'MEM', name: 'Grizzlies', city: 'Memphis', conference: 'West', color: '#5d76a9' },
+  NOP: { code: 'NOP', name: 'Pelicans', city: 'New Orleans', conference: 'West', color: '#85714d' },
+  POR: { code: 'POR', name: 'Trail Blazers', city: 'Portland', conference: 'West', color: '#e03a3e' },
+  SAC: { code: 'SAC', name: 'Kings', city: 'Sacramento', conference: 'West', color: '#5a2d81' },
+  SAS: { code: 'SAS', name: 'Spurs', city: 'San Antonio', conference: 'West', color: '#8a8d8f' },
+  TOR: { code: 'TOR', name: 'Raptors', city: 'Toronto', conference: 'East', color: '#ce1141' },
+  UTA: { code: 'UTA', name: 'Jazz', city: 'Utah', conference: 'West', color: '#002b5c' },
+  WAS: { code: 'WAS', name: 'Wizards', city: 'Washington', conference: 'East', color: '#002b5c' }
 };
 
 const games = [
@@ -156,6 +171,32 @@ const futures = [
   { market: 'No. 1 seed', entries: [{ team: 'CLE', value: 'East - 78%' }, { team: 'OKC', value: 'West - 84%' }, { team: 'BOS', value: 'East - 19%' }, { team: 'DEN', value: 'West - 11%' }] }
 ];
 
+const transactions = [
+  {
+    id: 'fa-den-spencer-jones-2026-07-27',
+    date: '2026-07-31T07:00Z',
+    team: 'DEN',
+    player: 'Spencer Jones',
+    type: 'Signing',
+    category: 'Transaction',
+    text: 'Signed F Spencer Jones to a contract.',
+    source: 'ESPN',
+    sourceUrl: 'https://www.espn.com/nba/team/transactions/_/name/den/denver-nuggets',
+    verifiedAt: '2026-08-06T12:00:00.000Z'
+  },
+  {
+    id: 'fa-den-tyus-jones-2026',
+    date: '2026-07-14T07:00Z',
+    team: 'DEN',
+    player: 'Tyus Jones',
+    type: 'Re-signing',
+    category: 'Transaction',
+    text: 'Re-signed G Tyus Jones to a contract.',
+    source: 'ESPN',
+    sourceUrl: 'https://www.espn.com/nba/team/transactions/_/name/den/denver-nuggets'
+  }
+];
+
 module.exports = {
   meta: {
     source: 'demo',
@@ -168,5 +209,6 @@ module.exports = {
   games,
   standings,
   predictions,
-  futures
+  futures,
+  transactions
 };

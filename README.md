@@ -12,6 +12,7 @@ Completed:
 - Local Node server for the app shell
 - Provider-shaped demo data module in `data/demoData.js`
 - Switchable data provider layer in `providers/`
+- Optional ESPN public-endpoint adapter for local/private real NBA scores, teams, rosters, standings, game summaries, and transactions
 - Optional BALLDONTLIE adapter for free/basic teams and games data
 - JSON API routes for health, bootstrap data, games, teams, players, standings, and predictions
 - Frontend data loading, API error handling, and empty states for missing game detail
@@ -71,6 +72,16 @@ During the offseason or on dates without NBA games, you can request a specific d
 NBA_DATA_DATE=2026-02-20
 ```
 
+### ESPN provider
+
+The ESPN provider uses public, undocumented ESPN endpoints and is intended for local/private project use. It needs no API key and currently maps scoreboard, teams, players from rosters, standings, game summaries, play-by-play when exposed, and transactions into the existing Courtside API shape. Shot charts and predictions still use demo fallback data until NBA.com stats integration is added.
+
+```powershell
+NBA_DATA_PROVIDER=espn
+```
+
+During the offseason, today may have no NBA games. The bootstrap route will fall forward to ESPN's default scoreboard so the app has something current to show, while explicit `/api/games?date=YYYY-MM-DD` calls still respect the requested date.
+
 You can also call the API with a date query:
 
 ```text
@@ -92,6 +103,8 @@ You can also call the API with a date query:
 - `GET /api/injuries?team=BOS`
 - `GET /api/standings`
 - `GET /api/predictions`
+- `GET /api/transactions`
+- `GET /api/coaches`
 
 The current API uses demo data by default. A production version should replace demo-only sections with licensed provider adapters while preserving the frontend-facing data shape.
 

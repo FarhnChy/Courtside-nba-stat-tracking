@@ -275,6 +275,16 @@ function createBalldontlieProvider(options = {}) {
     async getPredictions(options = {}) {
       const data = await getHybridData(options.date);
       return { meta: data.meta, teams: data.teams, predictions: data.predictions, futures: data.futures };
+    },
+
+    async getTransactions(options = {}) {
+      const team = options.team?.toUpperCase();
+      const transactions = demoData.transactions.filter((move) => !team || move.team === team);
+      return { meta: hybridMeta({ realTransactionsAvailable: false }), transactions: clone(transactions) };
+    },
+
+    async getCoaches() {
+      return { meta: hybridMeta({ realCoachesAvailable: false }), coaches: [] };
     }
   };
 }

@@ -13,6 +13,7 @@ for (const file of [
   'data/manualOverrides.js',
   'providers/provider.js',
   'providers/demoProvider.js',
+  'providers/espnProvider.js',
   'providers/balldontlieProvider.js',
   'providers/overrides.js',
   '.env.example'
@@ -21,7 +22,7 @@ for (const file of [
 }
 
 const html = fs.readFileSync(path.join(root, 'public/index.html'), 'utf8');
-for (const label of ['Scores', 'Standings', 'Predict', 'Futures', 'gameCenter']) {
+for (const label of ['Scores', 'Standings', 'Moves', 'Predict', 'Futures', 'gameCenter', 'transactionBoard']) {
   assert.match(html, new RegExp(label), `app should include ${label}`);
 }
 
@@ -83,6 +84,8 @@ async function getJson(baseUrl, route) {
     assert.equal(bootstrap.body.meta.manualOverrides.injuries >= 1, true);
     assert.equal(Array.isArray(bootstrap.body.standings.East), true);
     assert.equal(Array.isArray(bootstrap.body.futures), true);
+    assert.equal(Array.isArray(bootstrap.body.transactions), true);
+    assert.equal(bootstrap.body.transactions.some((move) => move.team === 'DEN' && /Spencer Jones/.test(move.text)), true);
 
     const datedGames = await getJson(baseUrl, '/api/games?date=2026-02-20');
     assert.equal(datedGames.response.status, 200);
@@ -111,6 +114,20 @@ async function getJson(baseUrl, route) {
     assert.equal(missing.response.status, 404);
     assert.equal(missing.body.error, 'game_not_found');
 
+    const transactions = await getJson(baseUrl, '/api/transactions');
+    assert.equal(transactions.response.status, 200);
+    assert.equal(Array.isArray(transactions.body.transactions), true);
+    assert.equal(transactions.body.transactions.length >= 1, true);
+
+    const nuggetsTransactions = await getJson(baseUrl, '/api/transactions?team=DEN');
+    assert.equal(nuggetsTransactions.response.status, 200);
+    assert.equal(nuggetsTransactions.body.transactions.every((move) => move.team === 'DEN'), true);
+    assert.equal(nuggetsTransactions.body.transactions.some((move) => /Spencer Jones/.test(move.text)), true);
+
+    const coaches = await getJson(baseUrl, '/api/coaches');
+    assert.equal(coaches.response.status, 200);
+    assert.equal(Array.isArray(coaches.body.coaches), true);
+
     const page = await fetch(baseUrl);
     assert.equal(page.status, 200);
     assert.match(await page.text(), /Courtside - NBA scores/);
@@ -138,6 +155,19 @@ async function getJson(baseUrl, route) {
     assert.equal(bootstrap.body.games.length >= 3, true);
   } finally {
     fallbackServer.kill();
+  }
+
+  const espnPort = port + 2;
+  const espnBaseUrl = `http://localhost:${espnPort}`;
+  const espnServer = await startServer(espnPort, { NBA_DATA_PROVIDER: 'espn' });
+
+  try {
+    const health = await getJson(espnBaseUrl, '/api/health');
+    assert.equal(health.response.status, 200);
+    assert.equal(health.body.configuredProvider, 'espn');
+    assert.equal(health.body.requiresApiKey, false);
+  } finally {
+    espnServer.kill();
   }
 
   console.log('OK App shell, API routes, and provider-shaped demo data verified');

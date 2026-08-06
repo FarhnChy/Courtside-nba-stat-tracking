@@ -2,6 +2,8 @@ let appData = null;
 let selectedGameId = null;
 let dayOffset = 0;
 let activeConference = 'East';
+let activeTransactionTeam = 'ALL';
+let refreshTimer = null;
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => document.querySelectorAll(selector);
@@ -58,21 +60,45 @@ async function loadBootstrap() {
   }
 }
 
-async function loadGamesForSelectedDate() {
-  $('#scoreGrid').innerHTML = '<section class="panel state-panel">Loading games...</section>';
+function scheduleLiveRefresh() {
+  if (refreshTimer) clearTimeout(refreshTimer);
+  if (!appData?.games?.some((game) => game.status === 'LIVE')) return;
+  refreshTimer = setTimeout(() => loadGamesForSelectedDate({ silent: true }), 15000);
+}
+
+async function loadGamesForSelectedDate(options = {}) {
+  if (!options.silent) $('#scoreGrid').innerHTML = '<section class="panel state-panel">Loading games...</section>';
   try {
     const response = await fetch(`/api/games?date=${isoForOffset(dayOffset)}`, { headers: { Accept: 'application/json' } });
     if (!response.ok) throw new Error(`API returned ${response.status}`);
     const payload = await response.json();
+    const previousGameId = selectedGameId;
     appData = { ...appData, meta: payload.meta, teams: payload.teams, games: payload.games };
-    selectedGameId = appData.games[0]?.id || null;
+    selectedGameId = appData.games.some((game) => game.id === previousGameId) ? previousGameId : appData.games[0]?.id || null;
     renderDates();
     renderSource();
     renderCards();
     renderGame();
     renderSide();
+    scheduleLiveRefresh();
   } catch (error) {
     renderError(error.message);
+  }
+}
+
+async function loadTransactions() {
+  $('#transactionBoard').innerHTML = '<p class="empty">Loading roster moves...</p>';
+  try {
+    const route = activeTransactionTeam === 'ALL'
+      ? '/api/transactions'
+      : `/api/transactions?team=${encodeURIComponent(activeTransactionTeam)}`;
+    const response = await fetch(route, { headers: { Accept: 'application/json' } });
+    if (!response.ok) throw new Error(`API returned ${response.status}`);
+    const payload = await response.json();
+    appData = { ...appData, transactions: payload.transactions || [], transactionMeta: payload.meta };
+    renderTransactions();
+  } catch (error) {
+    $('#transactionBoard').innerHTML = `<p class="empty">Transactions unavailable: ${error.message}</p>`;
   }
 }
 
@@ -126,7 +152,7 @@ function renderCards() {
     const awayWinner = hasWinner(game) && game.away.score > game.home.score;
     const homeWinner = hasWinner(game) && game.home.score > game.away.score;
     return `
-      <article class="score-card ${selectedGameId === game.id ? 'selected' : ''}" data-id="${game.id}">
+      <article class="score-card ${selectedGameId === game.id ? 'selected' : ''} ${game.status === 'LIVE' ? 'live-game' : ''}" data-id="${game.id}">
         <div class="score-meta">
           <span class="${game.status === 'LIVE' ? 'live' : ''}">${gameDetail(game)}</span>
           <span>${game.status === 'UPCOMING' ? 'MATCHUP' : 'NBA'}</span>
@@ -272,6 +298,55 @@ function renderFutures() {
   `).join('');
 }
 
+function transactionDate(value) {
+  if (!value) return 'Date TBD';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function renderTransactionControls() {
+  const control = $('#transactionTeam');
+  const teamCodes = Object.keys(appData.teams).sort();
+  control.innerHTML = '<option value="ALL">All teams</option>' + teamCodes
+    .map((code) => `<option value="${code}" ${code === activeTransactionTeam ? 'selected' : ''}>${team(code).city} ${team(code).name}</option>`)
+    .join('');
+  control.value = activeTransactionTeam;
+}
+
+function renderTransactions() {
+  renderTransactionControls();
+  const rows = (appData.transactions || [])
+    .filter((move) => activeTransactionTeam === 'ALL' || move.team === activeTransactionTeam)
+    .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+
+  if (!rows.length) {
+    $('#transactionBoard').innerHTML = '<p class="empty">No roster moves returned for this filter.</p>';
+    return;
+  }
+
+  const label = appData.transactionMeta?.provider || appData.meta?.provider || 'Courtside API';
+  $('#transactionBoard').innerHTML = `
+    <div class="panel-title"><h2>Latest moves</h2><span class="pill">${label}</span></div>
+    <div class="transaction-list">
+      ${rows.map((move) => {
+        const code = move.team || 'NBA';
+        const source = move.sourceUrl ? `<a href="${move.sourceUrl}" target="_blank" rel="noreferrer">${move.source || 'Source'}</a>` : `<span>${move.source || 'ESPN'}</span>`;
+        return `
+          <article class="transaction-row">
+            ${logo(code, 'mini-logo')}
+            <div>
+              <div class="transaction-head"><strong>${move.player || team(code).city + ' ' + team(code).name}</strong><span>${transactionDate(move.date)}</span></div>
+              <p>${move.text || move.description || move.type || 'Roster move'}</p>
+              <small>${move.category || move.type || 'Transaction'} - ${source}</small>
+            </div>
+          </article>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
 function renderSource() {
   const isDemo = appData.meta.dataQuality === 'demo-only';
   const label = isDemo ? 'Demo API data' : appData.meta.provider;
@@ -288,8 +363,10 @@ function renderApp() {
   renderGame();
   renderSide();
   renderStandings();
+  renderTransactions();
   renderPredict();
   renderFutures();
+  scheduleLiveRefresh();
 }
 
 $$('#nav button').forEach((button) => {
@@ -319,5 +396,12 @@ $('#simulate').onclick = () => {
     button.textContent = 'Run simulation';
   }, 550);
 };
+
+$('#transactionTeam').onchange = () => {
+  activeTransactionTeam = $('#transactionTeam').value;
+  renderTransactions();
+};
+
+$('#refreshTransactions').onclick = loadTransactions;
 
 loadBootstrap();

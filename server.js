@@ -66,6 +66,14 @@ async function apiResponse(url, res) {
     return sendJson(res, 200, await provider.getPredictions(options));
   }
 
+  if (urlPath === '/api/transactions' && provider.getTransactions) {
+    return sendJson(res, 200, await provider.getTransactions(options));
+  }
+
+  if (urlPath === '/api/coaches' && provider.getCoaches) {
+    return sendJson(res, 200, await provider.getCoaches(options));
+  }
+
   return sendJson(res, 404, { error: 'api_route_not_found' });
 }
 

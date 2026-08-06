@@ -66,6 +66,23 @@ function createDemoProvider() {
         predictions: clone(demoData.predictions),
         futures: clone(demoData.futures)
       });
+    },
+
+    async getTransactions(options = {}) {
+      const team = options.team?.toUpperCase();
+      const transactions = demoData.transactions.filter((move) => !team || move.team === team);
+      return {
+        meta: clone(demoData.meta),
+        teams: clone(demoData.teams),
+        transactions: clone(transactions)
+      };
+    },
+
+    async getCoaches() {
+      return {
+        meta: clone(demoData.meta),
+        coaches: []
+      };
     }
   };
 }

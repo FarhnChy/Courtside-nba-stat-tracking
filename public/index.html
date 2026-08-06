@@ -16,6 +16,7 @@
     <nav id="nav" aria-label="Main navigation">
       <button class="active" data-view="scores">Scores</button>
       <button data-view="standings">Standings</button>
+      <button data-view="transactions">Moves</button>
       <button data-view="predict">Predict</button>
       <button data-view="futures">Futures</button>
     </nav>
@@ -44,6 +45,17 @@
     <section id="standings" class="view">
       <div class="section-heading"><div><p class="eyebrow">2025-26 SEASON</p><h1>Conference standings</h1></div><div class="segmented"><button class="active">East</button><button>West</button></div></div>
       <section class="panel table-panel" id="standingsTable"></section>
+    </section>
+
+    <section id="transactions" class="view">
+      <div class="section-heading">
+        <div><p class="eyebrow">OFFSEASON TRACKER</p><h1>Roster moves</h1></div>
+        <div class="transaction-tools">
+          <select id="transactionTeam" aria-label="Filter moves by team"></select>
+          <button class="primary" id="refreshTransactions">Refresh</button>
+        </div>
+      </div>
+      <section class="panel transaction-board" id="transactionBoard"></section>
     </section>
 
     <section id="predict" class="view">

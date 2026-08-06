@@ -2,6 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { createBalldontlieProvider } = require('./balldontlieProvider');
 const { createDemoProvider } = require('./demoProvider');
+const { createEspnProvider } = require('./espnProvider');
 
 function loadLocalEnv(root = path.join(__dirname, '..')) {
   const envPath = path.join(root, '.env');
@@ -25,6 +26,10 @@ function createProvider() {
   const providerName = (process.env.NBA_DATA_PROVIDER || 'demo').toLowerCase();
   if (providerName === 'balldontlie' || providerName === 'bdl') {
     return createBalldontlieProvider();
+  }
+
+  if (providerName === 'espn') {
+    return createEspnProvider();
   }
 
   return createDemoProvider();
