@@ -4,37 +4,45 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#09111f" />
-  <title>Courtside - NBA scores & analytics</title>
+  <title>Courtside — NBA scores & analytics</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="live.css" />
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="#"><span class="brand-ball">C</span><span>COURTSIDE</span></a>
+    <a class="brand" href="#scores" aria-label="Courtside home"><img class="brand-mark" src="courtside-logo.webp" alt=""><span>COURTSIDE</span></a>
+    <div class="global-search"><button id="searchButton" aria-label="Search Courtside">⌕ <span>Search</span></button></div>
     <nav id="nav" aria-label="Main navigation">
       <button class="active" data-view="scores">Scores</button>
       <button data-view="standings">Standings</button>
-      <button data-view="transactions">Moves</button>
+      <button data-view="teamsView">Teams</button>
+      <button data-view="injuriesView">Injuries</button>
+      <button data-view="transactionsView">Moves</button>
+      <button data-view="financeView">Finance</button>
+      <button data-view="freeAgentsView">Free Agents</button>
       <button data-view="predict">Predict</button>
       <button data-view="futures">Futures</button>
     </nav>
-    <div class="top-actions"><span class="live-dot"></span><span id="providerStatus">DEMO</span><button class="avatar">FM</button></div>
+    <div class="top-actions"><button class="live-home" id="liveHome" title="Go to today's scores"><span class="live-dot"></span> LIVE</button><button class="avatar" id="userHubButton" aria-label="Open preferences and fantasy hub" title="Preferences and fantasy hub"><span id="avatarContent">★</span></button></div>
   </header>
 
   <main>
     <section class="date-strip">
-      <button class="arrow" id="prevDay" aria-label="Previous day">&lsaquo;</button>
+      <button class="arrow" id="prevDay">‹</button>
       <div class="dates" id="dates"></div>
-      <button class="arrow" id="nextDay" aria-label="Next day">&rsaquo;</button>
+      <button class="calendar-picker" id="calendarButton" type="button" title="Choose a date" aria-label="Open calendar">▦</button><input class="calendar-input" id="calendarDate" type="date" aria-label="Choose scoreboard date">
+      <button class="arrow" id="nextDay">›</button>
     </section>
 
     <section id="scores" class="view active-view">
-      <div class="section-heading"><div><p class="eyebrow">FRIDAY NIGHT BASKETBALL</p><h1>Tonight's games</h1></div><p class="muted">All times ET - Demo API data</p></div>
+      <section id="favoriteDashboard" class="favorite-dashboard" hidden></section>
+      <div class="section-heading"><div><p class="eyebrow">NBA GAME CENTER</p><h1>Daily games</h1></div><p class="muted" id="feedStatus" role="status" aria-live="polite">Connecting to live data…</p></div>
       <div class="score-grid" id="scoreGrid"></div>
       <div class="dashboard-grid">
-        <section class="panel game-center" id="gameCenter"></section>
+        <section class="panel game-center" id="gameCenter" aria-live="polite" aria-busy="false"></section>
         <aside class="side-stack">
           <section class="panel" id="leaders"></section>
           <section class="panel" id="injuries"></section>
@@ -43,32 +51,62 @@
     </section>
 
     <section id="standings" class="view">
-      <div class="section-heading"><div><p class="eyebrow">2025-26 SEASON</p><h1>Conference standings</h1></div><div class="segmented"><button class="active">East</button><button>West</button></div></div>
+      <div class="section-heading"><div><p class="eyebrow" id="standingsSeason">NBA SEASON</p><h1>Conference standings</h1></div><div class="transaction-filters"><button class="refresh-button" data-refresh="standings">Refresh</button><div class="segmented" id="conferencePicker"><button class="active" data-conference="east">East</button><button data-conference="west">West</button></div></div></div>
       <section class="panel table-panel" id="standingsTable"></section>
     </section>
 
-    <section id="transactions" class="view">
-      <div class="section-heading">
-        <div><p class="eyebrow">OFFSEASON TRACKER</p><h1>Roster moves</h1></div>
-        <div class="transaction-tools">
-          <select id="transactionTeam" aria-label="Filter moves by team"></select>
-          <button class="primary" id="refreshTransactions">Refresh</button>
-        </div>
-      </div>
-      <section class="panel transaction-board" id="transactionBoard"></section>
-    </section>
-
     <section id="predict" class="view">
-      <div class="section-heading"><div><p class="eyebrow">10,000 MONTE CARLO SIMULATIONS</p><h1>Playoff predictor</h1></div><button class="primary" id="simulate">Run simulation</button></div>
+      <div class="section-heading"><div><p class="eyebrow">PLAYOFF LAB</p><h1>Playoff predictor</h1></div><div class="transaction-filters"><div class="segmented" id="predictMode"><button class="active" data-predict-mode="model">Model</button><button data-predict-mode="custom">My bracket</button></div><button class="refresh-button" id="resetBracket" hidden>Reset bracket</button></div></div>
       <div class="predict-grid"><section class="panel bracket" id="bracket"></section><aside class="panel model-card" id="modelCard"></aside></div>
     </section>
 
+    <section id="teamsView" class="view">
+      <div class="section-heading"><div><p class="eyebrow">ALL 30 CLUBS</p><h1>Teams & rosters</h1></div><div class="team-view-controls"><div class="segmented" id="rosterMode"><button class="active" data-roster-mode="players">Players</button><button data-roster-mode="coaches">Coaching staff</button></div><select id="teamPicker" class="team-picker" aria-label="Select an NBA team"></select></div></div>
+      <div id="teamDashboard" class="team-dashboard"></div><section class="panel" id="rosterView"><div class="empty-state">Loading team directory…</div></section>
+    </section>
+
+    <section id="injuriesView" class="view">
+      <div class="section-heading"><div><p class="eyebrow">PLAYER AVAILABILITY</p><h1>League injury report</h1></div><div class="transaction-filters"><button class="refresh-button" data-refresh="injuries">Refresh</button><p class="muted" id="injuryTimestamp">Loading updates…</p></div></div>
+      <div id="injuryReport" class="injury-grid"><div class="panel empty-state">Loading injury reports…</div></div>
+    </section>
+
+    <section id="transactionsView" class="view">
+      <div class="section-heading"><div><p class="eyebrow">LEAGUE ACTIVITY</p><h1>Transactions</h1></div><div class="transaction-filters"><button class="refresh-button" data-refresh="transactions">Refresh</button><select id="transactionTeam" class="team-picker" aria-label="Filter transactions by team"><option value="all">All teams</option></select><select id="transactionType" class="team-picker" aria-label="Filter transactions by type"><option value="all">All moves</option></select></div></div>
+      <section class="panel transaction-panel"><p class="muted" id="transactionTimestamp">Loading transactions…</p><div id="transactionList"></div></section>
+    </section>
+
+    <section id="financeView" class="view">
+      <div class="section-heading"><div><p class="eyebrow">ROSTER ECONOMICS</p><h1>Salary cap center</h1></div><div class="transaction-filters"><button class="refresh-button" data-refresh="finance">Refresh</button><select id="capSeason" class="team-picker" aria-label="Select cap season"><option>2026-27</option><option>2025-26</option></select></div></div>
+      <div id="capOverview"><section class="panel empty-state">Loading official cap thresholds…</section></div>
+    </section>
+
+    <section id="freeAgentsView" class="view">
+      <div class="section-heading"><div><p class="eyebrow">OFFSEASON MARKET</p><h1>Free agents</h1></div><div class="transaction-filters"><button class="refresh-button" data-refresh="free-agents">Refresh</button><input id="freeAgentSearch" class="team-picker" type="search" placeholder="Search player"><select id="freeAgentPosition" class="team-picker"><option value="all">All positions</option></select><select id="freeAgentSort" class="team-picker"><option value="best">Best available</option><option value="ppg">Points</option><option value="age">Youngest</option><option value="name">Name</option></select><select id="freeAgentStatus" class="team-picker"><option value="Available">Available</option><option value="Signed">Signed</option><option value="all">All players</option></select><select id="freeAgentType" class="team-picker"><option value="all">UFA & RFA</option><option value="UFA">Unrestricted</option><option value="RFA">Restricted</option></select></div></div>
+      <section class="panel"><p class="muted" id="freeAgentTimestamp">Loading official tracker…</p><div id="freeAgentTable"><div class="empty-state">Loading free agents…</div></div></section>
+    </section>
+
     <section id="futures" class="view">
-      <div class="section-heading"><div><p class="eyebrow">MODEL FORECASTS</p><h1>Season futures</h1></div><p class="muted">Updated after every game</p></div>
+      <div class="section-heading"><div><p class="eyebrow">MODEL DEVELOPMENT</p><h1>Season futures</h1></div></div>
       <div class="futures-grid" id="futuresGrid"></div>
     </section>
   </main>
-  <footer>COURTSIDE LABS <span>Independent basketball analytics concept - Not affiliated with the NBA or ESPN</span></footer>
+  <dialog id="searchDialog" class="search-dialog" aria-labelledby="searchTitle"><button class="dialog-close" id="closeSearch" aria-label="Close search">×</button><h2 id="searchTitle">Search Courtside</h2><input id="globalSearchInput" type="search" placeholder="Player, team, or game" autocomplete="off"><div id="searchResults"><div class="empty-state compact-empty">Start typing to search.</div></div></dialog>
+  <div id="compareTray" class="compare-tray" hidden><span id="compareCount">0 players selected</span><button id="openComparison">Compare</button><button id="clearComparison">Clear</button></div>
+  <dialog id="comparisonDialog" class="player-dialog" aria-labelledby="comparisonTitle"><button class="dialog-close" id="closeComparison" aria-label="Close comparison">×</button><div id="comparisonContent"><h2 id="comparisonTitle">Player comparison</h2></div></dialog>
+  <dialog id="transactionDialog" class="player-dialog transaction-dialog" aria-labelledby="transactionDialogTitle"><button class="dialog-close" id="closeTransactionDialog" aria-label="Close transaction">×</button><div id="transactionDetail"></div></dialog>
+  <dialog id="userHubDialog" class="user-hub-dialog" aria-labelledby="userHubTitle">
+    <button class="dialog-close" id="closeUserHub" aria-label="Close preferences">×</button>
+    <div class="hub-heading"><p class="eyebrow">YOUR COURTSIDE</p><h2 id="userHubTitle">Preferences & fantasy</h2><p>Personalize this browser without creating an account.</p></div>
+    <div class="hub-grid">
+      <section class="hub-section"><h3>Appearance</h3><div class="theme-picker" role="group" aria-label="Color theme"><button data-theme-choice="dark">Dark</button><button data-theme-choice="light">Light</button></div></section>
+      <section class="hub-section"><h3>Favorite team</h3><label class="hub-field"><span>Team</span><select id="favoriteTeam"><option value="">No favorite selected</option></select></label><button class="hub-link" id="openFavoriteTeam" disabled>Open team page</button></section>
+      <section class="hub-section hub-fantasy"><h3>Fantasy team</h3><p id="fantasyStatus">No fantasy league saved yet.</p><div class="hub-actions"><button class="primary-action" id="startFantasy">Start fantasy team</button><button class="secondary-action" id="checkFantasy">Check my league</button></div><form id="fantasyForm" hidden><label class="hub-field"><span>League name</span><input id="fantasyLeagueName" maxlength="40" required placeholder="Friends League"></label><label class="hub-field"><span>Team name</span><input id="fantasyTeamName" maxlength="40" required placeholder="My Team"></label><button class="primary-action" type="submit">Save league</button></form></section>
+      <section class="hub-section"><h3>Notifications</h3><label class="setting-row"><span><strong>Game alerts</strong><small>Browser alerts for your favorite team</small></span><input type="checkbox" data-notification="games"></label><label class="setting-row"><span><strong>Injury updates</strong><small>Track availability changes</small></span><input type="checkbox" data-notification="injuries"></label><label class="setting-row"><span><strong>League moves</strong><small>Trades and signings</small></span><input type="checkbox" data-notification="moves"></label><p class="hub-note" id="notificationNote">Preferences are saved on this device.</p></section>
+      <section class="hub-section hub-about"><h3>About & help</h3><p>Courtside combines NBA scores, standings, rosters, moves, and salary context in one independent dashboard.</p><details><summary>How is my information stored?</summary><p>Theme, favorite team, fantasy names, and notification preferences stay in this browser using local storage.</p></details><details><summary>Is fantasy connected to a provider?</summary><p>Not yet. This first version saves your league shortcut; live ESPN or Yahoo league syncing requires a future account connection.</p></details><a href="https://github.com/FarhnChy/Courtside-nba-stat-tracking/issues" target="_blank" rel="noreferrer">Report a problem ↗</a></section>
+    </div>
+  </dialog>
+  <dialog id="playerDialog" class="player-dialog" aria-labelledby="playerDialogTitle"><button class="dialog-close" id="closePlayerDialog" aria-label="Close player profile">×</button><div id="playerProfile"></div></dialog>
+  <footer>COURTSIDE LABS <span>Independent basketball analytics concept · Not affiliated with the NBA or ESPN</span></footer>
   <script src="app.js"></script>
 </body>
 </html>

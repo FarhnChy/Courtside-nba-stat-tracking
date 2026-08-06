@@ -11,6 +11,16 @@
   --blue: #5aa8ff;
 }
 
+:root[data-theme="light"] {
+  --bg: #f4f6fa;
+  --surface: #ffffff;
+  --surface2: #e9edf5;
+  --line: #cfd6e3;
+  --text: #151b27;
+  --muted: #5f6b7d;
+  --blue: #1769c2;
+}
+
 * { box-sizing: border-box; }
 
 body {
@@ -20,6 +30,10 @@ body {
   font-family: 'DM Sans', sans-serif;
   min-height: 100vh;
 }
+
+:root[data-theme="light"] body { background: linear-gradient(135deg, #f7f9fc 0%, #edf2f8 65%, #fff7f1 100%); }
+:root[data-theme="light"] .topbar { background: rgba(255,255,255,.94); }
+:root[data-theme="light"] .brand, :root[data-theme="light"] nav button.active { color: #111827; }
 
 button { font: inherit; color: inherit; }
 
@@ -212,10 +226,6 @@ main {
   transition: .2s;
 }
 
-.score-card.live-game {
-  animation: livePulse 2.4s ease-in-out infinite;
-}
-
 .score-card:hover,
 .score-card.selected {
   border-color: #5f718a;
@@ -232,11 +242,6 @@ main {
 }
 
 .score-meta .live { color: var(--red); }
-
-@keyframes livePulse {
-  0%, 100% { box-shadow: 0 0 0 0 #ef3f4f00; }
-  50% { box-shadow: 0 0 0 3px #ef3f4f24; }
-}
 
 .team-row {
   display: grid;
@@ -260,7 +265,19 @@ main {
 .team-name { font-weight: 700; font-size: 14px; }
 .record { color: var(--muted); font-size: 10px; }
 .team-score { font: 600 24px Oswald; }
-.winner .team-score { color: var(--green); }
+.winner .team-score, .winning-score { color: var(--red); font-weight: 800; }
+.real-team-logo { object-fit: contain; background: transparent; border: 0; }
+.live-home { display: inline-flex; align-items: center; gap: 7px; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.avatar:disabled { cursor: default; opacity: .55; }
+.leader-button { width: 100%; color: inherit; background: transparent; text-align: left; cursor: pointer; }
+.leader-button:hover, .leader-button:focus-visible { background: rgba(90,168,255,.06); outline: none; }
+.leader-copy strong, .leader-copy small { display: block; }
+.standing-team { cursor: pointer; }
+.standing-team:hover, .standing-team:focus-visible { background: rgba(90,168,255,.07); outline: none; }
+.score-team-link { display: grid; place-items: center; width: 40px; padding: 0; border: 0; background: transparent; cursor: pointer; }
+.score-team-link:hover { transform: scale(1.08); }
+.summary-team-link { border: 0; background: transparent; color: inherit; cursor: pointer; }
+.summary-team-link:hover strong, .summary-team-link:focus-visible strong { color: var(--blue); }
 
 .dashboard-grid {
   display: grid;
@@ -471,7 +488,15 @@ main {
   border-bottom: 1px solid var(--line);
   padding: 8px 0;
   font-size: 11px;
+  cursor: pointer;
+  overflow: hidden;
 }
+
+.avatar img { width: 25px; height: 25px; object-fit: contain; vertical-align: middle; }
+
+.calendar-picker { display: grid; place-items: center; width: 38px; height: 38px; border: 0; background: transparent; color: var(--muted); cursor: pointer; }
+.calendar-picker:hover { color: var(--text); }
+.calendar-input { position: fixed; left: -9999px; width: 1px; height: 1px; opacity: 0; }
 
 .play time { color: var(--muted); }
 .play strong { display: block; font-size: 12px; margin-bottom: 2px; }
@@ -494,6 +519,9 @@ main {
 .injury-row small { color: var(--muted); }
 .stat-value { font: 600 18px Oswald; }
 .tag { color: var(--gold); font-size: 9px; font-weight: 700; }
+.leader-row { grid-template-columns: 26px 38px 1fr auto; }
+.leader-photo { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; object-position: top; background: var(--surface2); }
+.feature-hold { grid-column: 1 / -1; min-height: 180px; display: grid; place-content: center; line-height: 1.7; }
 
 .table-panel { padding: 0; overflow: hidden; }
 
@@ -559,69 +587,28 @@ main {
   width: fit-content;
 }
 
-.transaction-tools {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.transaction-tools select {
-  border: 1px solid var(--line);
-  background: var(--surface2);
-  color: var(--text);
-  border-radius: 6px;
-  min-height: 40px;
-  padding: 0 12px;
-  font: 600 12px 'DM Sans';
-}
-
-.transaction-board { min-height: 260px; }
-
-.transaction-list {
-  display: grid;
-  gap: 0;
-}
-
-.transaction-row {
-  display: grid;
-  grid-template-columns: 38px 1fr;
-  gap: 12px;
-  padding: 14px 0;
-  border-top: 1px solid var(--line);
-}
-
-.transaction-row:first-child { border-top: 0; padding-top: 0; }
-
-.transaction-head {
-  display: flex;
-  justify-content: space-between;
-  gap: 14px;
-  font-size: 13px;
-}
-
-.transaction-head span,
-.transaction-row small {
-  color: var(--muted);
-  font-size: 10px;
-}
-
-.transaction-row p {
-  margin: 5px 0 4px;
-  color: #d8deea;
-  font-size: 12px;
-  line-height: 1.45;
-}
-
-.transaction-row a {
-  color: var(--blue);
-  text-decoration: none;
-}
-
 .predict-grid {
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 16px;
 }
+
+.demo-disclosure {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 18px;
+  padding: 12px 14px;
+  border: 1px solid rgba(245, 158, 11, .35);
+  border-radius: 10px;
+  background: rgba(245, 158, 11, .08);
+  color: var(--text);
+}
+
+.demo-disclosure span { color: var(--muted); font-size: .86rem; line-height: 1.45; }
+.futures-disclosure { margin-bottom: 0; }
+button:disabled { cursor: not-allowed; opacity: .55; }
 
 .rounds {
   display: grid;
@@ -725,8 +712,9 @@ footer span { font: 400 10px 'DM Sans'; }
   .brand { margin-right: 15px; }
   .brand span:last-child { display: none; }
   nav { gap: 12px; }
-  nav button { font-size: 12px; }
-  .top-actions { display: none; }
+  .top-actions { display: flex; }
+  .top-actions .live-home { display: none; }
+  .avatar { margin-left: 0; }
   main { padding: 0 14px 50px; }
   .dates .date:nth-child(-n+2),
   .dates .date:nth-last-child(-n+2) { display: none; }
@@ -741,9 +729,6 @@ footer span { font: 400 10px 'DM Sans'; }
     grid-template-columns: repeat(3, 220px);
   }
   .section-heading h1 { font-size: 27px; }
-  .section-heading { align-items: start; flex-direction: column; }
-  .transaction-tools { width: 100%; }
-  .transaction-tools select { flex: 1; min-width: 0; }
   .game-scoreboard { grid-template-columns: 1fr auto 1fr; }
   .big-team,
   .big-team:last-child { display: block; }

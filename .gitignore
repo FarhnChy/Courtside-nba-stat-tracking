@@ -6,6 +6,8 @@ coverage/
 dist/
 .DS_Store
 Thumbs.db
+.visual-profile-*/
+server-visual*.log
 
 # Private learning and interview notes — never commit
 PROJECT_GUIDE.private.md
