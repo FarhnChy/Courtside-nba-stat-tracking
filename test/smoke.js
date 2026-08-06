@@ -44,6 +44,7 @@ assert.equal(finance.capOverview('2026-27').cap, 164961000);
 assert.equal(typeof finance.payrolls, 'function');
 assert.equal(typeof finance.teamContracts, 'function');
 assert.equal(typeof finance.freeAgents, 'function');
+assert.equal(fs.readFileSync(path.join(root, 'lib/finance.js'), 'utf8').includes('reportedTeamFromLabel'), true, 'free-agent signings should prefer reported team labels over stale tracker abbreviations');
 const offseasonFreeAgents = require('../data/offseasonFreeAgents');
 assert.deepEqual(offseasonFreeAgents.map(player => player.name), ['DeMar DeRozan', 'Russell Westbrook']);
 assert.equal(typeof finance.capHolds, 'function');
@@ -68,6 +69,9 @@ assert.equal(appSource.includes('move-contract'), true, 'transaction cards shoul
 assert.equal(appSource.includes('data-score-team'), true, 'score-card logos should open team rosters');
 assert.equal(appSource.includes('data-summary-team'), true, 'expanded game logos should open team rosters');
 assert.equal(appSource.includes('data-free-agent-id'), true, 'free-agent players should open detailed profiles');
+assert.equal(appSource.includes('profileFallbackStats'), true, 'free-agent profiles should fall back to tracker stats');
+assert.equal(appSource.includes('injury-toggle'), true, 'injury cards should expose compact expandable details');
+assert.equal(appSource.includes('playoff-bracket-layout'), true, 'custom bracket should show East and West around the Finals');
 assert.equal(appSource.includes('id="contractSeason"'), true, 'team finances should allow contract-season selection');
 assert.equal(appSource.includes('I want to see projected cap holds'), true, 'cap holds should remain optional until requested');
 for (const feature of ['renderFavoriteDashboard','renderTeamDashboard','comparisonState','openTransactionDetail','best-available-rank','fetchApi']) assert.equal(appSource.includes(feature), true, `app should include ${feature}`);

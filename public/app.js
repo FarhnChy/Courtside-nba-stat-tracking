@@ -85,7 +85,42 @@ function bracketWinner(key,a,b){const pick=bracketState.picks[key];return pick&&
 function bracketLoser(key,a,b){const winner=bracketWinner(key,a,b);return winner?(String(winner.id)===String(a?.id)?b:a):null}
 function bracketMatch(key,a,b,label){return `<article class="user-match"><small>${label}</small>${[a,b].map(team=>team?`<button class="${String(bracketState.picks[key])===String(team.id)?'picked':''}" data-bracket-key="${key}" data-bracket-team="${escapeHtml(team.id)}">${team.logo?`<img src="${escapeHtml(team.logo)}" alt="">`:''}<span>${escapeHtml(team.seed?`${team.seed}. ${team.displayName}`:team.displayName)}</span></button>`:'<button disabled><span>Winner TBD</span></button>').join('')}</article>`}
 function conferenceBracket(conference){const seeded=conference.teams.slice(0,10);const [s1,s2,s3,s4,s5,s6,s7,s8,s9,s10]=seeded;const prefix=conference.id;const pi7=bracketWinner(`${prefix}-pi7`,s7,s8);const pi7loser=bracketLoser(`${prefix}-pi7`,s7,s8);const pi9=bracketWinner(`${prefix}-pi9`,s9,s10);const pi8=bracketWinner(`${prefix}-pi8`,pi7loser,pi9);const r1a=bracketWinner(`${prefix}-r1a`,s1,pi8);const r1b=bracketWinner(`${prefix}-r1b`,s4,s5);const r1c=bracketWinner(`${prefix}-r1c`,s3,s6);const r1d=bracketWinner(`${prefix}-r1d`,s2,pi7);const semi1=bracketWinner(`${prefix}-semi1`,r1a,r1b);const semi2=bracketWinner(`${prefix}-semi2`,r1c,r1d);const champion=bracketWinner(`${prefix}-final`,semi1,semi2);return {champion,html:`<section class="conference-bracket"><h3>${escapeHtml(conference.name)}</h3><div class="bracket-rounds"><div><h4>Play-in</h4>${bracketMatch(`${prefix}-pi7`,s7,s8,'7–8 game')}${bracketMatch(`${prefix}-pi9`,s9,s10,'9–10 game')}${bracketMatch(`${prefix}-pi8`,pi7loser,pi9,'For No. 8 seed')}</div><div><h4>First round</h4>${bracketMatch(`${prefix}-r1a`,s1,pi8,'1 vs 8')}${bracketMatch(`${prefix}-r1b`,s4,s5,'4 vs 5')}${bracketMatch(`${prefix}-r1c`,s3,s6,'3 vs 6')}${bracketMatch(`${prefix}-r1d`,s2,pi7,'2 vs 7')}</div><div><h4>Semifinals</h4>${bracketMatch(`${prefix}-semi1`,r1a,r1b,'Conference semifinal')}${bracketMatch(`${prefix}-semi2`,r1c,r1d,'Conference semifinal')}</div><div><h4>Final</h4>${bracketMatch(`${prefix}-final`,semi1,semi2,'Conference final')}</div></div></section>`}}
-function renderPredict(){const bracket=document.querySelector('#bracket');const card=document.querySelector('#modelCard');document.querySelectorAll('[data-predict-mode]').forEach(button=>button.classList.toggle('active',button.dataset.predictMode===bracketState.mode));document.querySelector('#resetBracket').hidden=bracketState.mode!=='custom';document.querySelector('.predict-grid').classList.toggle('custom-bracket-mode',bracketState.mode==='custom');if(bracketState.mode==='model'){bracket.innerHTML='<div class="empty-state feature-hold"><strong>Playoff model coming later</strong><br>This section will use current rosters, standings, injuries, and team strength once the model is ready.</div>';card.hidden=false;card.innerHTML='<div class="empty-state feature-hold"><strong>No forecast published</strong><br>There is currently no title favorite or championship probability.</div>';return}const conferences=liveStandings.data?.conferences;if(!conferences?.every(conference=>conference.teams.length>=10)){bracket.innerHTML='<div class="empty-state designed-empty"><strong>Bracket seeding is loading</strong><span>The top 10 teams in each conference will appear when standings are available.</span></div>';card.hidden=true;return}const east=conferenceBracket(conferences.find(item=>item.id==='east'));const west=conferenceBracket(conferences.find(item=>item.id==='west'));const champion=bracketWinner('nba-final',east.champion,west.champion);bracket.innerHTML=`<div class="bracket-intro"><div><p class="eyebrow">SAVED ON THIS DEVICE</p><h2>My playoff bracket</h2><p>Pick play-in winners first, then advance teams through every round.</p></div>${champion?`<div class="bracket-champion">${champion.logo?`<img src="${escapeHtml(champion.logo)}" alt="">`:''}<span>Your champion</span><strong>${escapeHtml(champion.displayName)}</strong></div>`:''}</div>${east.html}${west.html}<section class="nba-finals"><h3>NBA Finals</h3>${bracketMatch('nba-final',east.champion,west.champion,'NBA championship')}</section>`;card.hidden=true;bracket.querySelectorAll('[data-bracket-key]').forEach(button=>button.onclick=()=>{bracketState.picks[button.dataset.bracketKey]=button.dataset.bracketTeam;saveBracket();renderPredict()})}
+function renderPredict() {
+  const bracket = document.querySelector('#bracket');
+  const card = document.querySelector('#modelCard');
+  document.querySelectorAll('[data-predict-mode]').forEach(button => {
+    button.classList.toggle('active', button.dataset.predictMode === bracketState.mode);
+  });
+  document.querySelector('#resetBracket').hidden = bracketState.mode !== 'custom';
+  document.querySelector('.predict-grid').classList.toggle('custom-bracket-mode', bracketState.mode === 'custom');
+
+  if (bracketState.mode === 'model') {
+    bracket.innerHTML = '<div class="empty-state feature-hold"><strong>Playoff model coming later</strong><br>This section will use current rosters, standings, injuries, and team strength once the model is ready.</div>';
+    card.hidden = false;
+    card.innerHTML = '<div class="empty-state feature-hold"><strong>No forecast published</strong><br>There is currently no title favorite or championship probability.</div>';
+    return;
+  }
+
+  const conferences = liveStandings.data?.conferences;
+  if (!conferences?.every(conference => conference.teams.length >= 10)) {
+    bracket.innerHTML = '<div class="empty-state designed-empty"><strong>Bracket seeding is loading</strong><span>The top 10 teams in each conference will appear when standings are available.</span></div>';
+    card.hidden = true;
+    return;
+  }
+
+  const east = conferenceBracket(conferences.find(item => item.id === 'east'));
+  const west = conferenceBracket(conferences.find(item => item.id === 'west'));
+  const champion = bracketWinner('nba-final', east.champion, west.champion);
+  bracket.innerHTML = `<div class="bracket-intro"><div><p class="eyebrow">SAVED ON THIS DEVICE</p><h2>My playoff bracket</h2><p>East and West feed into the NBA Finals. Pick play-in winners first, then advance teams through each side.</p></div>${champion ? `<div class="bracket-champion">${champion.logo ? `<img src="${escapeHtml(champion.logo)}" alt="">` : ''}<span>Your champion</span><strong>${escapeHtml(champion.displayName)}</strong></div>` : ''}</div><div class="playoff-bracket-layout"><div class="bracket-side east-side">${east.html}</div><section class="nba-finals"><h3>NBA Finals</h3>${bracketMatch('nba-final', east.champion, west.champion, 'NBA championship')}</section><div class="bracket-side west-side">${west.html}</div></div>`;
+  card.hidden = true;
+  bracket.querySelectorAll('[data-bracket-key]').forEach(button => {
+    button.onclick = () => {
+      bracketState.picks[button.dataset.bracketKey] = button.dataset.bracketTeam;
+      saveBracket();
+      renderPredict();
+    };
+  });
+}
 const futures=[['NBA champion',[['BOS','24.8%'],['OKC','22.1%'],['CLE','15.6%'],['DEN','12.4%']]],['MVP award',[['OKC','S. Gilgeous-Alexander'],['DEN','N. Jokić'],['MIL','G. Antetokounmpo'],['BOS','J. Tatum']]],['No. 1 seed',[['CLE','East · 78%'],['OKC','West · 84%'],['BOS','East · 19%'],['DEN','West · 11%']]]];
 function renderFutures(){document.querySelector('#futuresGrid').innerHTML='<section class="panel empty-state feature-hold"><strong>Season futures coming later</strong><br>No current odds or award predictions are published yet.</section>'}
 const viewRoutes = { scores:'scores', standings:'standings', teams:'teamsView', injuries:'injuriesView', moves:'transactionsView', finance:'financeView', 'free-agents':'freeAgentsView', predict:'predict', futures:'futures' };
@@ -303,6 +338,30 @@ function playerProfileHeader(player, teamName) {
   return `<div class="player-profile-head">${portrait}<div><p class="eyebrow">${escapeHtml(teamName)}${player.jersey?` · #${escapeHtml(player.jersey)}`:''}</p><h2 id="playerDialogTitle">${escapeHtml(player.name)}</h2>${bio?`<p>${escapeHtml(bio)}</p>`:''}<button class="secondary-action add-comparison" data-compare-player="${escapeHtml(player.id||'')}">Add to comparison</button></div></div>`;
 }
 
+function profileFallbackStats(player) {
+  const stats = player?.stats;
+  if (!stats) return '<div class="empty-state compact-empty">Season statistics are not currently available.</div>';
+  const values = [
+    ['PTS', Number(stats.ppg || 0).toFixed(1)],
+    ['REB', Number(stats.rpg || 0).toFixed(1)],
+    ['AST', Number(stats.apg || 0).toFixed(1)]
+  ];
+  return `<div class="profile-stats">${values.map(([label, value]) => `<div><strong>${escapeHtml(value)}</strong><small>${label}</small></div>`).join('')}</div><div class="profile-section"><h3>NBA season history</h3><p>The full ESPN season-history table is not available for this player ID, so Courtside is showing the free-agent tracker averages used in the table.</p></div>`;
+}
+
+function renderProfileHistory(history) {
+  const latest = history[history.length - 1];
+  if (!latest) return '';
+  const summaryLabels = ['PTS', 'REB', 'AST', 'FG%'];
+  const rowLabels = ['GP', 'MIN', 'PTS', 'REB', 'AST', 'FG%', '3P%', 'FT%', 'STL', 'BLK'];
+  return `<div class="profile-stats">${summaryLabels.map(label => `<div><strong>${escapeHtml(latest.values[label] ?? '—')}</strong><small>${label}</small></div>`).join('')}</div><div class="profile-section"><h3>NBA season history</h3><div class="table-scroll"><table class="career-table"><thead><tr><th>Season</th><th>Team</th>${rowLabels.map(label => `<th>${label}</th>`).join('')}</tr></thead><tbody>${history.map(row => `<tr><td><strong>${escapeHtml(row.season)}</strong></td><td>${escapeHtml(row.team)}</td>${rowLabels.map(label => `<td>${escapeHtml(row.values[label] ?? '—')}</td>`).join('')}</tr>`).join('')}</tbody></table></div></div>`;
+}
+
+function renderAwards(awards = []) {
+  if (!awards.length) return '';
+  return `<div class="profile-section"><h3>Career accolades</h3><div class="accolade-grid">${awards.map(award => `<article><strong>${escapeHtml(award.count)} ${escapeHtml(award.name)}</strong><small>${escapeHtml((award.seasons || []).join(' · '))}</small></article>`).join('')}</div></div>`;
+}
+
 async function openPlayerProfile(id, playerOverride = null, teamOverride = '') {
   const player = playerOverride || rosterState.roster?.players.find(item => String(item.id) === String(id)); if (!player || !id) return;
   const teamName = teamOverride || rosterState.roster?.team?.displayName || 'NBA'; currentProfileCandidate={...player,id,teamName};
@@ -312,8 +371,8 @@ async function openPlayerProfile(id, playerOverride = null, teamOverride = '') {
   try {
     const response = await fetchApi(`/api/players/${id}`); if (!response.ok) throw new Error('Profile unavailable'); const profile=await response.json();
     const history = profile.history || []; const latest = history[history.length-1]; const detailedPlayer={...player,position:profile.positions||player.position}; const detailedHeader=playerProfileHeader(detailedPlayer,teamName); currentProfileCandidate={...detailedPlayer,id,teamName,profile,latest};
-    root.innerHTML = `${detailedHeader}${latest?`<div class="profile-stats">${['PTS','REB','AST','FG%'].map(label=>`<div><strong>${escapeHtml(latest.values[label]??'—')}</strong><small>${label}</small></div>`).join('')}</div><div class="profile-section"><h3>NBA season history</h3><div class="table-scroll"><table class="career-table"><thead><tr><th>Season</th><th>Team</th><th>GP</th><th>MIN</th><th>PTS</th><th>REB</th><th>AST</th><th>FG%</th><th>3P%</th><th>FT%</th><th>STL</th><th>BLK</th></tr></thead><tbody>${history.map(row=>`<tr><td><strong>${escapeHtml(row.season)}</strong></td><td>${escapeHtml(row.team)}</td>${['GP','MIN','PTS','REB','AST','FG%','3P%','FT%','STL','BLK'].map(label=>`<td>${escapeHtml(row.values[label]??'—')}</td>`).join('')}</tr>`).join('')}</tbody></table></div></div>`:'<div class="empty-state compact-empty">Career statistics are not currently available.</div>'}${profile.awards?.length?`<div class="profile-section"><h3>Career accolades</h3><div class="accolade-grid">${profile.awards.map(award=>`<article><strong>${escapeHtml(award.count)} ${escapeHtml(award.name)}</strong><small>${escapeHtml((award.seasons||[]).join(' · '))}</small></article>`).join('')}</div></div>`:''}`;
-  } catch(error) { root.innerHTML = `${header}<div class="empty-state compact-empty">Season statistics are temporarily unavailable.</div>`; }
+    root.innerHTML = `${detailedHeader}${history.length ? renderProfileHistory(history) : profileFallbackStats(player)}${renderAwards(profile.awards)}`;
+  } catch(error) { root.innerHTML = `${header}${profileFallbackStats(player)}`; }
 }
 
 document.querySelector('#closePlayerDialog').onclick=()=>document.querySelector('#playerDialog').close();
@@ -336,9 +395,31 @@ async function loadInjuries() {
   try {
     const response = await fetchApi('/api/injuries'); if (!response.ok) throw new Error('Injuries unavailable');
     const payload = await response.json();
-    document.querySelector('#injuryTimestamp').textContent = payload.timestamp ? `Updated ${new Date(payload.timestamp).toLocaleString()}` : 'Current report';
-    root.innerHTML = payload.teams.length ? payload.teams.map(team => `<section class="panel injury-team"><div class="panel-title"><h2>${escapeHtml(team.displayName)}</h2><span class="pill">${team.injuries.length} listed</span></div>${team.injuries.map(item=>`<article class="injury-card">${item.headshot?`<img src="${escapeHtml(item.headshot)}" alt="">`:'<span class="player-placeholder"></span>'}<div><button class="injury-player" data-injury-player="${escapeHtml(item.athleteId||'')}" data-player-name="${escapeHtml(item.player)}" data-player-position="${escapeHtml(item.position)}" data-player-headshot="${escapeHtml(item.headshot||'')}" data-team-name="${escapeHtml(team.displayName)}"><strong>${escapeHtml(item.player)}</strong></button><small>${escapeHtml(item.position)} · ${item.date?new Date(item.date).toLocaleDateString():'Date unavailable'}</small><p>${escapeHtml(item.shortComment || item.detail || 'No additional details provided.')}</p>${item.returnDate?`<span class="return-date">Expected return: ${escapeHtml(item.returnDate)}</span>`:''}</div><span class="availability limited">${escapeHtml(item.status)}</span></article>`).join('')}</section>`).join('') : '<div class="panel empty-state">No current injuries are listed.</div>';
+    const source = payload.source || 'ESPN injury report';
+    const updated = payload.timestamp ? ` - Updated ${new Date(payload.timestamp).toLocaleString()}` : '';
+    document.querySelector('#injuryTimestamp').textContent = `${source}${updated}`;
+    root.innerHTML = payload.teams.length ? payload.teams.map(team => {
+      const teamMark = team.logo
+        ? `<img src="${escapeHtml(team.logo)}" alt="${escapeHtml(team.displayName)} logo">`
+        : team.abbreviation ? `<span class="mini-logo">${escapeHtml(team.abbreviation)}</span>` : '';
+      const injuries = team.injuries.map(item => {
+        const detail = escapeHtml(item.shortComment || item.detail || 'No additional details provided.');
+        const expected = item.returnDate ? `Expected return: ${escapeHtml(item.returnDate)}` : 'Expected return: Not listed';
+        const reported = item.date ? new Date(item.date).toLocaleDateString() : 'Date unavailable';
+        return `<article class="injury-card compact-injury-card">${item.headshot ? `<img src="${escapeHtml(item.headshot)}" alt="">` : '<span class="player-placeholder"></span>'}<div class="injury-main"><button class="injury-player" data-injury-player="${escapeHtml(item.athleteId || '')}" data-player-name="${escapeHtml(item.player)}" data-player-position="${escapeHtml(item.position)}" data-player-headshot="${escapeHtml(item.headshot || '')}" data-team-name="${escapeHtml(team.displayName)}"><strong>${escapeHtml(item.player)}</strong></button><small>${escapeHtml(item.position)} - Reported ${reported}</small></div><span class="availability limited">${escapeHtml(item.status)}</span><button class="injury-toggle" type="button" aria-expanded="false" aria-label="Show injury details">v</button><div class="injury-detail" hidden><p>${detail}</p><dl><div><dt>Expected</dt><dd>${expected}</dd></div><div><dt>Source</dt><dd>${escapeHtml(item.source || team.source || source)}</dd></div></dl></div></article>`;
+      }).join('');
+      return `<section class="panel injury-team"><div class="injury-team-header">${teamMark}<div><h2>${escapeHtml(team.displayName)}</h2><small>${escapeHtml(team.source || source)}</small></div><span class="pill">${team.injuries.length} listed</span></div>${injuries}</section>`;
+    }).join('') : '<div class="panel empty-state">No current injuries are listed.</div>';
     root.querySelectorAll('.injury-player[data-injury-player]').forEach(button => button.onclick = () => openPlayerProfile(button.dataset.injuryPlayer, { name: button.dataset.playerName, position: button.dataset.playerPosition, headshot: button.dataset.playerHeadshot }, button.dataset.teamName));
+    root.querySelectorAll('.injury-toggle').forEach(button => {
+      button.onclick = () => {
+        const detail = button.closest('.injury-card').querySelector('.injury-detail');
+        const expanded = button.getAttribute('aria-expanded') === 'true';
+        button.setAttribute('aria-expanded', String(!expanded));
+        button.textContent = expanded ? 'v' : '^';
+        detail.hidden = expanded;
+      };
+    });
   } catch (error) { root.innerHTML = `<section class="panel">${errorState('The injury report is temporarily unavailable','injuries')}</section>`; }
 }
 
@@ -432,12 +513,44 @@ async function loadCapHolds(abbreviation) {
 
 const freeAgentState = { players: [], status: localStorage.getItem('freeAgentStatus') || 'Available', type: localStorage.getItem('freeAgentType') || 'all', position:'all', sort:'best', query:'' };
 function renderFreeAgents() {
-  const score=player=>(Number(player.stats?.ppg)||0)+(Number(player.stats?.rpg)||0)*.7+(Number(player.stats?.apg)||0)*.8;
-  const players = freeAgentState.players.filter(player => (freeAgentState.status === 'all' || player.availability === freeAgentState.status) && (freeAgentState.type === 'all' || player.type === freeAgentState.type) && (freeAgentState.position==='all'||player.position===freeAgentState.position) && (!freeAgentState.query||player.name.toLowerCase().includes(freeAgentState.query))).sort((a,b)=>freeAgentState.sort==='name'?a.name.localeCompare(b.name):freeAgentState.sort==='age'?(a.age??99)-(b.age??99):freeAgentState.sort==='ppg'?(b.stats?.ppg||0)-(a.stats?.ppg||0):score(b)-score(a));
-  document.querySelector('#freeAgentTable').innerHTML = players.length ? `<div class="table-scroll"><table class="free-agent-table"><thead><tr><th>Player</th><th>Pos</th><th>Age</th><th>Type</th><th>Option/status</th><th>Previous</th><th>New team</th><th>PPG</th><th>RPG</th><th>APG</th></tr></thead><tbody>${players.map(player=>`<tr><td><button class="box-player free-agent-player" data-free-agent-id="${escapeHtml(player.id||'')}" data-player-name="${escapeHtml(player.name)}" data-player-position="${escapeHtml(player.position)}" data-player-headshot="${escapeHtml(player.headshot||'')}" data-team-name="${escapeHtml(player.newTeam||player.oldTeam||'NBA free agent')}"><span class="player-cell">${player.headshot?`<img src="${escapeHtml(player.headshot)}" alt="">`:'<span class="player-placeholder"></span>'}<strong>${escapeHtml(player.name)}</strong></span></button></td><td>${escapeHtml(player.position)}</td><td>${player.age??'-'}</td><td><span class="fa-type ${player.type.toLowerCase()}">${escapeHtml(player.type)}</span></td><td>${player.option?`<span class="fa-option">${escapeHtml(player.option)}</span>`:escapeHtml(player.availability)}</td><td>${escapeHtml(player.oldTeam||'—')}</td><td>${escapeHtml(player.newTeam||'—')}</td><td>${player.stats.ppg.toFixed(1)}</td><td>${player.stats.rpg.toFixed(1)}</td><td>${player.stats.apg.toFixed(1)}</td></tr>`).join('')}</tbody></table></div>` : '<div class="empty-state">No free agents match these filters.</div>';
-  if(!players.length)document.querySelector('#freeAgentTable').innerHTML='<div class="empty-state designed-empty"><strong>No free agents match</strong><span>Try changing the search, position, status, or free-agent type.</span><button class="secondary-action" data-clear-free-agents>Clear filters</button></div>';
-  document.querySelectorAll('.free-agent-player[data-free-agent-id]').forEach(button=>button.onclick=()=>openPlayerProfile(button.dataset.freeAgentId,{name:button.dataset.playerName,position:button.dataset.playerPosition,headshot:button.dataset.playerHeadshot},button.dataset.teamName));
-  if(freeAgentState.sort==='best'&&freeAgentState.status==='Available')document.querySelectorAll('.free-agent-player .player-cell').forEach((cell,index)=>{if(index<10)cell.insertAdjacentHTML('beforeend',`<span class="best-available-rank">#${index+1} best available</span>`)});
+  const score = player => (Number(player.stats?.ppg) || 0) + (Number(player.stats?.rpg) || 0) * 0.7 + (Number(player.stats?.apg) || 0) * 0.8;
+  const players = freeAgentState.players
+    .filter(player => (freeAgentState.status === 'all' || player.availability === freeAgentState.status)
+      && (freeAgentState.type === 'all' || player.type === freeAgentState.type)
+      && (freeAgentState.position === 'all' || player.position === freeAgentState.position)
+      && (!freeAgentState.query || player.name.toLowerCase().includes(freeAgentState.query)))
+    .sort((a, b) => freeAgentState.sort === 'name'
+      ? a.name.localeCompare(b.name)
+      : freeAgentState.sort === 'age'
+        ? (a.age ?? 99) - (b.age ?? 99)
+        : freeAgentState.sort === 'ppg'
+          ? (b.stats?.ppg || 0) - (a.stats?.ppg || 0)
+          : score(b) - score(a));
+
+  const root = document.querySelector('#freeAgentTable');
+  if (!players.length) {
+    root.innerHTML = '<div class="empty-state designed-empty"><strong>No free agents match</strong><span>Try changing the search, position, status, or free-agent type.</span><button class="secondary-action" data-clear-free-agents>Clear filters</button></div>';
+    return;
+  }
+
+  root.innerHTML = `<div class="table-scroll"><table class="free-agent-table"><thead><tr><th>Player</th><th>Pos</th><th>Age</th><th>Type</th><th>Option/status</th><th>Previous</th><th>New team</th><th>PPG</th><th>RPG</th><th>APG</th></tr></thead><tbody>${players.map(player => `<tr><td><button class="box-player free-agent-player" data-free-agent-id="${escapeHtml(player.id || '')}" data-player-name="${escapeHtml(player.name)}" data-player-position="${escapeHtml(player.position)}" data-player-headshot="${escapeHtml(player.headshot || '')}" data-team-name="${escapeHtml(player.newTeam || player.oldTeam || 'NBA free agent')}"><span class="player-cell">${player.headshot ? `<img src="${escapeHtml(player.headshot)}" alt="">` : '<span class="player-placeholder"></span>'}<strong>${escapeHtml(player.name)}</strong></span></button></td><td>${escapeHtml(player.position)}</td><td>${player.age ?? '-'}</td><td><span class="fa-type ${player.type.toLowerCase()}">${escapeHtml(player.type)}</span></td><td>${player.option ? `<span class="fa-option">${escapeHtml(player.option)}</span>` : escapeHtml(player.availability)}</td><td>${escapeHtml(player.oldTeam || '-')}</td><td>${escapeHtml(player.newTeam || '-')}</td><td>${Number(player.stats?.ppg || 0).toFixed(1)}</td><td>${Number(player.stats?.rpg || 0).toFixed(1)}</td><td>${Number(player.stats?.apg || 0).toFixed(1)}</td></tr>`).join('')}</tbody></table></div>`;
+  root.querySelectorAll('.free-agent-player[data-free-agent-id]').forEach(button => {
+    button.onclick = () => {
+      const freeAgent = players.find(player => String(player.id) === String(button.dataset.freeAgentId));
+      openPlayerProfile(button.dataset.freeAgentId, {
+        id: button.dataset.freeAgentId,
+        name: button.dataset.playerName,
+        position: button.dataset.playerPosition,
+        headshot: button.dataset.playerHeadshot,
+        stats: freeAgent?.stats
+      }, button.dataset.teamName);
+    };
+  });
+  if (freeAgentState.sort === 'best' && freeAgentState.status === 'Available') {
+    root.querySelectorAll('.free-agent-player .player-cell').forEach((cell, index) => {
+      if (index < 10) cell.insertAdjacentHTML('beforeend', `<span class="best-available-rank">#${index + 1} best available</span>`);
+    });
+  }
 }
 
 async function loadFreeAgents() {
