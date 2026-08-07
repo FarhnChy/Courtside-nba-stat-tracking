@@ -84,7 +84,51 @@ const saveBracket=()=>localStorage.setItem('courtsideBracket',JSON.stringify(bra
 function bracketWinner(key,a,b){const pick=bracketState.picks[key];return pick&&(String(pick)===String(a?.id)||String(pick)===String(b?.id))?(String(pick)===String(a?.id)?a:b):null}
 function bracketLoser(key,a,b){const winner=bracketWinner(key,a,b);return winner?(String(winner.id)===String(a?.id)?b:a):null}
 function bracketMatch(key,a,b,label){return `<article class="user-match"><small>${label}</small>${[a,b].map(team=>team?`<button class="${String(bracketState.picks[key])===String(team.id)?'picked':''}" data-bracket-key="${key}" data-bracket-team="${escapeHtml(team.id)}">${team.logo?`<img src="${escapeHtml(team.logo)}" alt="">`:''}<span>${escapeHtml(team.seed?`${team.seed}. ${team.displayName}`:team.displayName)}</span></button>`:'<button disabled><span>Winner TBD</span></button>').join('')}</article>`}
-function conferenceBracket(conference){const seeded=conference.teams.slice(0,10);const [s1,s2,s3,s4,s5,s6,s7,s8,s9,s10]=seeded;const prefix=conference.id;const pi7=bracketWinner(`${prefix}-pi7`,s7,s8);const pi7loser=bracketLoser(`${prefix}-pi7`,s7,s8);const pi9=bracketWinner(`${prefix}-pi9`,s9,s10);const pi8=bracketWinner(`${prefix}-pi8`,pi7loser,pi9);const r1a=bracketWinner(`${prefix}-r1a`,s1,pi8);const r1b=bracketWinner(`${prefix}-r1b`,s4,s5);const r1c=bracketWinner(`${prefix}-r1c`,s3,s6);const r1d=bracketWinner(`${prefix}-r1d`,s2,pi7);const semi1=bracketWinner(`${prefix}-semi1`,r1a,r1b);const semi2=bracketWinner(`${prefix}-semi2`,r1c,r1d);const champion=bracketWinner(`${prefix}-final`,semi1,semi2);return {champion,html:`<section class="conference-bracket"><h3>${escapeHtml(conference.name)}</h3><div class="bracket-rounds"><div><h4>Play-in</h4>${bracketMatch(`${prefix}-pi7`,s7,s8,'7–8 game')}${bracketMatch(`${prefix}-pi9`,s9,s10,'9–10 game')}${bracketMatch(`${prefix}-pi8`,pi7loser,pi9,'For No. 8 seed')}</div><div><h4>First round</h4>${bracketMatch(`${prefix}-r1a`,s1,pi8,'1 vs 8')}${bracketMatch(`${prefix}-r1b`,s4,s5,'4 vs 5')}${bracketMatch(`${prefix}-r1c`,s3,s6,'3 vs 6')}${bracketMatch(`${prefix}-r1d`,s2,pi7,'2 vs 7')}</div><div><h4>Semifinals</h4>${bracketMatch(`${prefix}-semi1`,r1a,r1b,'Conference semifinal')}${bracketMatch(`${prefix}-semi2`,r1c,r1d,'Conference semifinal')}</div><div><h4>Final</h4>${bracketMatch(`${prefix}-final`,semi1,semi2,'Conference final')}</div></div></section>`}}
+function bracketRound(title, className, matches) {
+  const connectors = className === 'first-round'
+    ? '<span class="round-connector connector-top"></span><span class="round-connector connector-bottom"></span>'
+    : className === 'semifinal-round'
+      ? '<span class="round-connector connector-single"></span>'
+      : '';
+  return `<div class="bracket-round ${className}"><h4>${title}</h4>${matches.join('')}${connectors}</div>`;
+}
+function conferenceBracket(conference) {
+  const seeded = conference.teams.slice(0, 10);
+  const [s1, s2, s3, s4, s5, s6, s7, s8, s9, s10] = seeded;
+  const prefix = conference.id;
+  const pi7 = bracketWinner(`${prefix}-pi7`, s7, s8);
+  const pi7loser = bracketLoser(`${prefix}-pi7`, s7, s8);
+  const pi9 = bracketWinner(`${prefix}-pi9`, s9, s10);
+  const pi8 = bracketWinner(`${prefix}-pi8`, pi7loser, pi9);
+  const r1a = bracketWinner(`${prefix}-r1a`, s1, pi8);
+  const r1b = bracketWinner(`${prefix}-r1b`, s4, s5);
+  const r1c = bracketWinner(`${prefix}-r1c`, s3, s6);
+  const r1d = bracketWinner(`${prefix}-r1d`, s2, pi7);
+  const semi1 = bracketWinner(`${prefix}-semi1`, r1a, r1b);
+  const semi2 = bracketWinner(`${prefix}-semi2`, r1c, r1d);
+  const champion = bracketWinner(`${prefix}-final`, semi1, semi2);
+  const playIn = [
+    bracketMatch(`${prefix}-pi7`, s7, s8, '7–8 game'),
+    bracketMatch(`${prefix}-pi9`, s9, s10, '9–10 game'),
+    bracketMatch(`${prefix}-pi8`, pi7loser, pi9, 'For No. 8 seed')
+  ].join('');
+  const rounds = [
+    bracketRound('First round', 'first-round', [
+      bracketMatch(`${prefix}-r1a`, s1, pi8, '1 vs 8'),
+      bracketMatch(`${prefix}-r1b`, s4, s5, '4 vs 5'),
+      bracketMatch(`${prefix}-r1c`, s3, s6, '3 vs 6'),
+      bracketMatch(`${prefix}-r1d`, s2, pi7, '2 vs 7')
+    ]),
+    bracketRound('Semifinals', 'semifinal-round', [
+      bracketMatch(`${prefix}-semi1`, r1a, r1b, 'Conference semifinal'),
+      bracketMatch(`${prefix}-semi2`, r1c, r1d, 'Conference semifinal')
+    ]),
+    bracketRound('Final', 'conference-final-round', [
+      bracketMatch(`${prefix}-final`, semi1, semi2, 'Conference final')
+    ])
+  ].join('');
+  return { champion, html: `<section class="conference-bracket bracket-${escapeHtml(conference.id)}"><h3>${escapeHtml(conference.name)}</h3><div class="bracket-stage play-in-stage"><h4>Play-in</h4><div class="play-in-grid">${playIn}</div></div><div class="bracket-rounds actual-bracket">${rounds}</div></section>` };
+}
 function renderPredict() {
   const bracket = document.querySelector('#bracket');
   const card = document.querySelector('#modelCard');
