@@ -2,6 +2,8 @@
 
 Courtside is a responsive NBA game center and roster-economics dashboard. It combines live scores and full game details with standings, rosters, injuries, transactions, contracts, free agency, and salary-cap context in one original interface.
 
+[Live website](https://courtside-nba.onrender.com) · Demo video coming soon
+
 ![Courtside desktop dashboard](docs/screenshots/layout-desktop.png)
 
 ## Current features
@@ -79,6 +81,8 @@ The test suite checks the app shell, provider normalization, finance invariants,
 The ESPN site endpoints used by this prototype are unofficial and may change. Financial figures can also change during the offseason, so relevant screens expose source and retrieval context.
 
 ## Deployment
+
+Live site: [https://courtside-nba.onrender.com](https://courtside-nba.onrender.com)
 
 The repository includes a Render blueprint, health endpoint, and GitHub Actions test workflow. Deploy the Node service with `npm start`; Render can read `render.yaml` directly.
 
