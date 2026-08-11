@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "node server.js",
     "start": "node server.js",
-    "test": "node test/smoke.js && node test/adapters.js && node test/server.js"
+    "test": "node test/smoke.js && node test/adapters.js && node test/server.js && node test/a11y.js",
+    "audit:data": "node scripts/audit-data.js"
   },
   "engines": { "node": ">=18" }
 }

@@ -1,6 +1,14 @@
-// Confirmed 2026 offseason contract terms reported in the ESPN buzz tracker
-// supplied on July 24, 2026. Rumors and unresolved negotiations are excluded.
+// Confirmed/reported 2026 offseason contract terms reconciled against NBA.com's
+// all-team offseason tracker on 2026-08-11. Rumors and unresolved negotiations
+// are excluded.
 module.exports = [
+  ['2026-08-06','Marcus Smart','HOU','Signed',2,11000000,null],
+  ['2026-08-06','Bogdan Bogdanovic','HOU','Signed',1,3600000,null],
+  ['2026-08-06','Dean Wade','PHI','Signed',4,39000000,null],
+  ['2026-08-06','Anfernee Simons','PHI','Signed',2,12000000,null],
+  ['2026-08-06','Jose Alvarado','NYK','Re-signed',3,27000000,null],
+  ['2026-08-06','DayRon Sharpe','BKN','Re-signed',2,12000000,null],
+  ['2026-08-06','Josh Minott','BKN','Re-signed',2,7000000,null],
   ['2026-07-24','LeBron James','PHI','Signed',2,8000000,'Player option'],
   ['2026-07-23','Jordan Walsh','BOS','Extension',3,15000000,null],
   ['2026-07-20','Matisse Thybulle','LAL','Signed',1,3300000,null],

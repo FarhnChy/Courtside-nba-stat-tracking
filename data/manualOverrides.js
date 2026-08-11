@@ -1,3 +1,5 @@
+// Demo fallback overrides rechecked on 2026-08-11. These are not live injury
+// reports; they exist only when public providers are unavailable.
 const injuries = [
   {
     id: 'injury-robinson-demo',

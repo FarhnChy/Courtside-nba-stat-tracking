@@ -187,7 +187,8 @@
 .hub-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; margin-top: 22px; }
 .hub-section { border: 1px solid var(--line); border-radius: 9px; padding: 16px; min-width: 0; }
 .hub-section h3 { margin: 0 0 12px; font: 600 17px Oswald; }
-.hub-about, .hub-fantasy { grid-column: 1 / -1; }
+.hub-about { grid-column: 1 / -1; }
+.standalone-fantasy { margin-top: 18px; }
 .theme-picker, .hub-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .theme-picker button, .primary-action, .secondary-action, .hub-link { border: 1px solid var(--line); border-radius: 7px; padding: 9px 13px; background: var(--surface2); cursor: pointer; }
 .theme-picker button.active, .primary-action { background: var(--red); border-color: var(--red); color: white; font-weight: 700; }
@@ -372,6 +373,6 @@
   .profile-stats { grid-template-columns: repeat(2, 1fr); }
   .accolade-grid { grid-template-columns: 1fr; }
   .hub-grid { grid-template-columns: 1fr; }
-  .hub-about, .hub-fantasy { grid-column: auto; }
+  .hub-about { grid-column: auto; }
   .user-hub-dialog { padding: 22px 16px; }
 }

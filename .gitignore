@@ -8,6 +8,7 @@ dist/
 Thumbs.db
 .visual-profile-*/
 server-visual*.log
+courtside-*.log
 
 # Private learning and interview notes — never commit
 PROJECT_GUIDE.private.md

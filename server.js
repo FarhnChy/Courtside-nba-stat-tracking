@@ -169,6 +169,16 @@ const server = http.createServer(async (req, res) => {
       return json(res, 200, await espn.scoreboard(date));
     } catch (error) { return json(res, 502, { error: 'Live scoreboard unavailable', detail: error.message }); }
   }
+  if (urlPath === '/api/schedule') {
+    try {
+      const params = new URL(req.url, 'http://localhost').searchParams;
+      const start = params.get('start') || '';
+      const days = Number(params.get('days') || 7);
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(start)) return json(res, 400, { error: 'Start date must be YYYY-MM-DD' });
+      if (!Number.isInteger(days) || days < 1 || days > 14) return json(res, 400, { error: 'Days must be an integer from 1 to 14' });
+      return json(res, 200, await espn.scheduleWindow(start, days));
+    } catch (error) { return json(res, 502, { error: 'Schedule unavailable', detail: error.message }); }
+  }
   if (urlPath === '/api/standings') {
     try {
       const season = new URL(req.url, 'http://localhost').searchParams.get('season') || '';

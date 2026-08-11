@@ -13,10 +13,11 @@
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="#scores" aria-label="Courtside home"><img class="brand-mark" src="courtside-logo.webp" alt=""><span>COURTSIDE</span></a>
+    <div class="brand"><button class="brand-account" id="userHubButton" aria-label="Open account and preferences" title="Account and preferences"><img class="brand-mark" id="brandAccountImage" src="courtside-logo.webp" alt=""></button><a class="brand-word" href="#scores" aria-label="Courtside home">COURTSIDE</a></div>
     <div class="global-search"><button id="searchButton" aria-label="Search Courtside">⌕ <span>Search</span></button></div>
     <nav id="nav" aria-label="Main navigation">
       <button class="active" data-view="scores">Scores</button>
+      <button data-view="scheduleView">Schedule</button>
       <button data-view="standings">Standings</button>
       <button data-view="teamsView">Teams</button>
       <button data-view="injuriesView">Injuries</button>
@@ -26,7 +27,7 @@
       <button data-view="predict">Predict</button>
       <button data-view="futures">Futures</button>
     </nav>
-    <div class="top-actions"><button class="live-home" id="liveHome" title="Go to today's scores"><span class="live-dot"></span> LIVE</button><button class="avatar" id="userHubButton" aria-label="Open preferences and fantasy hub" title="Preferences and fantasy hub"><span id="avatarContent">★</span></button></div>
+    <div class="top-actions"><button class="fantasy-home" id="fantasyHubButton" title="Open fantasy team" aria-label="Open fantasy team">Fantasy</button><button class="live-home" id="liveHome" title="Go to today's scores"><span class="live-dot"></span> LIVE</button></div>
   </header>
 
   <main>
@@ -53,6 +54,11 @@
     <section id="standings" class="view">
       <div class="section-heading"><div><p class="eyebrow" id="standingsSeason">NBA SEASON</p><h1>Conference standings</h1></div><div class="transaction-filters"><button class="refresh-button" data-refresh="standings">Refresh</button><div class="segmented" id="conferencePicker"><button class="active" data-conference="east">East</button><button data-conference="west">West</button></div></div></div>
       <section class="panel table-panel" id="standingsTable"></section>
+    </section>
+
+    <section id="scheduleView" class="view">
+      <div class="section-heading"><div><p class="eyebrow">RELEASED SCHEDULE</p><h1>Schedule hub</h1></div><div class="transaction-filters"><button class="refresh-button" data-refresh="schedule">Refresh</button><input class="team-picker" id="scheduleStart" type="date" aria-label="Schedule start date"><select class="team-picker" id="scheduleRange" aria-label="Schedule range"><option value="7">7 days</option><option value="14">14 days</option></select><select class="team-picker" id="scheduleTeam" aria-label="Filter schedule by team"><option value="all">All teams</option></select><select class="team-picker" id="scheduleStatus" aria-label="Filter schedule by status"><option value="all">All games</option><option value="pre">Scheduled</option><option value="in">Live</option><option value="post">Final</option></select></div></div>
+      <section class="panel schedule-panel"><p class="muted" id="scheduleTimestamp">Loading released schedule...</p><div id="scheduleHub"></div></section>
     </section>
 
     <section id="predict" class="view">
@@ -86,7 +92,7 @@
     </section>
 
     <section id="futures" class="view">
-      <div class="section-heading"><div><p class="eyebrow">MODEL DEVELOPMENT</p><h1>Season futures</h1></div></div>
+      <div class="section-heading"><div><p class="eyebrow">AWARDS & SEED RACE</p><h1>Race center</h1></div><div class="transaction-filters"><button class="refresh-button" data-refresh="futures">Refresh</button></div></div>
       <div class="futures-grid" id="futuresGrid"></div>
     </section>
   </main>
@@ -96,14 +102,18 @@
   <dialog id="transactionDialog" class="player-dialog transaction-dialog" aria-labelledby="transactionDialogTitle"><button class="dialog-close" id="closeTransactionDialog" aria-label="Close transaction">×</button><div id="transactionDetail"></div></dialog>
   <dialog id="userHubDialog" class="user-hub-dialog" aria-labelledby="userHubTitle">
     <button class="dialog-close" id="closeUserHub" aria-label="Close preferences">×</button>
-    <div class="hub-heading"><p class="eyebrow">YOUR COURTSIDE</p><h2 id="userHubTitle">Preferences & fantasy</h2><p>Personalize this browser without creating an account.</p></div>
+    <div class="hub-heading"><p class="eyebrow">YOUR COURTSIDE</p><h2 id="userHubTitle">Preferences</h2><p>Personalize this browser without creating an account.</p></div>
     <div class="hub-grid">
-      <section class="hub-section"><h3>Appearance</h3><div class="theme-picker" role="group" aria-label="Color theme"><button data-theme-choice="dark">Dark</button><button data-theme-choice="light">Light</button></div></section>
+      <section class="hub-section"><h3>Appearance</h3><div class="theme-picker" role="group" aria-label="Color theme"><button data-theme-choice="dark">Dark</button><button data-theme-choice="light">Light</button></div><label class="hub-field"><span>Account picture</span><input id="profileImageInput" type="file" accept="image/*" aria-label="Choose account picture"></label><button class="hub-link" id="clearProfileImage" type="button">Use Courtside logo</button></section>
       <section class="hub-section"><h3>Favorite team</h3><label class="hub-field"><span>Team</span><select id="favoriteTeam"><option value="">No favorite selected</option></select></label><button class="hub-link" id="openFavoriteTeam" disabled>Open team page</button></section>
-      <section class="hub-section hub-fantasy"><h3>Fantasy team</h3><p id="fantasyStatus">No fantasy league saved yet.</p><div class="hub-actions"><button class="primary-action" id="startFantasy">Start fantasy team</button><button class="secondary-action" id="checkFantasy">Check my league</button></div><form id="fantasyForm" hidden><label class="hub-field"><span>League name</span><input id="fantasyLeagueName" maxlength="40" required placeholder="Friends League"></label><label class="hub-field"><span>Team name</span><input id="fantasyTeamName" maxlength="40" required placeholder="My Team"></label><button class="primary-action" type="submit">Save league</button></form></section>
       <section class="hub-section"><h3>Notifications</h3><label class="setting-row"><span><strong>Game alerts</strong><small>Browser alerts for your favorite team</small></span><input type="checkbox" data-notification="games"></label><label class="setting-row"><span><strong>Injury updates</strong><small>Track availability changes</small></span><input type="checkbox" data-notification="injuries"></label><label class="setting-row"><span><strong>League moves</strong><small>Trades and signings</small></span><input type="checkbox" data-notification="moves"></label><p class="hub-note" id="notificationNote">Preferences are saved on this device.</p></section>
       <section class="hub-section hub-about"><h3>About & help</h3><p>Courtside combines NBA scores, standings, rosters, moves, and salary context in one independent dashboard.</p><details><summary>How is my information stored?</summary><p>Theme, favorite team, fantasy names, and notification preferences stay in this browser using local storage.</p></details><details><summary>Is fantasy connected to a provider?</summary><p>Not yet. This first version saves your league shortcut; live ESPN or Yahoo league syncing requires a future account connection.</p></details><a href="https://github.com/FarhnChy/Courtside-nba-stat-tracking/issues" target="_blank" rel="noreferrer">Report a problem ↗</a></section>
     </div>
+  </dialog>
+  <dialog id="fantasyDialog" class="user-hub-dialog fantasy-dialog" aria-labelledby="fantasyDialogTitle">
+    <button class="dialog-close" id="closeFantasyDialog" aria-label="Close fantasy">×</button>
+    <div class="hub-heading"><p class="eyebrow">FANTASY LAB</p><h2 id="fantasyDialogTitle">Fantasy team</h2><p>Saved locally in this browser. No account required.</p></div>
+    <section class="hub-section hub-fantasy standalone-fantasy"><h3>My league</h3><p id="fantasyStatus">No fantasy league saved yet.</p><div class="hub-actions"><button class="primary-action" id="startFantasy">Start fantasy team</button><button class="secondary-action" id="checkFantasy">Check my league</button></div><form id="fantasyForm" hidden><label class="hub-field"><span>League name</span><input id="fantasyLeagueName" maxlength="40" required placeholder="Friends League"></label><label class="hub-field"><span>Team name</span><input id="fantasyTeamName" maxlength="40" required placeholder="My Team"></label><button class="primary-action" type="submit">Save league</button></form></section>
   </dialog>
   <dialog id="playerDialog" class="player-dialog" aria-labelledby="playerDialogTitle"><button class="dialog-close" id="closePlayerDialog" aria-label="Close player profile">×</button><div id="playerProfile"></div></dialog>
   <footer>COURTSIDE LABS <span>Independent basketball analytics concept · Not affiliated with the NBA or ESPN</span></footer>

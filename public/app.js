@@ -14,15 +14,21 @@ async function fetchApi(url) {
 }
 const loadingState = (kind='cards') => `<div class="loading-state ${kind}" aria-label="Loading content" aria-busy="true">${Array.from({length:kind==='table'?6:3},(_,index)=>`<span class="skeleton skeleton-${index}"></span>`).join('')}</div>`;
 const errorState = (message,retry) => `<div class="empty-state designed-empty"><strong>${escapeHtml(message)}</strong><span>Live data could not be refreshed. Saved data will appear automatically when available.</span><button class="secondary-action" data-retry="${retry}">Try again</button></div>`;
+function sourceBadge(source, retrievedAt, label = 'Source') {
+  const time = retrievedAt ? new Date(retrievedAt) : null;
+  const stamp = time && Number.isFinite(time.getTime()) ? time.toLocaleString() : 'not refreshed';
+  return `<span class="source-badge"><strong>${escapeHtml(label)}</strong>${escapeHtml(source || 'Courtside model')} - ${escapeHtml(stamp)}</span>`;
+}
 const savedHub = (() => { try { return JSON.parse(localStorage.getItem('courtsideHub') || '{}'); } catch (_) { return {}; } })();
 const hubState = {
   theme: savedHub.theme === 'light' ? 'light' : 'dark',
   favoriteTeam: savedHub.favoriteTeam || '',
+  profileImage: savedHub.profileImage || '',
   fantasy: savedHub.fantasy || null,
   notifications: { games:false, injuries:false, moves:false, ...(savedHub.notifications || {}) },
   teams: []
 };
-const saveHub = () => localStorage.setItem('courtsideHub', JSON.stringify({ theme:hubState.theme, favoriteTeam:hubState.favoriteTeam, fantasy:hubState.fantasy, notifications:hubState.notifications }));
+const saveHub = () => localStorage.setItem('courtsideHub', JSON.stringify({ theme:hubState.theme, favoriteTeam:hubState.favoriteTeam, profileImage:hubState.profileImage, fantasy:hubState.fantasy, notifications:hubState.notifications }));
 function applyTheme(theme) {
   hubState.theme = theme === 'light' ? 'light' : 'dark';
   document.documentElement.dataset.theme = hubState.theme;
@@ -32,8 +38,11 @@ function applyTheme(theme) {
 }
 function updateHubIdentity() {
   const favorite = hubState.teams.find(team=>String(team.id)===String(hubState.favoriteTeam));
-  const avatar = document.querySelector('#avatarContent');
-  avatar.innerHTML = favorite?.logo ? `<img src="${escapeHtml(favorite.logo)}" alt="">` : '★';
+  const image = document.querySelector('#brandAccountImage');
+  if (image) {
+    image.src = hubState.profileImage || 'courtside-logo.webp';
+    image.classList.toggle('custom-profile-image', Boolean(hubState.profileImage));
+  }
   const open = document.querySelector('#openFavoriteTeam'); open.disabled = !favorite;
   open.textContent = favorite ? `Open ${favorite.abbreviation || 'team'} page` : 'Open team page';
   renderFavoriteDashboard();
@@ -50,12 +59,18 @@ function populateFavoriteTeams(teamList) {
   updateHubIdentity();
 }
 applyTheme(hubState.theme);
+updateHubIdentity();
 document.querySelector('#userHubButton').onclick=()=>{renderFantasyStatus();document.querySelector('#userHubDialog').showModal()};
 document.querySelector('#closeUserHub').onclick=()=>document.querySelector('#userHubDialog').close();
 document.querySelector('#userHubDialog').onclick=event=>{if(event.target===event.currentTarget)event.currentTarget.close()};
+document.querySelector('#fantasyHubButton').onclick=()=>{renderFantasyStatus();document.querySelector('#fantasyDialog').showModal()};
+document.querySelector('#closeFantasyDialog').onclick=()=>document.querySelector('#fantasyDialog').close();
+document.querySelector('#fantasyDialog').onclick=event=>{if(event.target===event.currentTarget)event.currentTarget.close()};
 document.querySelectorAll('[data-theme-choice]').forEach(button=>button.onclick=()=>applyTheme(button.dataset.themeChoice));
 document.querySelector('#favoriteTeam').onchange=event=>{hubState.favoriteTeam=event.target.value;saveHub();updateHubIdentity()};
 document.querySelector('#openFavoriteTeam').onclick=()=>{if(hubState.favoriteTeam){document.querySelector('#userHubDialog').close();openTeamRoster(hubState.favoriteTeam)}};
+document.querySelector('#profileImageInput').onchange=event=>{const file=event.target.files?.[0];if(!file)return;if(!file.type.startsWith('image/'))return;const reader=new FileReader();reader.onload=()=>{hubState.profileImage=String(reader.result||'');saveHub();updateHubIdentity()};reader.readAsDataURL(file)};
+document.querySelector('#clearProfileImage').onclick=()=>{hubState.profileImage='';document.querySelector('#profileImageInput').value='';saveHub();updateHubIdentity()};
 document.querySelectorAll('[data-notification]').forEach(input=>{input.checked=Boolean(hubState.notifications[input.dataset.notification]);input.onchange=()=>{hubState.notifications[input.dataset.notification]=input.checked;saveHub();document.querySelector('#notificationNote').textContent='Preferences saved. Browser delivery will be added with live alert support.'}});
 const showFantasyForm = () => { const form=document.querySelector('#fantasyForm');form.hidden=false;document.querySelector('#fantasyLeagueName').value=hubState.fantasy?.league||'';document.querySelector('#fantasyTeamName').value=hubState.fantasy?.team||'';document.querySelector('#fantasyLeagueName').focus() };
 document.querySelector('#startFantasy').onclick=showFantasyForm;
@@ -67,9 +82,59 @@ const games=[
  {id:3,away:'LAL',home:'GSW',as:null,hs:null,status:'UPCOMING',detail:'10:00 PM',records:['36–24','34–27'],prob:[46,54]}
 ];
 let selected=games[0], dayOffset=0;
+const scheduleWindow = { loading:false, days:new Map(), requestedStart:'' };
+const scheduleHub = { days:[], teams:[], retrievedAt:null, source:'ESPN public scoreboard', query:{ start:'', days:'7', team:'all', status:'all' } };
+const raceSchedule = { days:[], retrievedAt:null, source:'ESPN public scoreboard' };
 const logo=(code,cls='team-logo')=>teams[code]?.logo?`<img class="${cls} real-team-logo" src="${escapeHtml(teams[code].logo)}" alt="${escapeHtml(teams[code].name||code)} logo">`:`<span class="${cls}" style="--team:${teams[code]?.color||'#334155'}">${code}</span>`;
 function dateValue(date){return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`}
-function renderDates(){const root=document.querySelector('#dates');root.innerHTML='';for(let i=-3;i<=3;i++){const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()+i+dayOffset);root.innerHTML+=`<button class="date ${i===0?'active':''}" data-score-date="${dateValue(d)}"><span>${d.toLocaleDateString('en-US',{weekday:'short'})}</span><strong>${d.getDate()}</strong></button>`}root.querySelectorAll('[data-score-date]').forEach(button=>button.onclick=()=>selectScoreDate(button.dataset.scoreDate));const chosen=new Date();chosen.setDate(chosen.getDate()+dayOffset);const picker=document.querySelector('#calendarDate');if(picker)picker.value=dateValue(chosen)}
+function visibleDateValues(){return Array.from({length:7},(_,index)=>{const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()+index-3+dayOffset);return dateValue(d)})}
+function scheduleMarker(value){const day=scheduleWindow.days.get(value);if(!day)return scheduleWindow.loading?'...':'';return day.count?`${day.count} game${day.count===1?'':'s'}`:'Off'}
+function renderDates(){const root=document.querySelector('#dates');root.innerHTML='';visibleDateValues().forEach((value,index)=>{const d=new Date(`${value}T12:00:00`);const count=scheduleMarker(value);root.innerHTML+=`<button class="date ${index===3?'active':''}" data-score-date="${value}"><span>${d.toLocaleDateString('en-US',{weekday:'short'})}</span><strong>${d.getDate()}</strong><small class="${count==='Off'?'off-day':''}">${escapeHtml(count)}</small></button>`});root.querySelectorAll('[data-score-date]').forEach(button=>button.onclick=()=>selectScoreDate(button.dataset.scoreDate));const chosen=new Date();chosen.setDate(chosen.getDate()+dayOffset);const picker=document.querySelector('#calendarDate');if(picker)picker.value=dateValue(chosen)}
+async function loadScheduleWindow(){const dates=visibleDateValues();const start=dates[0];scheduleWindow.loading=true;scheduleWindow.requestedStart=start;renderDates();try{const response=await fetchApi(`/api/schedule?start=${start}&days=7`);if(!response.ok)throw new Error('Schedule unavailable');const payload=await response.json();if(scheduleWindow.requestedStart!==start)return;scheduleWindow.days=new Map(payload.days.map(day=>[day.date,day]));}catch(_){if(scheduleWindow.requestedStart===start)scheduleWindow.days=new Map()}finally{if(scheduleWindow.requestedStart===start){scheduleWindow.loading=false;renderDates()}}}
+function scheduleStatusLabel(status = {}) { return status.completed ? 'Final' : status.state === 'in' ? 'Live' : 'Scheduled'; }
+function scheduleGameTime(game) {
+  const date = new Date(game.date);
+  return Number.isFinite(date.getTime()) ? date.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}) : game.status?.detail || 'TBD';
+}
+function scheduleTeamOption(code) { return `<option value="${escapeHtml(code)}">${escapeHtml(teamName(code))}</option>`; }
+function renderScheduleHub() {
+  const root=document.querySelector('#scheduleHub'); if(!root)return;
+  const start=document.querySelector('#scheduleStart'); const range=document.querySelector('#scheduleRange'); const team=document.querySelector('#scheduleTeam'); const status=document.querySelector('#scheduleStatus');
+  if(start&&!start.value)start.value=scheduleHub.query.start||dateValue(new Date());
+  if(range)range.value=scheduleHub.query.days;
+  if(status)status.value=scheduleHub.query.status;
+  const allTeams=[...new Set(scheduleHub.days.flatMap(day=>day.games.flatMap(game=>[game.away.abbreviation,game.home.abbreviation]).filter(Boolean)))].sort();
+  scheduleHub.teams=allTeams;
+  if(team){const current=scheduleHub.query.team;team.innerHTML='<option value="all">All teams</option>'+allTeams.map(scheduleTeamOption).join('');team.value=allTeams.includes(current)?current:'all';scheduleHub.query.team=team.value}
+  const gamesByDay=scheduleHub.days.map(day=>({
+    ...day,
+    games:day.games.filter(game=>(scheduleHub.query.team==='all'||game.away.abbreviation===scheduleHub.query.team||game.home.abbreviation===scheduleHub.query.team)&&(scheduleHub.query.status==='all'||game.status.state===scheduleHub.query.status))
+  })).filter(day=>day.games.length);
+  document.querySelector('#scheduleTimestamp').innerHTML = `${scheduleHub.days.reduce((sum,day)=>sum+day.count,0)} games loaded - ${sourceBadge(scheduleHub.source,scheduleHub.retrievedAt,'Schedule')}`;
+  root.innerHTML = gamesByDay.length ? `<div class="schedule-days">${gamesByDay.map(day=>`<section class="schedule-day"><div class="schedule-day-head"><button class="schedule-date-jump" data-schedule-date="${escapeHtml(day.date)}">${new Date(`${day.date}T12:00:00`).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}</button><span>${day.games.length} game${day.games.length===1?'':'s'}</span></div>${day.games.map(game=>`<article class="schedule-game" data-schedule-date="${escapeHtml(day.date)}"><time>${escapeHtml(scheduleGameTime(game))}</time><div class="schedule-matchup">${logo(game.away.abbreviation,'mini-logo')}<strong>${escapeHtml(game.away.abbreviation)}</strong><span>at</span>${logo(game.home.abbreviation,'mini-logo')}<strong>${escapeHtml(game.home.abbreviation)}</strong></div><div class="schedule-context"><span>${escapeHtml(scheduleStatusLabel(game.status))}</span><small>${escapeHtml([game.venue,...(game.broadcasts||[])].filter(Boolean).join(' - ') || 'Broadcast TBD')}</small></div></article>`).join('')}</section>`).join('')}</div>` : '<div class="empty-state designed-empty"><strong>No games match these filters</strong><span>Change the team, status, date, or range to see released games.</span></div>';
+  root.querySelectorAll('[data-schedule-date]').forEach(item=>item.onclick=()=>{selectScoreDate(item.dataset.scheduleDate);activateView('scores')});
+}
+async function loadScheduleHub() {
+  const start=document.querySelector('#scheduleStart')?.value || scheduleHub.query.start || dateValue(new Date());
+  const days=document.querySelector('#scheduleRange')?.value || scheduleHub.query.days;
+  scheduleHub.query={...scheduleHub.query,start,days,team:document.querySelector('#scheduleTeam')?.value||scheduleHub.query.team,status:document.querySelector('#scheduleStatus')?.value||scheduleHub.query.status};
+  document.querySelector('#scheduleHub').innerHTML=loadingState('table');
+  try{const response=await fetchApi(`/api/schedule?start=${scheduleHub.query.start}&days=${scheduleHub.query.days}`);if(!response.ok)throw new Error('Schedule unavailable');const payload=await response.json();scheduleHub.days=payload.days;scheduleHub.retrievedAt=payload.retrievedAt;scheduleHub.source=payload.source;renderScheduleHub()}catch(_){document.querySelector('#scheduleHub').innerHTML=errorState('Released schedule is temporarily unavailable','schedule')}
+}
+async function loadRaceSchedule() {
+  try {
+    const response=await fetchApi(`/api/schedule?start=${dateValue(new Date())}&days=14`);
+    if(!response.ok)throw new Error('Race schedule unavailable');
+    const payload=await response.json();
+    raceSchedule.days=payload.days;
+    raceSchedule.retrievedAt=payload.retrievedAt;
+    raceSchedule.source=payload.source;
+  } catch (_) {
+    raceSchedule.days=[];
+  } finally {
+    renderFutures();
+  }
+}
 function renderCards(){document.querySelector('#scoreGrid').innerHTML=games.map(g=>`<article class="score-card ${selected.id===g.id?'selected':''}" data-id="${g.id}"><div class="score-meta"><span class="${g.status==='LIVE'?'live':''}">${g.detail}</span><span>${g.status==='UPCOMING'?'MATCHUP':'NBA'}</span></div>${teamLine(g.away,g.records[0],g.as,g.status==='FINAL'&&g.as>g.hs)}${teamLine(g.home,g.records[1],g.hs,g.status==='FINAL'&&g.hs>g.as)}</article>`).join('');document.querySelectorAll('.score-card').forEach(c=>c.onclick=()=>{selected=games.find(g=>g.id==c.dataset.id);renderCards();renderGame()})}
 function teamLine(code,record,score,winner){return `<div class="team-row ${winner?'winner':''}"><button class="score-team-link" data-score-team="${escapeHtml(teams[code]?.id||'')}" aria-label="Open ${escapeHtml(teams[code]?.city||code)} roster">${logo(code)}</button><div><div class="team-name">${teams[code].city} <span class="team-full">${teams[code].name}</span></div><div class="record">${record}</div></div><div class="team-score">${score??'—'}</div></div>`}
 const shots=[['made',18,48],['miss',28,20],['made',37,67],['miss',48,87],['made',55,35],['made',64,71],['miss',73,17],['made',82,50],['miss',89,82],['made',43,13],['miss',67,43],['made',32,81]];
@@ -165,9 +230,79 @@ function renderPredict() {
     };
   });
 }
-const futures=[['NBA champion',[['BOS','24.8%'],['OKC','22.1%'],['CLE','15.6%'],['DEN','12.4%']]],['MVP award',[['OKC','S. Gilgeous-Alexander'],['DEN','N. Jokić'],['MIL','G. Antetokounmpo'],['BOS','J. Tatum']]],['No. 1 seed',[['CLE','East · 78%'],['OKC','West · 84%'],['BOS','East · 19%'],['DEN','West · 11%']]]];
-function renderFutures(){document.querySelector('#futuresGrid').innerHTML='<section class="panel empty-state feature-hold"><strong>Season futures coming later</strong><br>No current odds or award predictions are published yet.</section>'}
-const viewRoutes = { scores:'scores', standings:'standings', teams:'teamsView', injuries:'injuriesView', moves:'transactionsView', finance:'financeView', 'free-agents':'freeAgentsView', predict:'predict', futures:'futures' };
+const awardRaces = [
+  { id:'mvp', label:'MVP', leaders:[
+    { rank:1, player:'Shai Gilgeous-Alexander', team:'OKC', score:94, stats:'31.8 PPG, 6.4 APG', case:'Elite efficiency with a No. 1 seed profile' },
+    { rank:2, player:'Nikola Jokic', team:'DEN', score:91, stats:'26.2 PPG, 12.4 RPG, 9.0 APG', case:'Best all-around offensive engine' },
+    { rank:3, player:'Giannis Antetokounmpo', team:'MIL', score:86, stats:'30.4 PPG, 11.5 RPG', case:'Two-way volume keeps him in striking range' },
+    { rank:4, player:'Jayson Tatum', team:'BOS', score:81, stats:'27.1 PPG, 8.3 RPG', case:'Top team argument if Boston surges' }
+  ]},
+  { id:'dpoy', label:'DPOY', leaders:[
+    { rank:1, player:'Victor Wembanyama', team:'SAS', score:95, stats:'Rim pressure, blocks, deflections', case:'Changes shot selection before attempts happen' },
+    { rank:2, player:'Jaren Jackson Jr.', team:'MEM', score:86, stats:'Blocks and switch activity', case:'High-impact help defender' },
+    { rank:3, player:'Bam Adebayo', team:'MIA', score:82, stats:'Switch coverage anchor', case:'Guards every action type' }
+  ]},
+  { id:'roy', label:'ROY', leaders:[
+    { rank:1, player:'Rookie guard watch', team:'DAL', score:78, stats:'Usage plus team role', case:'Placeholder until rookie production stabilizes' },
+    { rank:2, player:'Rookie wing watch', team:'WAS', score:72, stats:'Minutes and scoring flashes', case:'Path grows with development minutes' },
+    { rank:3, player:'Rookie big watch', team:'POR', score:68, stats:'Rebounds and rim finishing', case:'Needs more playmaking or team wins' }
+  ]},
+  { id:'mip', label:'MIP', leaders:[
+    { rank:1, player:'Franz Wagner', team:'ORL', score:84, stats:'Usage and creation jump', case:'Award path opens if Orlando wins more' },
+    { rank:2, player:'Jalen Williams', team:'OKC', score:82, stats:'Efficiency at higher volume', case:'Can pair team success with role growth' },
+    { rank:3, player:'Tyrese Maxey', team:'PHI', score:79, stats:'Primary guard workload', case:'Needs a clear leap over prior baseline' }
+  ]}
+];
+const seedRaceFallback = {
+  east: [{ team:'CLE', chance:78 }, { team:'BOS', chance:19 }, { team:'NYK', chance:2 }, { team:'MIL', chance:1 }],
+  west: [{ team:'OKC', chance:84 }, { team:'DEN', chance:11 }, { team:'MIN', chance:3 }, { team:'LAL', chance:2 }]
+};
+function teamName(code){const team=teams[code]||{};return [team.city,team.name].filter(Boolean).join(' ')||code}
+function lastTenPct(value){const match=String(value||'').match(/(\d+)\D+(\d+)/);if(!match)return .5;const wins=Number(match[1]),losses=Number(match[2]);return wins+losses?wins/(wins+losses):.5}
+function standingsStrength(conferenceTeams) {
+  return new Map((conferenceTeams||[]).map(team => {
+    const played=Number(team.wins)+Number(team.losses);
+    return [team.abbreviation, played ? Number(team.wins)/played : .5];
+  }));
+}
+function upcomingScheduleEdge(code, strength) {
+  const games=raceSchedule.days.flatMap(day=>day.games||[]).filter(game=>game.away.abbreviation===code||game.home.abbreviation===code);
+  if(!games.length)return { edge:0, note:'No listed games in next 14 days' };
+  const edge=games.reduce((sum,game)=>{
+    const home=game.home.abbreviation===code;
+    const opponent=home?game.away.abbreviation:game.home.abbreviation;
+    return sum + (.5-(strength.get(opponent)||.5)) + (home ? .035 : -.02);
+  },0)/games.length;
+  return { edge, note:`${games.length} game${games.length===1?'':'s'} next 14 days` };
+}
+function seedChanceRows(conferenceId) {
+  const conference = liveStandings.data?.conferences?.find(item => item.id === conferenceId);
+  if (!conference?.teams?.length || conference.teams.every(team => Number(team.wins) + Number(team.losses) < 10)) return seedRaceFallback[conferenceId];
+  const strength=standingsStrength(liveStandings.data?.conferences?.flatMap(item=>item.teams)||[]);
+  const scored = conference.teams.map(team => {
+    const played = Number(team.wins) + Number(team.losses);
+    const pct = played ? Number(team.wins) / played : .5;
+    const remaining = Math.max(0, 82 - played);
+    const form = lastTenPct(team.lastTen);
+    const schedule=upcomingScheduleEdge(team.abbreviation,strength);
+    return { team:team.abbreviation, displayName:team.displayName, logo:team.logo, projected:Number(team.wins) + remaining * (pct * .68 + form * .24 + schedule.edge * .08), scheduleNote:schedule.note };
+  }).sort((a,b)=>b.projected-a.projected).slice(0,5);
+  const top = scored[0]?.projected || 0;
+  const weighted = scored.map(team => ({ ...team, weight:Math.exp((team.projected - top) * .85) }));
+  const total = weighted.reduce((sum,team)=>sum+team.weight,0) || 1;
+  return weighted.map(team => ({ ...team, chance:Math.max(1,Math.round(team.weight / total * 100)) })).sort((a,b)=>b.chance-a.chance);
+}
+function awardRows(race) {
+  return race.leaders.map(item => `<article class="award-row"><span class="award-rank">${item.rank}</span>${logo(item.team,'mini-logo')}<div><strong>${escapeHtml(item.player)}</strong><small>${escapeHtml(teamName(item.team))} - ${escapeHtml(item.stats)}</small><p>${escapeHtml(item.case)}</p></div><b>${item.score}</b></article>`).join('');
+}
+function seedRows(conferenceId, label) {
+  return `<section class="panel seed-race-card"><div class="panel-title"><div><p class="eyebrow">${label.toUpperCase()} RACE</p><h2>No. 1 seed chances</h2></div><span class="pill">Model view</span></div>${seedChanceRows(conferenceId).map(row => `<div class="seed-chance-row">${row.logo?`<img src="${escapeHtml(row.logo)}" alt="">`:logo(row.team,'mini-logo')}<div><strong>${escapeHtml(row.displayName||teamName(row.team))}</strong><small>${escapeHtml(row.scheduleNote||'Record and form model')}</small><span class="seed-meter"><i style="width:${Math.min(100,Math.max(2,row.chance))}%"></i></span></div><b>${row.chance}%</b></div>`).join('')}</section>`;
+}
+function renderFutures(){
+  const root=document.querySelector('#futuresGrid');
+  root.innerHTML=`<section class="demo-disclosure futures-disclosure"><strong>Model board, not betting odds</strong><span>Awards and No. 1 seed chances are a Courtside demo model based on team record, form, role, and released schedule context. Use it as a product surface until calibrated historical models are added.</span><span>${sourceBadge('Courtside demo model',liveStandings.updatedAt,'Race model')} ${sourceBadge(raceSchedule.source,raceSchedule.retrievedAt,'Schedule')}</span></section><section class="panel award-race-card"><div class="panel-title"><div><p class="eyebrow">AWARDS RACE</p><h2>MVP and award boards</h2></div><span class="pill">Top candidates</span></div><div class="award-board">${awardRaces.map(race=>`<section><h3>${escapeHtml(race.label)}</h3>${awardRows(race)}</section>`).join('')}</div></section>${seedRows('east','East')}${seedRows('west','West')}`;
+}
+const viewRoutes = { scores:'scores', schedule:'scheduleView', standings:'standings', teams:'teamsView', injuries:'injuriesView', moves:'transactionsView', finance:'financeView', 'free-agents':'freeAgentsView', predict:'predict', futures:'futures' };
 const routeForView = viewId => Object.entries(viewRoutes).find(([,id]) => id === viewId)?.[0] || 'scores';
 function activateView(viewId, updateUrl = true) {
   const target = document.querySelector(`#${viewId}`) || document.querySelector('#scores');
@@ -186,13 +321,13 @@ window.addEventListener('hashchange', openRoute);
 openRoute();
 document.querySelectorAll('[data-predict-mode]').forEach(button=>button.onclick=()=>{bracketState.mode=button.dataset.predictMode;renderPredict()});
 document.querySelector('#resetBracket').onclick=()=>{bracketState.picks={};saveBracket();renderPredict()};
-document.querySelector('#prevDay').onclick=()=>{dayOffset--;renderDates()};document.querySelector('#nextDay').onclick=()=>{dayOffset++;renderDates()};
-renderDates();renderCards();renderGame();renderSide();renderStandings();renderPredict();renderFutures();
+document.querySelector('#prevDay').onclick=()=>{dayOffset--;renderDates();loadScheduleWindow()};document.querySelector('#nextDay').onclick=()=>{dayOffset++;renderDates();loadScheduleWindow()};
+renderDates();loadScheduleWindow();loadScheduleHub();renderCards();renderGame();renderSide();renderStandings();renderPredict();
 
 // Live data layer. The demo above remains an offline fallback.
 const live = { date: new Date(), timer: null, summaries: new Map(), source: 'demo' };
 const isoDate = date => `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
-function selectScoreDate(value) { const [year,month,day]=value.split('-').map(Number); const next=new Date(year,month-1,day,12); const today=new Date(); today.setHours(12,0,0,0); live.date=next; dayOffset=Math.round((next-today)/86400000); renderDates(); loadScoreboard(); }
+function selectScoreDate(value) { const [year,month,day]=value.split('-').map(Number); const next=new Date(year,month-1,day,12); const today=new Date(); today.setHours(12,0,0,0); live.date=next; dayOffset=Math.round((next-today)/86400000); renderDates(); loadScheduleWindow(); loadScoreboard(); }
 const statusLabel = status => status.state === 'in' && status.period ? `Q${status.period} · ${status.clock}` : status.detail;
 
 function installLiveGames(payload) {
@@ -306,15 +441,21 @@ function enhanceScoreCards() {
 
 document.querySelector('#scoreGrid').addEventListener('click', event => { const card = event.target.closest('.score-card'); if (card && live.source === 'live') setTimeout(() => { enhanceScoreCards(); loadGame(card.dataset.id); }, 0); });
 enhanceScoreCards();
-document.querySelector('#prevDay').onclick = () => { live.date.setDate(live.date.getDate()-1); dayOffset--; renderDates(); loadScoreboard(); };
-document.querySelector('#nextDay').onclick = () => { live.date.setDate(live.date.getDate()+1); dayOffset++; renderDates(); loadScoreboard(); };
+document.querySelector('#prevDay').onclick = () => { live.date.setDate(live.date.getDate()-1); dayOffset--; renderDates(); loadScheduleWindow(); loadScoreboard(); };
+document.querySelector('#nextDay').onclick = () => { live.date.setDate(live.date.getDate()+1); dayOffset++; renderDates(); loadScheduleWindow(); loadScoreboard(); };
 document.querySelector('#calendarDate').onchange = event => { if (event.target.value) selectScoreDate(event.target.value); };
 document.querySelector('#calendarButton').onclick = () => { const picker=document.querySelector('#calendarDate'); if (typeof picker.showPicker==='function') picker.showPicker(); else picker.click(); };
-document.querySelector('#liveHome').onclick = () => { live.date=new Date(); dayOffset=0; renderDates(); activateView('scores'); loadScoreboard(); };
+document.querySelector('#liveHome').onclick = () => { live.date=new Date(); dayOffset=0; renderDates(); loadScheduleWindow(); activateView('scores'); loadScoreboard(); };
 loadScoreboard(); live.timer = setInterval(() => loadScoreboard(true), 20_000);
 
-const liveStandings = { conference: 'east', data: null };
+document.querySelector('#scheduleStart').onchange=loadScheduleHub;
+document.querySelector('#scheduleRange').onchange=loadScheduleHub;
+document.querySelector('#scheduleTeam').onchange=event=>{scheduleHub.query.team=event.target.value;renderScheduleHub()};
+document.querySelector('#scheduleStatus').onchange=event=>{scheduleHub.query.status=event.target.value;renderScheduleHub()};
+
+const liveStandings = { conference: 'east', data: null, updatedAt:null };
 function currentSeasonEndYear() { const now = new Date(); return now.getMonth() >= 8 ? now.getFullYear() + 1 : now.getFullYear(); }
+renderFutures();loadRaceSchedule();
 
 function renderLiveStandings() {
   const conference = liveStandings.data?.conferences.find(item => item.id === liveStandings.conference);
@@ -332,7 +473,7 @@ async function loadStandings() {
   try {
     const response = await fetchApi(`/api/standings?season=${currentSeasonEndYear()}`);
     if (!response.ok) throw new Error('Standings unavailable');
-    liveStandings.data = await response.json(); renderLiveStandings(); if(bracketState.mode==='custom')renderPredict();
+    liveStandings.data = await response.json(); liveStandings.updatedAt = new Date().toISOString(); renderLiveStandings(); renderFutures(); if(bracketState.mode==='custom')renderPredict();
   } catch (error) { root.innerHTML = errorState('Standings are temporarily unavailable','standings'); }
 }
 
@@ -639,5 +780,5 @@ document.querySelector('#closeComparison').onclick=()=>document.querySelector('#
 
 function openTransactionDetail(item){if(!item)return;const root=document.querySelector('#transactionDetail');root.innerHTML=`<p class="eyebrow">${escapeHtml(item.type)} · ${item.date?new Date(item.date).toLocaleDateString():'Date unavailable'}</p><h2 id="transactionDialogTitle">${escapeHtml(item.team.displayName)}</h2><div class="transaction-detail-head">${item.player?.headshot?`<img src="${escapeHtml(item.player.headshot)}" alt="">`:item.team.logo?`<img src="${escapeHtml(item.team.logo)}" alt="">`:''}<p>${escapeHtml(item.description)}</p></div>${item.contract?`<section class="profile-section"><h3>Contract terms</h3><p>${item.contract.years} year${item.contract.years===1?'':'s'} · ${money(item.contract.value)}${item.contract.details?` · ${escapeHtml(item.contract.details)}`:''}</p></section>`:''}<section class="profile-section"><h3>Verification</h3><p>This move is shown from the linked league or reporting source.</p><a class="source-link" href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">Open original source ↗</a></section>`;document.querySelector('#transactionDialog').showModal()}
 document.querySelector('#closeTransactionDialog').onclick=()=>document.querySelector('#transactionDialog').close();
-document.querySelectorAll('[data-refresh]').forEach(button=>button.onclick=()=>{button.disabled=true;button.textContent='Refreshing…';const tasks={transactions:loadTransactions,'free-agents':loadFreeAgents,standings:loadStandings,injuries:loadInjuries,finance:loadCapOverview};const task=tasks[button.dataset.refresh]?.();Promise.resolve(task).finally(()=>{button.disabled=false;button.textContent='Refresh'})});
-document.body.addEventListener('click',event=>{const view=event.target.closest('[data-empty-view]');if(view)activateView(view.dataset.emptyView);const retry=event.target.closest('[data-retry]');if(retry){const tasks={transactions:loadTransactions,'free-agents':loadFreeAgents,standings:loadStandings,injuries:loadInjuries,finance:loadCapOverview,teams:loadTeams,roster:()=>loadRoster(document.querySelector('#teamPicker').value)};tasks[retry.dataset.retry]?.()}if(event.target.closest('[data-clear-free-agents]')){freeAgentState.status='all';freeAgentState.type='all';freeAgentState.position='all';freeAgentState.sort='best';freeAgentState.query='';document.querySelector('#freeAgentStatus').value='all';document.querySelector('#freeAgentType').value='all';document.querySelector('#freeAgentPosition').value='all';document.querySelector('#freeAgentSort').value='best';document.querySelector('#freeAgentSearch').value='';renderFreeAgents()}});
+document.querySelectorAll('[data-refresh]').forEach(button=>button.onclick=()=>{button.disabled=true;button.textContent='Refreshing...';const tasks={transactions:loadTransactions,'free-agents':loadFreeAgents,standings:loadStandings,injuries:loadInjuries,finance:loadCapOverview,schedule:loadScheduleHub,futures:()=>{renderFutures();return Promise.all([loadStandings(),loadRaceSchedule()])}};const task=tasks[button.dataset.refresh]?.();Promise.resolve(task).finally(()=>{button.disabled=false;button.textContent='Refresh'})});
+document.body.addEventListener('click',event=>{const view=event.target.closest('[data-empty-view]');if(view)activateView(view.dataset.emptyView);const retry=event.target.closest('[data-retry]');if(retry){const tasks={transactions:loadTransactions,'free-agents':loadFreeAgents,standings:loadStandings,injuries:loadInjuries,finance:loadCapOverview,schedule:loadScheduleHub,teams:loadTeams,roster:()=>loadRoster(document.querySelector('#teamPicker').value)};tasks[retry.dataset.retry]?.()}if(event.target.closest('[data-clear-free-agents]')){freeAgentState.status='all';freeAgentState.type='all';freeAgentState.position='all';freeAgentState.sort='best';freeAgentState.query='';document.querySelector('#freeAgentStatus').value='all';document.querySelector('#freeAgentType').value='all';document.querySelector('#freeAgentPosition').value='all';document.querySelector('#freeAgentSort').value='best';document.querySelector('#freeAgentSearch').value='';renderFreeAgents()}});

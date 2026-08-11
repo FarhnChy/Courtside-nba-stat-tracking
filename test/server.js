@@ -13,6 +13,10 @@ async function run() {
 
     const badDate = await fetch(`${base}/api/scoreboard?date=not-a-date`);
     assert.equal(badDate.status, 400);
+    const badSchedule = await fetch(`${base}/api/schedule?start=not-a-date`);
+    assert.equal(badSchedule.status, 400);
+    const tooWideSchedule = await fetch(`${base}/api/schedule?start=2026-10-20&days=30`);
+    assert.equal(tooWideSchedule.status, 400);
     const shortSearch = await fetch(`${base}/api/search?q=a`);
     assert.equal(shortSearch.status, 400);
 

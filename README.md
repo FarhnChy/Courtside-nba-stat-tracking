@@ -9,6 +9,7 @@ Courtside is a responsive NBA game center and roster-economics dashboard. It com
 ## Current features
 
 - Daily NBA scoreboard with 20-second live refresh and offline fallback
+- Released NBA schedule hub with date, team, status filters, and calendar game-count markers
 - Full player box scores, team statistics, period scoring, and play-by-play
 - East and West standings with playoff and play-in indicators
 - All 30 teams, searchable rosters, coaches, and injury availability
@@ -16,6 +17,7 @@ Courtside is a responsive NBA game center and roster-economics dashboard. It com
 - Recent transactions with team and move-type filters
 - Official cap thresholds, payroll rankings, and multi-year contracts
 - Player/team contract options, free agents, and projected cap holds
+- Awards Race Center with MVP/award boards and East/West No. 1 seed model views
 - Shareable screen routes, responsive navigation, and keyboard interaction
 
 The prediction, futures, shot-chart, and win-probability surfaces currently demonstrate the intended product experience. Calibrated historical models and live shot-coordinate animation are roadmap work and are not presented as production forecasts.
@@ -48,13 +50,15 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ```powershell
 npm.cmd test
+npm.cmd run audit:data
 ```
 
-The test suite checks the app shell, provider normalization, finance invariants, HTTP validation, security headers, and static serving.
+The test suite checks the app shell, provider normalization, finance invariants, HTTP validation, security headers, static accessibility guardrails, and static serving. The data audit reports stale manual snapshots without blocking local development unless run with `node scripts/audit-data.js --strict`.
 
 ## API routes
 
 - `GET /api/scoreboard?date=YYYY-MM-DD`
+- `GET /api/schedule?start=YYYY-MM-DD&days=7`
 - `GET /api/games/:eventId`
 - `GET /api/standings`
 - `GET /api/teams`
@@ -72,6 +76,7 @@ The test suite checks the app shell, provider normalization, finance invariants,
 ## Data references
 
 - [hoopR](https://github.com/sportsdataverse/hoopR) informed the ESPN adapter structure.
+- [NBA.com schedule and key dates](https://www.nba.com/schedule) provide released schedule context for the calendar and upcoming games.
 - [NBA Communications](https://pr.nba.com/) supplies official salary-cap thresholds.
 - [NBA Free Agent Tracker](https://www.nba.com/players/free-agent-tracker) supplies free-agent status and movement data.
 - [Basketball Reference contracts](https://www.basketball-reference.com/contracts/) supplies cached payroll and contract summaries.

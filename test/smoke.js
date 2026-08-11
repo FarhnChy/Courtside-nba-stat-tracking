@@ -14,17 +14,20 @@ for (const file of ['public/index.html', 'public/styles.css', 'public/app.js', '
 
 const html = fs.readFileSync(path.join(root, 'public/index.html'), 'utf8');
 assert.equal(html.includes('>FM</button>'), false, 'account placeholder should not display developer initials');
-for (const id of ['userHubButton','userHubDialog','favoriteTeam','fantasyForm']) assert.equal(html.includes(`id="${id}"`), true, `user hub should include ${id}`);
-for (const label of ['Scores', 'Standings', 'Predict', 'Futures', 'gameCenter']) {
+for (const id of ['userHubButton','brandAccountImage','userHubDialog','favoriteTeam','profileImageInput']) assert.equal(html.includes(`id="${id}"`), true, `user hub should include ${id}`);
+for (const id of ['fantasyHubButton','fantasyDialog','fantasyForm']) assert.equal(html.includes(`id="${id}"`), true, `fantasy hub should include ${id}`);
+for (const label of ['Scores', 'Schedule', 'Standings', 'Predict', 'Futures', 'gameCenter']) {
   assert.match(html, new RegExp(label), `app should include ${label}`);
 }
 
 const serverSource = fs.readFileSync(path.join(root, 'server.js'), 'utf8');
 assert.equal(serverSource.includes('/api/scoreboard'), true, 'server should expose the live scoreboard adapter');
+assert.equal(serverSource.includes('/api/schedule'), true, 'server should expose schedule windows for calendar markers');
 assert.equal(serverSource.includes('gameMatch'), true, 'server should expose game summaries');
 const adapter = require('../lib/espn');
 assert.equal(typeof adapter.normalizeSummary, 'function');
 assert.equal(typeof adapter.normalizeStandings, 'function');
+assert.equal(typeof adapter.scheduleWindow, 'function');
 assert.equal(serverSource.includes('/api/standings'), true, 'server should expose live standings');
 for (const method of ['normalizeTeams', 'normalizeRoster', 'normalizeInjuries']) assert.equal(typeof adapter[method], 'function');
 assert.equal(typeof adapter.normalizePlayerHistory, 'function');
@@ -58,10 +61,14 @@ assert.equal(appSource.includes('player.headshot'), true, 'game leaders should r
 assert.equal(appSource.includes('NBA season history'), true, 'player profiles should include career season tables');
 assert.equal(appSource.includes('Career accolades'), true, 'player profiles should include awards and honors');
 assert.equal(appSource.includes("picker.showPicker()"), true, 'calendar button should explicitly open one date picker');
+for (const feature of ['loadScheduleWindow','scheduleMarker','/api/schedule?start=']) assert.equal(appSource.includes(feature), true, `calendar should include ${feature}`);
+for (const feature of ['loadScheduleHub','scheduleStatusLabel','schedule-date-jump','scheduleView']) assert.equal(appSource.includes(feature) || html.includes(feature), true, `schedule hub should include ${feature}`);
 assert.equal(appSource.includes('win-arrow'), false, 'final score cards should not use a winner arrow');
 assert.equal(appSource.includes('winning-score'), true, 'final game details should emphasize the winning score');
 assert.equal(appSource.includes("localStorage.getItem('courtsideHub')"), true, 'user hub preferences should persist locally');
 assert.equal(appSource.includes('applyTheme'), true, 'user hub should support theme selection');
+assert.equal(appSource.includes('profileImage'), true, 'user hub should support custom account pictures');
+assert.equal(appSource.includes('#fantasyHubButton'), true, 'fantasy should open from the top bar');
 assert.equal(appSource.includes('data-standing-team'), true, 'standings teams should open their roster');
 assert.equal(appSource.includes('data-leader-id'), true, 'game leaders should open player profiles');
 assert.equal(appSource.includes('real-team-logo'), true, 'score cards should use provider team logos');
@@ -84,6 +91,9 @@ for (const id of ['searchDialog','favoriteDashboard','comparisonDialog','transac
 assert.equal(html.includes('data-roster-mode="coaches"'), true, 'team pages should offer a coaching staff view');
 assert.equal(appSource.includes('coaching-grid'), true, 'team pages should render coaching staff cards');
 assert.equal(html.includes('id="calendarDate"'), true, 'date strip should include a calendar picker');
+assert.equal(html.includes('brand-word'), true, 'Courtside text should remain the home link separate from account picture');
+assert.equal(html.includes('AWARDS & SEED RACE'), true, 'futures tab should present awards and seed races');
+for (const feature of ['awardRaces','seedChanceRows','upcomingScheduleEdge','No. 1 seed chances','Model board, not betting odds']) assert.equal(appSource.includes(feature), true, `race center should include ${feature}`);
 assert.equal(html.includes('Boston Celtics'), false, 'published playoff UI should not hard-code Boston as the favorite');
 
 console.log('✓ App shell, assets, and core product surfaces verified');
