@@ -13,7 +13,7 @@
 </head>
 <body>
   <header class="topbar">
-    <div class="brand"><a class="brand-word" href="#scores" aria-label="Courtside home">COURTSIDE</a></div>
+    <div class="brand"><a class="brand-logo-link" href="#scores" aria-label="Courtside home"><img class="brand-logo-image" src="courtside.png" alt="Courtside"></a></div>
     <div class="global-search"><button id="searchButton" aria-label="Search Courtside">⌕ <span>Search</span></button></div>
     <nav id="nav" aria-label="Main navigation">
       <button class="active" data-view="scores">Scores</button>
@@ -22,12 +22,10 @@
       <button data-view="teamsView">Teams</button>
       <button data-view="injuriesView">Injuries</button>
       <button data-view="transactionsView">Moves</button>
-      <button data-view="financeView">Finance</button>
       <button data-view="freeAgentsView">Free Agents</button>
-      <button data-view="predict">Predict</button>
       <button data-view="futures">Futures</button>
     </nav>
-    <div class="top-actions"><button class="fantasy-home" id="fantasyHubButton" title="Open fantasy team" aria-label="Open fantasy team">Fantasy</button><button class="live-home" id="liveHome" title="Go to today's scores"><span class="live-dot"></span> LIVE</button><button class="brand-account top-account" id="userHubButton" aria-label="Open account and preferences" title="Account and preferences"><img class="brand-mark" id="brandAccountImage" src="courtside-logo.webp" alt=""></button></div>
+    <div class="top-actions"><button class="fantasy-home" id="fantasyHubButton" title="Open fantasy team" aria-label="Open fantasy team">Fantasy</button><button class="live-home" id="liveHome" title="Go to today's scores"><span class="live-dot"></span> LIVE</button><button class="brand-account top-account" id="userHubButton" aria-label="Open account and preferences" title="Account and preferences"><span class="account-avatar-fallback" id="brandAccountFallback" aria-hidden="true"></span><img class="account-avatar-image" id="brandAccountImage" alt="" hidden></button></div>
   </header>
 
   <main>
@@ -69,6 +67,10 @@
     <section id="teamsView" class="view">
       <div class="section-heading"><div><p class="eyebrow">ALL 30 CLUBS</p><h1>Teams & rosters</h1></div><div class="team-view-controls"><div class="segmented" id="rosterMode"><button class="active" data-roster-mode="players">Players</button><button data-roster-mode="coaches">Coaching staff</button></div><select id="teamPicker" class="team-picker" aria-label="Select an NBA team"></select></div></div>
       <div id="teamDashboard" class="team-dashboard"></div><section class="panel" id="rosterView"><div class="empty-state">Loading team directory…</div></section>
+      <section class="team-finance-panel">
+        <div class="panel-title"><div><p class="eyebrow">ROSTER ECONOMICS</p><h2>Salary cap center</h2></div><div class="transaction-filters"><button class="refresh-button" data-refresh="finance">Refresh</button><select id="capSeason" class="team-picker" aria-label="Select cap season"><option>2026-27</option><option>2025-26</option></select></div></div>
+        <div id="capOverview"><section class="empty-state">Loading official cap thresholds…</section></div>
+      </section>
     </section>
 
     <section id="injuriesView" class="view">
@@ -79,11 +81,6 @@
     <section id="transactionsView" class="view">
       <div class="section-heading"><div><p class="eyebrow">LEAGUE ACTIVITY</p><h1>Transactions</h1></div><div class="transaction-filters"><button class="refresh-button" data-refresh="transactions">Refresh</button><select id="transactionTeam" class="team-picker" aria-label="Filter transactions by team"><option value="all">All teams</option></select><select id="transactionType" class="team-picker" aria-label="Filter transactions by type"><option value="all">All moves</option></select></div></div>
       <section class="panel transaction-panel"><p class="muted" id="transactionTimestamp">Loading transactions…</p><div id="transactionList"></div></section>
-    </section>
-
-    <section id="financeView" class="view">
-      <div class="section-heading"><div><p class="eyebrow">ROSTER ECONOMICS</p><h1>Salary cap center</h1></div><div class="transaction-filters"><button class="refresh-button" data-refresh="finance">Refresh</button><select id="capSeason" class="team-picker" aria-label="Select cap season"><option>2026-27</option><option>2025-26</option></select></div></div>
-      <div id="capOverview"><section class="panel empty-state">Loading official cap thresholds…</section></div>
     </section>
 
     <section id="freeAgentsView" class="view">
@@ -104,8 +101,9 @@
     <button class="dialog-close" id="closeUserHub" aria-label="Close preferences">×</button>
     <div class="hub-heading"><p class="eyebrow">YOUR COURTSIDE</p><h2 id="userHubTitle">Preferences</h2><p>Personalize this browser without creating an account.</p></div>
     <div class="hub-grid">
-      <section class="hub-section"><h3>Appearance</h3><div class="theme-picker" role="group" aria-label="Color theme"><button data-theme-choice="dark">Dark</button><button data-theme-choice="light">Light</button></div><label class="hub-field"><span>Account picture</span><input id="profileImageInput" type="file" accept="image/*" aria-label="Choose account picture"></label><button class="hub-link" id="clearProfileImage" type="button">Use Courtside logo</button></section>
+      <section class="hub-section"><h3>Appearance</h3><div class="theme-picker" role="group" aria-label="Color theme"><button data-theme-choice="dark">Dark</button><button data-theme-choice="light">Light</button></div><label class="hub-field"><span>Account picture</span><input id="profileImageInput" type="file" accept="image/*" aria-label="Choose account picture"></label><button class="hub-link" id="clearProfileImage" type="button">Use default profile circle</button></section>
       <section class="hub-section"><h3>Favorite team</h3><label class="hub-field"><span>Team</span><select id="favoriteTeam"><option value="">No favorite selected</option></select></label><button class="hub-link" id="openFavoriteTeam" disabled>Open team page</button></section>
+      <section class="hub-section"><h3>Playoff bracket</h3><p>Open your saved bracket from profile instead of the main navigation.</p><button class="primary-action" id="openBracketTool" type="button">Open bracket predictor</button></section>
       <section class="hub-section"><h3>Notifications</h3><label class="setting-row"><span><strong>Game alerts</strong><small>Browser alerts for your favorite team</small></span><input type="checkbox" data-notification="games"></label><label class="setting-row"><span><strong>Injury updates</strong><small>Track availability changes</small></span><input type="checkbox" data-notification="injuries"></label><label class="setting-row"><span><strong>League moves</strong><small>Trades and signings</small></span><input type="checkbox" data-notification="moves"></label><p class="hub-note" id="notificationNote">Preferences are saved on this device.</p></section>
       <section class="hub-section hub-about"><h3>About & help</h3><p>Courtside combines NBA scores, standings, rosters, moves, and salary context in one independent dashboard.</p><details><summary>How is my information stored?</summary><p>Theme, favorite team, fantasy names, and notification preferences stay in this browser using local storage.</p></details><details><summary>Is fantasy connected to a provider?</summary><p>Not yet. This first version saves your league shortcut; live ESPN or Yahoo league syncing requires a future account connection.</p></details><a href="https://github.com/FarhnChy/Courtside-nba-stat-tracking/issues" target="_blank" rel="noreferrer">Report a problem ↗</a></section>
     </div>

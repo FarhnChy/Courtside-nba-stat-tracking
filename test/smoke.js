@@ -8,17 +8,19 @@ for (const file of textFiles) {
   const source = fs.readFileSync(path.join(root, file), 'utf8');
   for (const marker of ['\u00c2\u00b7','\u00e2\u20ac\u201d','\u00e2\u20ac\u201c','\u00e2\u20ac\u00a6','\u00c3\u2014']) assert.equal(source.includes(marker), false, `${file} should not contain mojibake`);
 }
-for (const file of ['public/index.html', 'public/styles.css', 'public/app.js', 'public/courtside-logo.webp']) {
+for (const file of ['public/index.html', 'public/styles.css', 'public/app.js', 'public/courtside.png']) {
   assert.equal(fs.existsSync(path.join(root, file)), true, `${file} should exist`);
 }
 
 const html = fs.readFileSync(path.join(root, 'public/index.html'), 'utf8');
 assert.equal(html.includes('>FM</button>'), false, 'account placeholder should not display developer initials');
-for (const id of ['userHubButton','brandAccountImage','userHubDialog','favoriteTeam','profileImageInput']) assert.equal(html.includes(`id="${id}"`), true, `user hub should include ${id}`);
+for (const id of ['userHubButton','brandAccountImage','brandAccountFallback','userHubDialog','favoriteTeam','profileImageInput']) assert.equal(html.includes(`id="${id}"`), true, `user hub should include ${id}`);
 for (const id of ['fantasyHubButton','fantasyDialog','fantasyForm']) assert.equal(html.includes(`id="${id}"`), true, `fantasy hub should include ${id}`);
-for (const label of ['Scores', 'Schedule', 'Standings', 'Predict', 'Futures', 'gameCenter']) {
+for (const label of ['Scores', 'Schedule', 'Standings', 'Futures', 'gameCenter']) {
   assert.match(html, new RegExp(label), `app should include ${label}`);
 }
+assert.equal(html.includes('id="predict"'), true, 'app should still include the playoff predictor view');
+assert.equal(html.includes('id="openBracketTool"'), true, 'profile should open the playoff predictor');
 
 const serverSource = fs.readFileSync(path.join(root, 'server.js'), 'utf8');
 assert.equal(serverSource.includes('/api/scoreboard'), true, 'server should expose the live scoreboard adapter');
@@ -91,7 +93,8 @@ for (const id of ['searchDialog','favoriteDashboard','comparisonDialog','transac
 assert.equal(html.includes('data-roster-mode="coaches"'), true, 'team pages should offer a coaching staff view');
 assert.equal(appSource.includes('coaching-grid'), true, 'team pages should render coaching staff cards');
 assert.equal(html.includes('id="calendarDate"'), true, 'date strip should include a calendar picker');
-assert.equal(html.includes('brand-word'), true, 'Courtside text should remain the home link separate from account picture');
+assert.equal(html.includes('brand-logo-image'), true, 'Courtside image logo should be the home link separate from account picture');
+assert.equal(html.includes('brand-word'), false, 'topbar should not render a Courtside text wordmark');
 assert.equal(html.includes('AWARDS & SEED RACE'), true, 'futures tab should present awards and seed races');
 for (const feature of ['awardRaces','seedChanceRows','upcomingScheduleEdge','No. 1 seed chances','Model board, not betting odds']) assert.equal(appSource.includes(feature), true, `race center should include ${feature}`);
 assert.equal(html.includes('Boston Celtics'), false, 'published playoff UI should not hard-code Boston as the favorite');

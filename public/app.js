@@ -39,9 +39,13 @@ function applyTheme(theme) {
 function updateHubIdentity() {
   const favorite = hubState.teams.find(team=>String(team.id)===String(hubState.favoriteTeam));
   const image = document.querySelector('#brandAccountImage');
+  const fallback = document.querySelector('#brandAccountFallback');
   if (image) {
-    image.src = hubState.profileImage || 'courtside-logo.webp';
-    image.classList.toggle('custom-profile-image', Boolean(hubState.profileImage));
+    image.hidden = !hubState.profileImage;
+    if (hubState.profileImage) image.src = hubState.profileImage;
+  }
+  if (fallback) {
+    fallback.hidden = Boolean(hubState.profileImage);
   }
   const open = document.querySelector('#openFavoriteTeam'); open.disabled = !favorite;
   open.textContent = favorite ? `Open ${favorite.abbreviation || 'team'} page` : 'Open team page';
@@ -69,6 +73,7 @@ document.querySelector('#fantasyDialog').onclick=event=>{if(event.target===event
 document.querySelectorAll('[data-theme-choice]').forEach(button=>button.onclick=()=>applyTheme(button.dataset.themeChoice));
 document.querySelector('#favoriteTeam').onchange=event=>{hubState.favoriteTeam=event.target.value;saveHub();updateHubIdentity()};
 document.querySelector('#openFavoriteTeam').onclick=()=>{if(hubState.favoriteTeam){document.querySelector('#userHubDialog').close();openTeamRoster(hubState.favoriteTeam)}};
+document.querySelector('#openBracketTool').onclick=()=>{document.querySelector('#userHubDialog').close();bracketState.mode='custom';renderPredict();activateView('predict')};
 document.querySelector('#profileImageInput').onchange=event=>{const file=event.target.files?.[0];if(!file)return;if(!file.type.startsWith('image/'))return;const reader=new FileReader();reader.onload=()=>{hubState.profileImage=String(reader.result||'');saveHub();updateHubIdentity()};reader.readAsDataURL(file)};
 document.querySelector('#clearProfileImage').onclick=()=>{hubState.profileImage='';document.querySelector('#profileImageInput').value='';saveHub();updateHubIdentity()};
 document.querySelectorAll('[data-notification]').forEach(input=>{input.checked=Boolean(hubState.notifications[input.dataset.notification]);input.onchange=()=>{hubState.notifications[input.dataset.notification]=input.checked;saveHub();document.querySelector('#notificationNote').textContent='Preferences saved. Browser delivery will be added with live alert support.'}});
@@ -230,17 +235,19 @@ function renderPredict() {
     };
   });
 }
+const espnHeadshot = id => `https://a.espncdn.com/i/headshots/nba/players/full/${id}.png`;
+const initials = name => String(name || 'NBA').split(' ').map(part => part[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
 const awardRaces = [
   { id:'mvp', label:'MVP', leaders:[
-    { rank:1, player:'Shai Gilgeous-Alexander', team:'OKC', score:94, stats:'31.8 PPG, 6.4 APG', case:'Elite efficiency with a No. 1 seed profile' },
-    { rank:2, player:'Nikola Jokic', team:'DEN', score:91, stats:'26.2 PPG, 12.4 RPG, 9.0 APG', case:'Best all-around offensive engine' },
-    { rank:3, player:'Giannis Antetokounmpo', team:'MIL', score:86, stats:'30.4 PPG, 11.5 RPG', case:'Two-way volume keeps him in striking range' },
-    { rank:4, player:'Jayson Tatum', team:'BOS', score:81, stats:'27.1 PPG, 8.3 RPG', case:'Top team argument if Boston surges' }
+    { rank:1, player:'Shai Gilgeous-Alexander', team:'OKC', headshot:espnHeadshot('4278073'), score:94, stats:'31.8 PPG, 6.4 APG', case:'Elite efficiency with a No. 1 seed profile' },
+    { rank:2, player:'Nikola Jokic', team:'DEN', headshot:espnHeadshot('3112335'), score:91, stats:'26.2 PPG, 12.4 RPG, 9.0 APG', case:'Best all-around offensive engine' },
+    { rank:3, player:'Giannis Antetokounmpo', team:'MIL', headshot:espnHeadshot('3032977'), score:86, stats:'30.4 PPG, 11.5 RPG', case:'Two-way volume keeps him in striking range' },
+    { rank:4, player:'Jayson Tatum', team:'BOS', headshot:espnHeadshot('4065648'), score:81, stats:'27.1 PPG, 8.3 RPG', case:'Top team argument if Boston surges' }
   ]},
   { id:'dpoy', label:'DPOY', leaders:[
-    { rank:1, player:'Victor Wembanyama', team:'SAS', score:95, stats:'Rim pressure, blocks, deflections', case:'Changes shot selection before attempts happen' },
-    { rank:2, player:'Jaren Jackson Jr.', team:'MEM', score:86, stats:'Blocks and switch activity', case:'High-impact help defender' },
-    { rank:3, player:'Bam Adebayo', team:'MIA', score:82, stats:'Switch coverage anchor', case:'Guards every action type' }
+    { rank:1, player:'Victor Wembanyama', team:'SAS', headshot:espnHeadshot('5104157'), score:95, stats:'Rim pressure, blocks, deflections', case:'Changes shot selection before attempts happen' },
+    { rank:2, player:'Jaren Jackson Jr.', team:'MEM', headshot:espnHeadshot('4277961'), score:86, stats:'Blocks and switch activity', case:'High-impact help defender' },
+    { rank:3, player:'Bam Adebayo', team:'MIA', headshot:espnHeadshot('4066261'), score:82, stats:'Switch coverage anchor', case:'Guards every action type' }
   ]},
   { id:'roy', label:'ROY', leaders:[
     { rank:1, player:'Rookie guard watch', team:'DAL', score:78, stats:'Usage plus team role', case:'Placeholder until rookie production stabilizes' },
@@ -248,9 +255,9 @@ const awardRaces = [
     { rank:3, player:'Rookie big watch', team:'POR', score:68, stats:'Rebounds and rim finishing', case:'Needs more playmaking or team wins' }
   ]},
   { id:'mip', label:'MIP', leaders:[
-    { rank:1, player:'Franz Wagner', team:'ORL', score:84, stats:'Usage and creation jump', case:'Award path opens if Orlando wins more' },
-    { rank:2, player:'Jalen Williams', team:'OKC', score:82, stats:'Efficiency at higher volume', case:'Can pair team success with role growth' },
-    { rank:3, player:'Tyrese Maxey', team:'PHI', score:79, stats:'Primary guard workload', case:'Needs a clear leap over prior baseline' }
+    { rank:1, player:'Franz Wagner', team:'ORL', headshot:espnHeadshot('4566434'), score:84, stats:'Usage and creation jump', case:'Award path opens if Orlando wins more' },
+    { rank:2, player:'Jalen Williams', team:'OKC', headshot:espnHeadshot('4593803'), score:82, stats:'Efficiency at higher volume', case:'Can pair team success with role growth' },
+    { rank:3, player:'Tyrese Maxey', team:'PHI', headshot:espnHeadshot('4431678'), score:79, stats:'Primary guard workload', case:'Needs a clear leap over prior baseline' }
   ]}
 ];
 const seedRaceFallback = {
@@ -293,7 +300,7 @@ function seedChanceRows(conferenceId) {
   return weighted.map(team => ({ ...team, chance:Math.max(1,Math.round(team.weight / total * 100)) })).sort((a,b)=>b.chance-a.chance);
 }
 function awardRows(race) {
-  return race.leaders.map(item => `<article class="award-row"><span class="award-rank">${item.rank}</span>${logo(item.team,'mini-logo')}<div><strong>${escapeHtml(item.player)}</strong><small>${escapeHtml(teamName(item.team))} - ${escapeHtml(item.stats)}</small><p>${escapeHtml(item.case)}</p></div><b>${item.score}</b></article>`).join('');
+  return race.leaders.map(item => `<article class="award-row"><span class="award-rank">${item.rank}</span>${item.headshot?`<img class="award-player-photo" src="${escapeHtml(item.headshot)}" alt="${escapeHtml(item.player)}">`:`<span class="award-player-photo award-player-fallback">${escapeHtml(initials(item.player))}</span>`}<div><strong>${escapeHtml(item.player)}</strong><small>${escapeHtml(teamName(item.team))} - ${escapeHtml(item.stats)}</small><p>${escapeHtml(item.case)}</p></div><b>${item.score}</b></article>`).join('');
 }
 function seedRows(conferenceId, label) {
   return `<section class="panel seed-race-card"><div class="panel-title"><div><p class="eyebrow">${label.toUpperCase()} RACE</p><h2>No. 1 seed chances</h2></div><span class="pill">Model view</span></div>${seedChanceRows(conferenceId).map(row => `<div class="seed-chance-row">${row.logo?`<img src="${escapeHtml(row.logo)}" alt="">`:logo(row.team,'mini-logo')}<div><strong>${escapeHtml(row.displayName||teamName(row.team))}</strong><small>${escapeHtml(row.scheduleNote||'Record and form model')}</small><span class="seed-meter"><i style="width:${Math.min(100,Math.max(2,row.chance))}%"></i></span></div><b>${row.chance}%</b></div>`).join('')}</section>`;
@@ -302,7 +309,7 @@ function renderFutures(){
   const root=document.querySelector('#futuresGrid');
   root.innerHTML=`<section class="demo-disclosure futures-disclosure"><strong>Model board, not betting odds</strong><span>Awards and No. 1 seed chances are a Courtside demo model based on team record, form, role, and released schedule context. Use it as a product surface until calibrated historical models are added.</span><span>${sourceBadge('Courtside demo model',liveStandings.updatedAt,'Race model')} ${sourceBadge(raceSchedule.source,raceSchedule.retrievedAt,'Schedule')}</span></section><section class="panel award-race-card"><div class="panel-title"><div><p class="eyebrow">AWARDS RACE</p><h2>MVP and award boards</h2></div><span class="pill">Top candidates</span></div><div class="award-board">${awardRaces.map(race=>`<section><h3>${escapeHtml(race.label)}</h3>${awardRows(race)}</section>`).join('')}</div></section>${seedRows('east','East')}${seedRows('west','West')}`;
 }
-const viewRoutes = { scores:'scores', schedule:'scheduleView', standings:'standings', teams:'teamsView', injuries:'injuriesView', moves:'transactionsView', finance:'financeView', 'free-agents':'freeAgentsView', predict:'predict', futures:'futures' };
+const viewRoutes = { scores:'scores', schedule:'scheduleView', standings:'standings', teams:'teamsView', injuries:'injuriesView', moves:'transactionsView', finance:'teamsView', 'free-agents':'freeAgentsView', predict:'predict', futures:'futures' };
 const routeForView = viewId => Object.entries(viewRoutes).find(([,id]) => id === viewId)?.[0] || 'scores';
 function activateView(viewId, updateUrl = true) {
   const target = document.querySelector(`#${viewId}`) || document.querySelector('#scores');

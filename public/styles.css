@@ -33,7 +33,7 @@ body {
 
 :root[data-theme="light"] body { background: linear-gradient(135deg, #f7f9fc 0%, #edf2f8 65%, #fff7f1 100%); }
 :root[data-theme="light"] .topbar { background: rgba(255,255,255,.94); }
-:root[data-theme="light"] .brand-word, :root[data-theme="light"] nav button.active { color: #111827; }
+:root[data-theme="light"] nav button.active { color: #111827; }
 
 button { font: inherit; color: inherit; }
 
@@ -56,11 +56,25 @@ button { font: inherit; color: inherit; }
   margin-right: 48px;
 }
 
-.brand-word {
-  color: white;
-  text-decoration: none;
-  font: 700 22px Oswald;
-  letter-spacing: 1.2px;
+.brand-logo-link {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 12px;
+}
+
+.brand-logo-link:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
+}
+
+.brand-logo-image {
+  display: block;
+  width: 48px;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 5px 10px rgba(255,125,35,.16));
 }
 
 .brand-account {
@@ -80,14 +94,47 @@ button { font: inherit; color: inherit; }
   border-radius: 50%;
 }
 
-.brand-mark.custom-profile-image {
+.account-avatar-fallback,
+.account-avatar-image {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  object-fit: cover;
   background: var(--surface2);
   border: 1px solid var(--line);
-  filter: none;
+}
+
+.account-avatar-image {
+  object-fit: cover;
+  object-position: center;
+}
+
+.account-avatar-fallback {
+  position: relative;
+  display: block;
+}
+
+.account-avatar-fallback::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 8px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--muted);
+  transform: translateX(-50%);
+}
+
+.account-avatar-fallback::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 7px;
+  width: 20px;
+  height: 11px;
+  border-radius: 12px 12px 6px 6px;
+  background: var(--muted);
+  transform: translateX(-50%);
 }
 
 .brand-ball {
@@ -888,7 +935,7 @@ button:disabled { cursor: not-allowed; opacity: .55; }
 }
 .award-row {
   display: grid;
-  grid-template-columns: 26px 32px minmax(0,1fr) 42px;
+  grid-template-columns: 26px 42px minmax(0,1fr) 42px;
   align-items: center;
   gap: 10px;
   padding: 11px 0;
@@ -898,8 +945,20 @@ button:disabled { cursor: not-allowed; opacity: .55; }
   color: var(--muted);
   font: 600 15px Oswald;
 }
-.award-row .mini-logo {
-  margin: 0;
+.award-player-photo {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: top;
+  background: var(--surface2);
+  border: 1px solid var(--line);
+}
+.award-player-fallback {
+  display: grid;
+  place-items: center;
+  color: var(--blue);
+  font: 700 12px Oswald;
 }
 .award-row strong,
 .award-row small,
@@ -923,6 +982,12 @@ button:disabled { cursor: not-allowed; opacity: .55; }
   justify-self: end;
   color: var(--green);
   font: 600 20px Oswald;
+}
+.team-finance-panel {
+  margin-top: 16px;
+}
+.team-finance-panel .panel-title {
+  margin-bottom: 16px;
 }
 .seed-race-card {
   min-width: 0;
@@ -979,7 +1044,8 @@ footer span { font: 400 10px 'DM Sans'; }
 @media (max-width: 850px) {
   .topbar { padding: 0 16px; }
   .brand { margin-right: 12px; }
-  .brand-word { font-size: 18px; }
+  .brand-logo-link { width: 46px; height: 46px; }
+  .brand-logo-image { width: 42px; }
   nav { gap: 12px; }
   .top-actions {
     display: flex;
