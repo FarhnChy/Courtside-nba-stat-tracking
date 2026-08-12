@@ -83,9 +83,12 @@ button { font: inherit; color: inherit; }
   width: 42px;
   height: 42px;
   padding: 0;
-  border: 0;
-  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface2);
   cursor: pointer;
+  overflow: hidden;
+  position: relative;
 }
 
 .brand-account:focus-visible {
@@ -94,33 +97,21 @@ button { font: inherit; color: inherit; }
   border-radius: 50%;
 }
 
-.account-avatar-fallback,
 .account-avatar-image {
-  width: 36px;
-  height: 36px;
+  display: none;
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
-  background: var(--surface2);
-  border: 1px solid var(--line);
-}
-
-.account-avatar-fallback[hidden],
-.account-avatar-image[hidden],
-.hub-profile-image[hidden],
-.hub-profile-fallback[hidden] {
-  display: none !important;
-}
-
-.account-avatar-image {
   object-fit: cover;
   object-position: center;
 }
 
-.account-avatar-fallback {
-  position: relative;
+.has-profile-image .account-avatar-image {
   display: block;
 }
 
-.account-avatar-fallback::before {
+.brand-account::before,
+.hub-profile-preview::before {
   content: "";
   position: absolute;
   left: 50%;
@@ -132,7 +123,8 @@ button { font: inherit; color: inherit; }
   transform: translateX(-50%);
 }
 
-.account-avatar-fallback::after {
+.brand-account::after,
+.hub-profile-preview::after {
   content: "";
   position: absolute;
   left: 50%;
@@ -142,6 +134,13 @@ button { font: inherit; color: inherit; }
   border-radius: 12px 12px 6px 6px;
   background: var(--muted);
   transform: translateX(-50%);
+}
+
+.brand-account.has-profile-image::before,
+.brand-account.has-profile-image::after,
+.hub-profile-preview.has-profile-image::before,
+.hub-profile-preview.has-profile-image::after {
+  display: none;
 }
 
 .hub-account-card {
@@ -167,20 +166,11 @@ button { font: inherit; color: inherit; }
   place-items: center;
   width: 42px;
   height: 42px;
-}
-
-.hub-profile-preview .account-avatar-fallback,
-.hub-profile-preview .account-avatar-image {
-  width: 42px;
-  height: 42px;
-}
-
-.hub-profile-preview .account-avatar-fallback::before {
-  top: 9px;
-}
-
-.hub-profile-preview .account-avatar-fallback::after {
-  bottom: 8px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface2);
+  overflow: hidden;
+  position: relative;
 }
 
 .hub-account-card strong,

@@ -38,21 +38,18 @@ function applyTheme(theme) {
 }
 function updateHubIdentity() {
   const favorite = hubState.teams.find(team=>String(team.id)===String(hubState.favoriteTeam));
-  const applyProfilePreview = (image, fallback) => {
+  const applyProfilePreview = (container, image) => {
     const hasImage = Boolean(hubState.profileImage);
+    if (container) container.classList.toggle('has-profile-image', hasImage);
     if (image) {
       image.hidden = !hasImage;
       image.toggleAttribute('hidden', !hasImage);
       if (hasImage) image.src = hubState.profileImage;
       else image.removeAttribute('src');
     }
-    if (fallback) {
-      fallback.hidden = hasImage;
-      fallback.toggleAttribute('hidden', hasImage);
-    }
   };
-  applyProfilePreview(document.querySelector('#brandAccountImage'), document.querySelector('#brandAccountFallback'));
-  applyProfilePreview(document.querySelector('#hubProfileImage'), document.querySelector('#hubProfileFallback'));
+  applyProfilePreview(document.querySelector('#userHubButton'), document.querySelector('#brandAccountImage'));
+  applyProfilePreview(document.querySelector('#hubProfilePreview'), document.querySelector('#hubProfileImage'));
   const open = document.querySelector('#openFavoriteTeam'); open.disabled = !favorite;
   open.textContent = favorite ? `Open ${favorite.abbreviation || 'team'} page` : 'Open team page';
   renderFavoriteDashboard();

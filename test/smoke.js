@@ -14,7 +14,7 @@ for (const file of ['public/index.html', 'public/styles.css', 'public/app.js', '
 
 const html = fs.readFileSync(path.join(root, 'public/index.html'), 'utf8');
 assert.equal(html.includes('>FM</button>'), false, 'account placeholder should not display developer initials');
-for (const id of ['userHubButton','brandAccountImage','brandAccountFallback','hubProfileImage','hubProfileFallback','userHubDialog','favoriteTeam','profileImageInput']) assert.equal(html.includes(`id="${id}"`), true, `user hub should include ${id}`);
+for (const id of ['userHubButton','brandAccountImage','hubProfilePreview','hubProfileImage','userHubDialog','favoriteTeam','profileImageInput']) assert.equal(html.includes(`id="${id}"`), true, `user hub should include ${id}`);
 for (const id of ['fantasyHubButton','fantasyDialog','fantasyForm']) assert.equal(html.includes(`id="${id}"`), true, `fantasy hub should include ${id}`);
 for (const label of ['Scores', 'Schedule', 'Standings', 'Futures', 'gameCenter']) {
   assert.match(html, new RegExp(label), `app should include ${label}`);
