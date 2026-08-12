@@ -38,7 +38,7 @@ body {
 button { font: inherit; color: inherit; }
 
 .topbar {
-  height: 70px;
+  height: 84px;
   background: rgba(9, 12, 19, .94);
   border-bottom: 1px solid var(--line);
   display: flex;
@@ -53,14 +53,14 @@ button { font: inherit; color: inherit; }
 .brand {
   display: flex;
   align-items: center;
-  margin-right: 48px;
+  margin-right: 36px;
 }
 
 .brand-logo-link {
   display: grid;
   place-items: center;
-  width: 54px;
-  height: 54px;
+  width: 112px;
+  height: 74px;
   border-radius: 12px;
 }
 
@@ -71,7 +71,7 @@ button { font: inherit; color: inherit; }
 
 .brand-logo-image {
   display: block;
-  width: 48px;
+  width: 108px;
   height: auto;
   object-fit: contain;
   filter: drop-shadow(0 5px 10px rgba(255,125,35,.16));
@@ -158,9 +158,9 @@ button { font: inherit; color: inherit; }
 
 .hub-account-card {
   display: grid;
-  grid-template-columns: 58px 44px minmax(0,1fr);
+  grid-template-columns: 124px 44px minmax(0,1fr);
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   margin-top: 18px;
   padding: 12px;
   border: 1px solid var(--line);
@@ -169,8 +169,8 @@ button { font: inherit; color: inherit; }
 }
 
 .hub-logo-preview {
-  width: 54px;
-  height: 42px;
+  width: 118px;
+  height: 72px;
   object-fit: contain;
 }
 
@@ -1102,10 +1102,17 @@ footer {
 footer span { font: 400 10px 'DM Sans'; }
 
 @media (max-width: 850px) {
-  .topbar { padding: 0 16px; }
+  .topbar { height: 78px; padding: 0 16px; }
   .brand { margin-right: 12px; }
-  .brand-logo-link { width: 46px; height: 46px; }
-  .brand-logo-image { width: 42px; }
+  .brand-logo-link { width: 84px; height: 66px; }
+  .brand-logo-image { width: 82px; }
+  .hub-account-card {
+    grid-template-columns: 96px 42px minmax(0,1fr);
+  }
+  .hub-logo-preview {
+    width: 92px;
+    height: 58px;
+  }
   nav { gap: 12px; }
   .top-actions {
     display: flex;
