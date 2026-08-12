@@ -103,6 +103,13 @@ button { font: inherit; color: inherit; }
   border: 1px solid var(--line);
 }
 
+.account-avatar-fallback[hidden],
+.account-avatar-image[hidden],
+.hub-profile-image[hidden],
+.hub-profile-fallback[hidden] {
+  display: none !important;
+}
+
 .account-avatar-image {
   object-fit: cover;
   object-position: center;
@@ -135,6 +142,56 @@ button { font: inherit; color: inherit; }
   border-radius: 12px 12px 6px 6px;
   background: var(--muted);
   transform: translateX(-50%);
+}
+
+.hub-account-card {
+  display: grid;
+  grid-template-columns: 58px 44px minmax(0,1fr);
+  align-items: center;
+  gap: 12px;
+  margin-top: 18px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: rgba(90,168,255,.035);
+}
+
+.hub-logo-preview {
+  width: 54px;
+  height: 42px;
+  object-fit: contain;
+}
+
+.hub-profile-preview {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+}
+
+.hub-profile-preview .account-avatar-fallback,
+.hub-profile-preview .account-avatar-image {
+  width: 42px;
+  height: 42px;
+}
+
+.hub-profile-preview .account-avatar-fallback::before {
+  top: 9px;
+}
+
+.hub-profile-preview .account-avatar-fallback::after {
+  bottom: 8px;
+}
+
+.hub-account-card strong,
+.hub-account-card small {
+  display: block;
+}
+
+.hub-account-card small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 10px;
 }
 
 .brand-ball {

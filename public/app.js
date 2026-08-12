@@ -38,15 +38,21 @@ function applyTheme(theme) {
 }
 function updateHubIdentity() {
   const favorite = hubState.teams.find(team=>String(team.id)===String(hubState.favoriteTeam));
-  const image = document.querySelector('#brandAccountImage');
-  const fallback = document.querySelector('#brandAccountFallback');
-  if (image) {
-    image.hidden = !hubState.profileImage;
-    if (hubState.profileImage) image.src = hubState.profileImage;
-  }
-  if (fallback) {
-    fallback.hidden = Boolean(hubState.profileImage);
-  }
+  const applyProfilePreview = (image, fallback) => {
+    const hasImage = Boolean(hubState.profileImage);
+    if (image) {
+      image.hidden = !hasImage;
+      image.toggleAttribute('hidden', !hasImage);
+      if (hasImage) image.src = hubState.profileImage;
+      else image.removeAttribute('src');
+    }
+    if (fallback) {
+      fallback.hidden = hasImage;
+      fallback.toggleAttribute('hidden', hasImage);
+    }
+  };
+  applyProfilePreview(document.querySelector('#brandAccountImage'), document.querySelector('#brandAccountFallback'));
+  applyProfilePreview(document.querySelector('#hubProfileImage'), document.querySelector('#hubProfileFallback'));
   const open = document.querySelector('#openFavoriteTeam'); open.disabled = !favorite;
   open.textContent = favorite ? `Open ${favorite.abbreviation || 'team'} page` : 'Open team page';
   renderFavoriteDashboard();

@@ -100,6 +100,11 @@
   <dialog id="userHubDialog" class="user-hub-dialog" aria-labelledby="userHubTitle">
     <button class="dialog-close" id="closeUserHub" aria-label="Close preferences">×</button>
     <div class="hub-heading"><p class="eyebrow">YOUR COURTSIDE</p><h2 id="userHubTitle">Preferences</h2><p>Personalize this browser without creating an account.</p></div>
+    <div class="hub-account-card" aria-label="Account details">
+      <img class="hub-logo-preview" src="courtside.png" alt="Courtside">
+      <div class="hub-profile-preview"><span class="account-avatar-fallback hub-profile-fallback" id="hubProfileFallback" aria-hidden="true"></span><img class="account-avatar-image hub-profile-image" id="hubProfileImage" alt="" hidden></div>
+      <div><strong>Account details</strong><small>Logo and profile picture preview</small></div>
+    </div>
     <div class="hub-grid">
       <section class="hub-section"><h3>Appearance</h3><div class="theme-picker" role="group" aria-label="Color theme"><button data-theme-choice="dark">Dark</button><button data-theme-choice="light">Light</button></div><label class="hub-field"><span>Account picture</span><input id="profileImageInput" type="file" accept="image/*" aria-label="Choose account picture"></label><button class="hub-link" id="clearProfileImage" type="button">Use default profile circle</button></section>
       <section class="hub-section"><h3>Favorite team</h3><label class="hub-field"><span>Team</span><select id="favoriteTeam"><option value="">No favorite selected</option></select></label><button class="hub-link" id="openFavoriteTeam" disabled>Open team page</button></section>
