@@ -83,6 +83,7 @@ assert.equal(appSource.includes('injury-toggle'), true, 'injury cards should exp
 assert.equal(appSource.includes('playoff-bracket-layout'), true, 'custom bracket should show East and West around the Finals');
 assert.equal(appSource.includes('round-connector'), true, 'custom bracket should render real bracket connector lines');
 assert.equal(appSource.includes('id="contractSeason"'), true, 'team finances should allow contract-season selection');
+for (const feature of ['syncFinanceTeam','syncRosterTeam','data-abbreviation']) assert.equal(appSource.includes(feature), true, `team and finance selectors should share ${feature}`);
 assert.equal(appSource.includes('I want to see projected cap holds'), true, 'cap holds should remain optional until requested');
 for (const feature of ['renderFavoriteDashboard','renderTeamDashboard','comparisonState','openTransactionDetail','best-available-rank','fetchApi']) assert.equal(appSource.includes(feature), true, `app should include ${feature}`);
 for (const feature of ['loadingState','errorState','data-clear-free-agents','data-empty-view']) assert.equal(appSource.includes(feature), true, `loading and empty states should include ${feature}`);

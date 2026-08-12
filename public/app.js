@@ -476,7 +476,22 @@ function renderLiveStandings() {
   root.querySelectorAll('[data-standing-team]').forEach(row=>{const open=()=>openTeamRoster(row.dataset.standingTeam);row.onclick=open;row.onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();open()}}});
 }
 
-function openTeamRoster(teamId) { const picker=document.querySelector('#teamPicker'); if ([...picker.options].some(option=>option.value===teamId)) picker.value=teamId; activateView('teamsView'); loadRoster(teamId); }
+function syncFinanceTeam(abbreviation, loadContracts=true) {
+  const picker=document.querySelector('#contractTeam');
+  if (!abbreviation || !picker || ![...picker.options].some(option=>option.value===abbreviation)) return;
+  picker.value=abbreviation;
+  if (loadContracts) loadTeamContracts(abbreviation,document.querySelector('#contractSeason')?.value || document.querySelector('#capSeason').value);
+}
+
+function syncRosterTeam(abbreviation, load=true) {
+  const picker=document.querySelector('#teamPicker');
+  const option=[...picker.options].find(item=>item.dataset.abbreviation===abbreviation);
+  if (!option) return;
+  picker.value=option.value;
+  if (load) loadRoster(option.value);
+}
+
+function openTeamRoster(teamId) { const picker=document.querySelector('#teamPicker'); const option=[...picker.options].find(item=>item.value===teamId); if (option) { picker.value=teamId; syncFinanceTeam(option.dataset.abbreviation); } activateView('teamsView'); loadRoster(teamId); }
 
 async function loadStandings() {
   const root = document.querySelector('#standingsTable'); root.innerHTML = loadingState('table');
@@ -500,9 +515,9 @@ async function loadTeams() {
   try {
     const response = await fetchApi('/api/teams'); if (!response.ok) throw new Error('Teams unavailable');
     const payload = await response.json();
-    picker.innerHTML = payload.teams.map(team => `<option value="${team.id}">${escapeHtml(team.displayName)}</option>`).join('');
+    picker.innerHTML = payload.teams.map(team => `<option value="${team.id}" data-abbreviation="${escapeHtml(team.abbreviation)}">${escapeHtml(team.displayName)}</option>`).join('');
     populateFavoriteTeams(payload.teams);
-    picker.onchange = () => loadRoster(picker.value);
+    picker.onchange = () => { syncFinanceTeam(picker.selectedOptions[0]?.dataset.abbreviation); loadRoster(picker.value); };
     if (payload.teams[0]) loadRoster(payload.teams[0].id);
   } catch (error) { document.querySelector('#rosterView').innerHTML = errorState('Team directory is temporarily unavailable','teams'); }
 }
@@ -679,8 +694,10 @@ async function loadPayrolls(season, cap) {
     root.innerHTML = `<section class="panel payroll-panel"><div class="panel-title"><div><p class="eyebrow">ALL-TEAM COMMITMENTS</p><h2>${season} payrolls</h2></div><p class="source-note">Basketball Reference · retrieved ${new Date(payload.retrievedAt).toLocaleString()}</p></div><div class="table-scroll compact-payroll-scroll"><table class="payroll-table compact-payroll-table"><thead><tr><th>#</th><th>Team</th><th>Committed</th><th>Position</th></tr></thead><tbody>${ranked.map((team,index)=>{const amount=team.salaries[season]||0;const state=payrollStatus(amount,cap);return `<tr data-payroll-team="${team.abbreviation}" tabindex="0"><td>${index+1}</td><td><strong>${escapeHtml(team.displayName)}</strong></td><td>${money(amount)}</td><td><span class="payroll-status ${state[1]}">${state[0]}</span></td></tr>`}).join('')}</tbody></table></div></section><section class="panel contract-panel" id="contractPanel"><div class="contract-controls"><div><p class="eyebrow">SELECTED TEAM FINANCES</p><h2>Player contracts</h2></div><label><span>Team</span><select id="contractTeam" class="team-picker" aria-label="Select team contracts">${ranked.map(team=>`<option value="${team.abbreviation}">${escapeHtml(team.displayName)}</option>`).join('')}</select></label><label><span>Starting season</span><select id="contractSeason" class="team-picker" aria-label="Select contract season">${payload.seasons.map(year=>`<option value="${year}" ${year===season?'selected':''}>${year}</option>`).join('')}</select></label></div><div id="contractContent"><div class="empty-state">Loading player contracts…</div></div></section>`;
     const picker = document.querySelector('#contractTeam'); const seasonPicker = document.querySelector('#contractSeason');
     const refreshContracts=()=>loadTeamContracts(picker.value,seasonPicker.value);
-    picker.onchange=refreshContracts; seasonPicker.onchange=refreshContracts;
-    document.querySelectorAll('[data-payroll-team]').forEach(row=>{const open=()=>{picker.value=row.dataset.payrollTeam;refreshContracts()};row.onclick=open;row.onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();open()}}});
+    picker.onchange=()=>{syncRosterTeam(picker.value);refreshContracts()}; seasonPicker.onchange=refreshContracts;
+    document.querySelectorAll('[data-payroll-team]').forEach(row=>{const open=()=>{picker.value=row.dataset.payrollTeam;syncRosterTeam(picker.value);refreshContracts()};row.onclick=open;row.onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();open()}}});
+    const selectedAbbreviation=document.querySelector('#teamPicker').selectedOptions[0]?.dataset.abbreviation;
+    if (selectedAbbreviation && [...picker.options].some(option=>option.value===selectedAbbreviation)) picker.value=selectedAbbreviation;
     refreshContracts();
   } catch (error) { root.innerHTML = `<section class="panel">${errorState('Team payrolls are temporarily unavailable','finance')}</section>`; }
 }
