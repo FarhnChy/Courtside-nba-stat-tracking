@@ -158,20 +158,14 @@ button { font: inherit; color: inherit; }
 
 .hub-account-card {
   display: grid;
-  grid-template-columns: 124px 44px minmax(0,1fr);
+  grid-template-columns: 44px minmax(0,1fr);
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   margin-top: 18px;
   padding: 12px;
   border: 1px solid var(--line);
   border-radius: 9px;
   background: rgba(90,168,255,.035);
-}
-
-.hub-logo-preview {
-  width: 118px;
-  height: 72px;
-  object-fit: contain;
 }
 
 .hub-profile-preview {
@@ -1106,13 +1100,6 @@ footer span { font: 400 10px 'DM Sans'; }
   .brand { margin-right: 12px; }
   .brand-logo-link { width: 84px; height: 66px; }
   .brand-logo-image { width: 82px; }
-  .hub-account-card {
-    grid-template-columns: 96px 42px minmax(0,1fr);
-  }
-  .hub-logo-preview {
-    width: 92px;
-    height: 58px;
-  }
   nav { gap: 12px; }
   .top-actions {
     display: flex;
