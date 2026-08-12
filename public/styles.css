@@ -80,11 +80,11 @@ button { font: inherit; color: inherit; }
 .brand-account {
   display: grid;
   place-items: center;
-  width: 42px;
-  height: 42px;
-  padding: 0;
+  width: 58px;
+  height: 44px;
+  padding: 5px;
   border: 1px solid var(--line);
-  border-radius: 50%;
+  border-radius: 10px;
   background: var(--surface2);
   cursor: pointer;
   overflow: hidden;
@@ -94,7 +94,14 @@ button { font: inherit; color: inherit; }
 .brand-account:focus-visible {
   outline: 2px solid var(--blue);
   outline-offset: 3px;
-  border-radius: 50%;
+}
+
+.account-logo-image {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 8px rgba(255,125,35,.16));
 }
 
 .account-avatar-image {
@@ -110,7 +117,6 @@ button { font: inherit; color: inherit; }
   display: block;
 }
 
-.brand-account::before,
 .hub-profile-preview::before {
   content: "";
   position: absolute;
@@ -123,7 +129,6 @@ button { font: inherit; color: inherit; }
   transform: translateX(-50%);
 }
 
-.brand-account::after,
 .hub-profile-preview::after {
   content: "";
   position: absolute;
@@ -136,10 +141,18 @@ button { font: inherit; color: inherit; }
   transform: translateX(-50%);
 }
 
-.brand-account.has-profile-image::before,
-.brand-account.has-profile-image::after,
 .hub-profile-preview.has-profile-image::before,
 .hub-profile-preview.has-profile-image::after {
+  display: none;
+}
+
+.brand-account.has-profile-image {
+  width: 42px;
+  padding: 0;
+  border-radius: 50%;
+}
+
+.brand-account.has-profile-image .account-logo-image {
   display: none;
 }
 
