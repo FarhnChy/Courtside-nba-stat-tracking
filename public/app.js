@@ -638,7 +638,7 @@ loadTeams(); loadInjuries();
 const transactionState = { data: [], team: 'all', type: 'all' };
 function renderTransactions() {
   const filtered = transactionState.data.filter(item => (transactionState.team === 'all' || item.team.id === transactionState.team) && (transactionState.type === 'all' || item.type === transactionState.type));
-  document.querySelector('#transactionList').innerHTML = filtered.length ? `<div class="transaction-list">${filtered.map(item=>`<article class="transaction-item">${item.player?.headshot?`<img class="transaction-player-photo" src="${escapeHtml(item.player.headshot)}" alt="${escapeHtml(item.player.name)}">`:item.team.logo?`<img src="${escapeHtml(item.team.logo)}" alt="">`:''}<div><div class="transaction-meta"><span class="move-type">${escapeHtml(item.type)}</span><time>${item.date?`${item.dateLabel?`${escapeHtml(item.dateLabel)} `:''}${new Date(item.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}`:'Date unavailable'}</time></div><strong>${escapeHtml(item.team.displayName)}</strong><p>${escapeHtml(item.description)}</p>${item.contract?`<div class="move-contract"><strong>${item.contract.years} year${item.contract.years===1?'':'s'} · ${money(item.contract.value)}</strong>${item.contract.details?`<span>${escapeHtml(item.contract.details)}</span>`:''}</div>`:''}<a class="transaction-link" href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">View source ↗</a></div></article>`).join('')}</div>` : '<div class="empty-state">No transactions match these filters.</div>';
+  document.querySelector('#transactionList').innerHTML = filtered.length ? `<div class="transaction-list">${filtered.map(item=>`<article class="transaction-item">${item.player?.headshot?`<img class="transaction-player-photo" src="${escapeHtml(item.player.headshot)}" alt="${escapeHtml(item.player.name)}">`:item.team.logo?`<img src="${escapeHtml(item.team.logo)}" alt="">`:''}<div><div class="transaction-meta"><span class="move-type">${escapeHtml(item.type)}</span><time>${item.date?`${item.dateLabel?`${escapeHtml(item.dateLabel)} `:''}${new Date(item.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}`:'Date unavailable'}</time></div><strong>${escapeHtml(item.team.displayName)}</strong><p>${escapeHtml(item.description)}</p>${item.contract?`<div class="move-contract"><strong>${item.contract.years} year${item.contract.years===1?'':'s'} · ${money(item.contract.value)}</strong>${item.contract.details?`<span>${escapeHtml(item.contract.details)}</span>`:''}</div>`:''}${item.verification?`<div class="move-verification ${escapeHtml(item.verification.status)}"><strong>${escapeHtml(item.verification.status)}</strong><span>${escapeHtml(item.verification.source)}</span></div>`:''}<a class="transaction-link" href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">View source ↗</a></div></article>`).join('')}</div>` : '<div class="empty-state">No transactions match these filters.</div>';
   document.querySelectorAll('.transaction-item').forEach((card,index)=>{card.tabIndex=0;const open=event=>{if(event?.target?.closest('a'))return;openTransactionDetail(filtered[index])};card.onclick=open;card.onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();open(event)}}});
 }
 
@@ -647,7 +647,10 @@ async function loadTransactions() {
   try {
     const response = await fetchApi('/api/transactions'); if (!response.ok) throw new Error('Transactions unavailable');
     const payload = await response.json(); transactionState.data = payload.transactions;
-    document.querySelector('#transactionTimestamp').textContent = `${payload.transactions.length} recent moves${payload.timestamp?` · Updated ${new Date(payload.timestamp).toLocaleString()}`:''}`;
+    const updated = payload.timestamp ? ` · ESPN updated ${new Date(payload.timestamp).toLocaleString()}` : '';
+    const manual = payload.manualVerifiedAt ? ` · manual verified ${new Date(payload.manualVerifiedAt).toLocaleDateString()}` : '';
+    const sources = payload.sources?.length ? ` · ${payload.sources.join(' + ')}` : '';
+    document.querySelector('#transactionTimestamp').textContent = `${payload.transactions.length} recent moves${updated}${manual}${sources}`;
     const teamPicker = document.querySelector('#transactionTeam');
     const uniqueTeams = [...new Map(payload.transactions.map(item => [item.team.id, item.team])).values()].sort((a,b)=>a.displayName.localeCompare(b.displayName));
     teamPicker.innerHTML = '<option value="all">All teams</option>' + uniqueTeams.map(team=>`<option value="${team.id}">${escapeHtml(team.displayName)}</option>`).join('');
@@ -779,6 +782,37 @@ async function loadFreeAgents() {
 }
 loadFreeAgents();
 
+const shamsState = { updates: [], timer: null };
+function renderShamsUpdates() {
+  const root = document.querySelector('#shamsUpdateList');
+  if (!root) return;
+  root.innerHTML = shamsState.updates.length ? `<div class="shams-feed">${shamsState.updates.map(item => `<article class="shams-item"><div><span class="move-type">${escapeHtml(item.source)}</span><time>${item.published ? new Date(item.published).toLocaleString() : 'Time unavailable'}</time></div><strong>${escapeHtml(item.headline)}</strong>${item.description ? `<p>${escapeHtml(item.description)}</p>` : ''}<a class="transaction-link" href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">Open ESPN source ↗</a></article>`).join('')}</div>` : '<div class="empty-state compact-empty">No roster-related ESPN updates found.</div>';
+}
+async function loadShamsUpdates(silent = false) {
+  const status = document.querySelector('#shamsPollStatus');
+  const timestamp = document.querySelector('#shamsTimestamp');
+  const list = document.querySelector('#shamsUpdateList');
+  if (!status || !timestamp || !list) return;
+  if (!silent) list.innerHTML = loadingState('cards');
+  status.textContent = 'Checking ESPN';
+  try {
+    const response = await fetchApi('/api/shams-updates?limit=12'); if (!response.ok) throw new Error('Shams updates unavailable');
+    const payload = await response.json(); shamsState.updates = payload.updates || [];
+    status.textContent = 'Polling ESPN';
+    timestamp.textContent = `${shamsState.updates.length} roster updates - ${payload.source} - Retrieved ${new Date(payload.retrievedAt).toLocaleString()}`;
+    renderShamsUpdates();
+  } catch (error) {
+    status.textContent = 'Paused';
+    list.innerHTML = errorState('ESPN roster updates are temporarily unavailable','shams-updates');
+  }
+}
+function startShamsWatch() {
+  if (shamsState.timer) return;
+  loadShamsUpdates();
+  shamsState.timer = window.setInterval(() => loadShamsUpdates(true), 60_000);
+}
+startShamsWatch();
+
 // Cross-feature navigation and personalized surfaces.
 const comparisonState = [];
 let searchTimer = null;
@@ -805,7 +839,7 @@ document.querySelector('#clearComparison').onclick=()=>{comparisonState.splice(0
 document.querySelector('#openComparison').onclick=()=>{const labels=['PTS','REB','AST','FG%','3P%','FT%'];document.querySelector('#comparisonContent').innerHTML=`<h2 id="comparisonTitle">Player comparison</h2><div class="comparison-grid">${comparisonState.map(player=>`<article>${player.headshot?`<img src="${escapeHtml(player.headshot)}" alt="">`:''}<h3>${escapeHtml(player.name)}</h3><p>${escapeHtml(player.teamName)} · ${escapeHtml(player.position)}</p>${labels.map(label=>`<div><span>${label}</span><strong>${escapeHtml(player.latest?.values?.[label]??'—')}</strong></div>`).join('')}</article>`).join('')}</div>`;document.querySelector('#comparisonDialog').showModal()};
 document.querySelector('#closeComparison').onclick=()=>document.querySelector('#comparisonDialog').close();
 
-function openTransactionDetail(item){if(!item)return;const root=document.querySelector('#transactionDetail');root.innerHTML=`<p class="eyebrow">${escapeHtml(item.type)} · ${item.date?new Date(item.date).toLocaleDateString():'Date unavailable'}</p><h2 id="transactionDialogTitle">${escapeHtml(item.team.displayName)}</h2><div class="transaction-detail-head">${item.player?.headshot?`<img src="${escapeHtml(item.player.headshot)}" alt="">`:item.team.logo?`<img src="${escapeHtml(item.team.logo)}" alt="">`:''}<p>${escapeHtml(item.description)}</p></div>${item.contract?`<section class="profile-section"><h3>Contract terms</h3><p>${item.contract.years} year${item.contract.years===1?'':'s'} · ${money(item.contract.value)}${item.contract.details?` · ${escapeHtml(item.contract.details)}`:''}</p></section>`:''}<section class="profile-section"><h3>Verification</h3><p>This move is shown from the linked league or reporting source.</p><a class="source-link" href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">Open original source ↗</a></section>`;document.querySelector('#transactionDialog').showModal()}
+function openTransactionDetail(item){if(!item)return;const root=document.querySelector('#transactionDetail');const proof=item.verification;root.innerHTML=`<p class="eyebrow">${escapeHtml(item.type)} · ${item.date?new Date(item.date).toLocaleDateString():'Date unavailable'}</p><h2 id="transactionDialogTitle">${escapeHtml(item.team.displayName)}</h2><div class="transaction-detail-head">${item.player?.headshot?`<img src="${escapeHtml(item.player.headshot)}" alt="">`:item.team.logo?`<img src="${escapeHtml(item.team.logo)}" alt="">`:''}<p>${escapeHtml(item.description)}</p></div>${item.contract?`<section class="profile-section"><h3>Contract terms</h3><p>${item.contract.years} year${item.contract.years===1?'':'s'} · ${money(item.contract.value)}${item.contract.details?` · ${escapeHtml(item.contract.details)}`:''}</p></section>`:''}<section class="profile-section"><h3>Verification</h3><p>${proof?`${escapeHtml(proof.status)} via ${escapeHtml(proof.source)}. ${escapeHtml(proof.detail)}`:'This move is shown from the linked league or reporting source.'}</p><a class="source-link" href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">Open original source ↗</a></section>`;document.querySelector('#transactionDialog').showModal()}
 document.querySelector('#closeTransactionDialog').onclick=()=>document.querySelector('#transactionDialog').close();
-document.querySelectorAll('[data-refresh]').forEach(button=>button.onclick=()=>{button.disabled=true;button.textContent='Refreshing...';const tasks={transactions:loadTransactions,'free-agents':loadFreeAgents,standings:loadStandings,injuries:loadInjuries,finance:loadCapOverview,schedule:loadScheduleHub,futures:()=>{renderFutures();return Promise.all([loadStandings(),loadRaceSchedule()])}};const task=tasks[button.dataset.refresh]?.();Promise.resolve(task).finally(()=>{button.disabled=false;button.textContent='Refresh'})});
-document.body.addEventListener('click',event=>{const view=event.target.closest('[data-empty-view]');if(view)activateView(view.dataset.emptyView);const retry=event.target.closest('[data-retry]');if(retry){const tasks={transactions:loadTransactions,'free-agents':loadFreeAgents,standings:loadStandings,injuries:loadInjuries,finance:loadCapOverview,schedule:loadScheduleHub,teams:loadTeams,roster:()=>loadRoster(document.querySelector('#teamPicker').value)};tasks[retry.dataset.retry]?.()}if(event.target.closest('[data-clear-free-agents]')){freeAgentState.status='all';freeAgentState.type='all';freeAgentState.position='all';freeAgentState.sort='best';freeAgentState.query='';document.querySelector('#freeAgentStatus').value='all';document.querySelector('#freeAgentType').value='all';document.querySelector('#freeAgentPosition').value='all';document.querySelector('#freeAgentSort').value='best';document.querySelector('#freeAgentSearch').value='';renderFreeAgents()}});
+document.querySelectorAll('[data-refresh]').forEach(button=>button.onclick=()=>{button.disabled=true;button.textContent='Refreshing...';const tasks={transactions:loadTransactions,'free-agents':()=>Promise.all([loadFreeAgents(),loadShamsUpdates()]),standings:loadStandings,injuries:loadInjuries,finance:loadCapOverview,schedule:loadScheduleHub,futures:()=>{renderFutures();return Promise.all([loadStandings(),loadRaceSchedule()])}};const task=tasks[button.dataset.refresh]?.();Promise.resolve(task).finally(()=>{button.disabled=false;button.textContent='Refresh'})});
+document.body.addEventListener('click',event=>{const view=event.target.closest('[data-empty-view]');if(view)activateView(view.dataset.emptyView);const retry=event.target.closest('[data-retry]');if(retry){const tasks={transactions:loadTransactions,'free-agents':loadFreeAgents,'shams-updates':loadShamsUpdates,standings:loadStandings,injuries:loadInjuries,finance:loadCapOverview,schedule:loadScheduleHub,teams:loadTeams,roster:()=>loadRoster(document.querySelector('#teamPicker').value)};tasks[retry.dataset.retry]?.()}if(event.target.closest('[data-clear-free-agents]')){freeAgentState.status='all';freeAgentState.type='all';freeAgentState.position='all';freeAgentState.sort='best';freeAgentState.query='';document.querySelector('#freeAgentStatus').value='all';document.querySelector('#freeAgentType').value='all';document.querySelector('#freeAgentPosition').value='all';document.querySelector('#freeAgentSort').value='best';document.querySelector('#freeAgentSearch').value='';renderFreeAgents()}});

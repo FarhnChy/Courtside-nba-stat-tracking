@@ -173,6 +173,114 @@ const futures = [
 
 const transactions = [
   {
+    id: 'reported-den-demar-derozan-2026-08-21',
+    date: '2026-08-21T22:54:03Z',
+    team: 'DEN',
+    player: 'DeMar DeRozan',
+    type: 'Signing',
+    category: 'Transaction',
+    text: 'DeMar DeRozan agreed to a one-year, $3.9 million deal with Denver.',
+    source: 'ESPN / Shams Charania',
+    sourceUrl: 'https://www.espn.com/nba/story/_/id/49684447/nuggets-signing-6-all-star-demar-derozan-1-year-deal',
+    verifiedAt: '2026-08-21T23:05:00.000Z'
+  },
+  {
+    id: 'reported-mia-klay-thompson-2026-08-21',
+    date: '2026-08-21T23:57:38Z',
+    team: 'MIA',
+    player: 'Klay Thompson',
+    type: 'Signing',
+    category: 'Transaction',
+    text: 'Klay Thompson plans to sign a two-year, nearly $13 million deal with Miami after clearing waivers.',
+    source: 'ESPN / Shams Charania',
+    sourceUrl: 'https://www.espn.com/nba/story/_/id/49683637/mavs-buy-klay-thompson-deal-heat-move-deck-sources-say',
+    verifiedAt: '2026-08-21T23:58:00.000Z'
+  },
+  {
+    id: 'reported-cle-peyton-watson-2026-08-20',
+    date: '2026-08-20T10:35:44Z',
+    team: 'CLE',
+    player: 'Peyton Watson',
+    type: 'Trade',
+    category: 'Transaction',
+    text: 'Cleveland agreed to acquire Peyton Watson from Denver in a multiteam deal with LA.',
+    source: 'ESPN / Shams Charania',
+    sourceUrl: 'https://www.espn.com/nba/story/_/id/49664656/peyton-watson-cavaliers-max-strus-clippers-part-multi-team-trade-nuggets',
+    verifiedAt: '2026-08-21T20:00:00.000Z'
+  },
+  {
+    id: 'reported-lac-max-strus-2026-08-20',
+    date: '2026-08-20T10:35:44Z',
+    team: 'LAC',
+    player: 'Max Strus',
+    type: 'Trade',
+    category: 'Transaction',
+    text: 'LA Clippers agreed to acquire Max Strus in the multiteam Peyton Watson trade.',
+    source: 'ESPN / Shams Charania',
+    sourceUrl: 'https://www.espn.com/nba/story/_/id/49664656/peyton-watson-cavaliers-max-strus-clippers-part-multi-team-trade-nuggets',
+    verifiedAt: '2026-08-21T20:00:00.000Z'
+  },
+  {
+    id: 'reported-cle-james-harden-2026-08-20',
+    date: '2026-08-20T23:15:42Z',
+    team: 'CLE',
+    player: 'James Harden',
+    type: 'Re-signing',
+    category: 'Transaction',
+    text: 'James Harden agreed to a three-year, $97 million contract to remain with Cleveland.',
+    source: 'ESPN / Shams Charania',
+    sourceUrl: 'https://www.espn.com/nba/story/_/id/49671792/james-harden-agrees-3-year-97m-deal-remain-cavaliers',
+    verifiedAt: '2026-08-21T20:00:00.000Z'
+  },
+  {
+    id: 'reported-nop-trendon-watford-2026-08-17',
+    date: '2026-08-17T13:45:14Z',
+    team: 'NOP',
+    player: 'Trendon Watford',
+    type: 'Signing',
+    category: 'Transaction',
+    text: 'Trendon Watford agreed to a one-year, $2.9 million deal with New Orleans.',
+    source: 'ESPN / Shams Charania',
+    sourceUrl: 'https://www.espn.com/nba/story/_/id/49638189/trendon-watford-pelicans-agree-1-year-29m-deal',
+    verifiedAt: '2026-08-21T20:00:00.000Z'
+  },
+  {
+    id: 'reported-cha-dennis-schroder-2026-08-15',
+    date: '2026-08-15T12:00Z',
+    team: 'CHA',
+    player: 'Dennis Schroder',
+    type: 'Trade',
+    category: 'Transaction',
+    text: 'Charlotte agreed to acquire Dennis Schroder and cash from Cleveland for Tre Mann.',
+    source: 'Reported offseason update',
+    sourceUrl: 'https://www.blazersedge.com/nba-news-rumors/115163/nba-free-agency-news-bradley-beal-signs-los-angeles-clippers-cleveland-cavaliers-trade-dennis-schroder',
+    verifiedAt: '2026-08-15T12:00:00.000Z'
+  },
+  {
+    id: 'reported-cle-tre-mann-2026-08-15',
+    date: '2026-08-15T12:00Z',
+    team: 'CLE',
+    player: 'Tre Mann',
+    type: 'Trade',
+    category: 'Transaction',
+    text: 'Cleveland agreed to acquire Tre Mann from Charlotte for Dennis Schroder and cash.',
+    source: 'Reported offseason update',
+    sourceUrl: 'https://www.blazersedge.com/nba-news-rumors/115163/nba-free-agency-news-bradley-beal-signs-los-angeles-clippers-cleveland-cavaliers-trade-dennis-schroder',
+    verifiedAt: '2026-08-15T12:00:00.000Z'
+  },
+  {
+    id: 'reported-lac-bradley-beal-2026-08-14',
+    date: '2026-08-14T20:46Z',
+    team: 'LAC',
+    player: 'Bradley Beal',
+    type: 'Re-signing',
+    category: 'Transaction',
+    text: 'Bradley Beal agreed to return to the LA Clippers on a two-year, $13.2 million contract.',
+    source: 'Reported offseason update',
+    sourceUrl: 'https://www.blazersedge.com/nba-news-rumors/115163/nba-free-agency-news-bradley-beal-signs-los-angeles-clippers-cleveland-cavaliers-trade-dennis-schroder',
+    verifiedAt: '2026-08-15T12:00:00.000Z'
+  },
+  {
     id: 'fa-den-spencer-jones-2026-07-27',
     date: '2026-07-31T07:00Z',
     team: 'DEN',
@@ -201,7 +309,7 @@ module.exports = {
   meta: {
     source: 'demo',
     provider: 'Courtside demo provider',
-    generatedAt: '2026-02-20T23:18:00.000Z',
+    generatedAt: '2026-08-21T20:00:00.000Z',
     dataQuality: 'demo-only'
   },
   teams,

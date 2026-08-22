@@ -5,6 +5,8 @@ const espn = require('./lib/espn');
 const finance = require('./lib/finance');
 const offseasonContracts = require('./data/offseasonContracts');
 const offseasonTrades = require('./data/offseasonTrades');
+const offseasonStatusUpdates = require('./data/offseasonStatusUpdates');
+const offseasonReportedTransactions = require('./data/offseasonReportedTransactions');
 
 const root = path.join(__dirname, 'public');
 const types = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8', '.svg': 'image/svg+xml', '.webp': 'image/webp', '.png': 'image/png' };
@@ -16,13 +18,25 @@ function json(res, status, body) {
 }
 
 async function transactionsWithRosterReconciliation() {
-  const base = await espn.transactions();
+  const base = await espn.transactions().catch(() => ({ timestamp: null, season: '', count: 0, transactions: [] }));
   try {
-    const [market, directory] = await Promise.all([finance.freeAgents(), espn.teamsList()]);
+    const [market, directory, shamsFeed] = await Promise.all([
+      finance.freeAgents().catch(() => ({ players: [] })),
+      espn.teamsList().catch(() => ({ teams: [] })),
+      espn.shamsUpdates(25).catch(() => ({ updates: [] }))
+    ]);
     const teamAliases = { GSW: 'GS', NOP: 'NO', NYK: 'NY', SAS: 'SA', UTA: 'UTAH', WAS: 'WSH' };
     const teams = new Map(directory.teams.map(team => [team.abbreviation, team]));
     const marketPlayers = new Map(market.players.map(player => [player.name.toLowerCase(), player]));
     const coveredPlayers = new Set();
+    const normalize = value => String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+    const actualTransactionText = normalize(base.transactions.map(item => item.description).join(' '));
+    const teamAliasesForSearch = directory.teams.flatMap(team => [
+      [team.abbreviation, team.abbreviation],
+      [team.name, team.abbreviation],
+      [team.displayName, team.abbreviation],
+      [team.location, team.abbreviation]
+    ]).filter(([label]) => label && String(label).length > 1).sort((a, b) => b[0].length - a[0].length);
     const teamForCode = code => {
       const abbreviation = teamAliases[code] || code;
       const team = teams.get(abbreviation) || {};
@@ -34,6 +48,44 @@ async function transactionsWithRosterReconciliation() {
         logo: team.logo || null
       };
     };
+    const findPlayerInText = text => market.players.find(player => normalize(text).includes(normalize(player.name)));
+    const teamCodeInText = text => {
+      const clean = ` ${normalize(text)} `;
+      const match = teamAliasesForSearch.find(([label]) => clean.includes(` ${normalize(label)} `));
+      return match?.[1] || null;
+    };
+    const typeFromReport = text => {
+      const clean = normalize(text);
+      if (clean.includes('trade') || clean.includes('acquire')) return 'Trade';
+      if (clean.includes('re sign') || clean.includes('remain with')) return 'Re-signed';
+      if (clean.includes('sign') || clean.includes('agreed')) return 'Signed';
+      if (clean.includes('buyout')) return 'Buyout';
+      if (clean.includes('waive') || clean.includes('waiver')) return 'Waived';
+      if (clean.includes('convert')) return 'Converted';
+      return 'Roster move';
+    };
+    const numberWord = value => ({ one:1,two:2,three:3,four:4,five:5,six:6 }[value] || Number(value) || null);
+    const contractFromText = text => {
+      const years = text.match(/\b(\d+|one|two|three|four|five|six)[-\s]?year\b/i)?.[1];
+      const value = text.match(/\$([\d.]+)\s*(m|million|b|billion)\b/i);
+      if (!years && !value) return null;
+      const amount = value ? Number(value[1]) * (/^b/i.test(value[2]) ? 1_000_000_000 : 1_000_000) : null;
+      return {
+        years: numberWord(String(years || 1).toLowerCase()) || 1,
+        value: amount ? Math.round(amount) : 0,
+        details: text.toLowerCase().includes('nearly') ? 'Reported as nearly this amount' : 'Reported terms'
+      };
+    };
+    const verificationFor = (player, teamCode, text) => {
+      const playerName = player?.name || '';
+      const actualMatch = playerName && actualTransactionText.includes(normalize(playerName));
+      if (actualMatch) return { status: 'confirmed', source: 'ESPN public transactions', detail: 'Player appears in ESPN transaction feed.' };
+      if (player?.availability === 'Signed' && (!teamCode || player.newTeam === teamCode)) {
+        return { status: 'confirmed', source: 'NBA free-agent tracker', detail: `Tracker lists ${player.name} as signed${player.newTeam ? ` with ${player.newTeam}` : ''}.` };
+      }
+      if (player?.newTeam) return { status: 'matched', source: 'NBA free-agent tracker', detail: `Tracker links this report to ${player.newTeam}; awaiting transaction-feed confirmation.` };
+      return { status: 'reported', source: 'ESPN/Shams headline', detail: 'Reported by ESPN; awaiting ESPN transaction-feed or tracker confirmation.' };
+    };
 
     const enriched = base.transactions.map(item => {
       const description = item.description.toLowerCase();
@@ -41,10 +93,16 @@ async function transactionsWithRosterReconciliation() {
       const playerData = matchedPlayer
         ? { id: matchedPlayer.id, name: matchedPlayer.name, headshot: matchedPlayer.headshot }
         : item.player;
-      const verifiedTeam = matchedPlayer?.newTeam ? teamForCode(matchedPlayer.newTeam) : item.team;
+      const keepActualTeam = ['Waived', 'Released', 'Buyout'].includes(item.type);
+      const verifiedTeam = matchedPlayer?.newTeam && !keepActualTeam ? teamForCode(matchedPlayer.newTeam) : item.team;
       const report = offseasonContracts.find(entry => (teamAliases[entry.team] || entry.team) === item.team.abbreviation && description.includes(entry.player.toLowerCase()));
 
-      if (!report) return { ...item, team: verifiedTeam, player: playerData };
+      if (!report) return {
+        ...item,
+        team: verifiedTeam,
+        player: playerData,
+        verification: { status: 'confirmed', source: 'ESPN public transactions', detail: 'Listed in ESPN transaction feed.' }
+      };
 
       coveredPlayers.add(report.player);
       const player = marketPlayers.get(report.player.toLowerCase());
@@ -53,9 +111,30 @@ async function transactionsWithRosterReconciliation() {
         team: verifiedTeam,
         contract: report.contract,
         source: 'espn-2026-buzz',
-        player: player ? { id: player.id, name: player.name, headshot: player.headshot } : playerData
+        player: player ? { id: player.id, name: player.name, headshot: player.headshot } : playerData,
+        verification: { status: 'confirmed', source: 'ESPN public transactions', detail: 'Matched in ESPN transaction feed.' }
       };
     });
+
+    const liveReports = (shamsFeed.updates || []).map(update => {
+      const text = `${update.headline || ''} ${update.description || ''}`;
+      const player = findPlayerInText(text);
+      const teamCode = player?.newTeam || teamCodeInText(text) || 'NBA';
+      const contract = contractFromText(text);
+      return {
+        id: `live-report-${update.id}`,
+        date: update.published || new Date().toISOString(),
+        dateLabel: 'Live report',
+        description: update.description || update.headline,
+        type: typeFromReport(text),
+        source: update.source,
+        url: update.url,
+        contract,
+        player: player ? { id: player.id, name: player.name, headshot: player.headshot } : null,
+        team: teamForCode(teamCode),
+        verification: verificationFor(player, teamCode === 'NBA' ? null : teamCode, text)
+      };
+    }).filter(item => item.type !== 'Roster move' && item.player);
 
     const reported = offseasonContracts.filter(entry => !coveredPlayers.has(entry.player)).map(entry => {
       const team = teamForCode(entry.team);
@@ -67,10 +146,11 @@ async function transactionsWithRosterReconciliation() {
         description: `${entry.type}: ${entry.player}.`,
         type: entry.type,
         source: 'espn-2026-buzz',
-        url: player?.article || 'https://www.espn.com/nba/nba-free-agency/',
+        url: entry.source || player?.article || 'https://www.espn.com/nba/nba-free-agency/',
         contract: entry.contract,
         player: { id: playerId, name: entry.player, headshot: player?.headshot || (playerId ? `https://cdn.nba.com/headshots/nba/latest/1040x760/${playerId}.png` : null) },
-        team
+        team,
+        verification: player ? verificationFor(player, entry.team, `${entry.type} ${entry.player}`) : { status: 'reported', source: 'Manual fallback', detail: 'Fallback row from saved ESPN/Shams snapshot.' }
       };
     });
 
@@ -84,11 +164,42 @@ async function transactionsWithRosterReconciliation() {
         source: 'espn-2026-trade-tracker',
         url: entry.source,
         player: { ...entry.player, headshot: `https://cdn.nba.com/headshots/nba/latest/1040x760/${entry.player.id}.png` },
-        team
+        team,
+        verification: { status: 'confirmed', source: 'NBA trade tracker', detail: 'Saved from official offseason trade tracker.' }
       };
     });
 
-    const text = [...enriched.map(item => item.description.toLowerCase()), ...reported.map(item => item.description.toLowerCase())].join('\n');
+    const statusUpdates = offseasonStatusUpdates.map(entry => {
+      const team = teamForCode(entry.team);
+      return {
+        id: `status-${entry.date}-${entry.player.id}-${entry.type.toLowerCase()}`,
+        date: `${entry.date}T12:00:00Z`,
+        description: entry.description,
+        type: entry.type,
+        source: 'manual-offseason-status',
+        url: entry.source,
+        player: { ...entry.player, headshot: `https://cdn.nba.com/headshots/nba/latest/1040x760/${entry.player.id}.png` },
+        team,
+        verification: { status: 'confirmed', source: 'Manual status source', detail: 'Status update was manually verified from linked source.' }
+      };
+    });
+
+    const lateReports = offseasonReportedTransactions.map(entry => {
+      const team = teamForCode(entry.team);
+      return {
+        id: `reported-transaction-${entry.date}-${entry.team}-${entry.player.id}`,
+        date: `${entry.date}T12:00:00Z`,
+        description: entry.description,
+        type: entry.type,
+        source: 'manual-offseason-report',
+        url: entry.source,
+        player: { ...entry.player, headshot: `https://cdn.nba.com/headshots/nba/latest/1040x760/${entry.player.id}.png` },
+        team,
+        verification: { status: 'reported', source: 'Manual fallback', detail: 'Saved fallback report; live feeds can supersede it.' }
+      };
+    });
+
+    const text = [...enriched.map(item => item.description.toLowerCase()), ...liveReports.map(item => item.description.toLowerCase()), ...reported.map(item => item.description.toLowerCase()), ...statusUpdates.map(item => item.description.toLowerCase()), ...lateReports.map(item => item.description.toLowerCase())].join('\n');
     const additions = market.players
       .filter(player => player.reconciled && player.newTeam && player.article && player.reportedAt && !text.includes(player.name.toLowerCase()))
       .map(player => ({
@@ -100,14 +211,36 @@ async function transactionsWithRosterReconciliation() {
         source: 'nba-free-agent-tracker',
         url: player.article,
         player: { id: player.id, name: player.name, headshot: player.headshot },
-        team: teamForCode(player.newTeam)
+        team: teamForCode(player.newTeam),
+        verification: { status: 'confirmed', source: 'NBA free-agent tracker', detail: `Tracker lists ${player.name} as signed with ${player.newTeam}.` }
       }));
     // A reconciled roster move is current but undated. Keep it immediately below
     // the latest dated report instead of hiding it beneath the full dated feed.
-    const tradeNames = new Set(trades.map(item => item.player.name.toLowerCase()));
+    const tradeNames = new Set([
+      ...trades,
+      ...lateReports.filter(item => item.type === 'Trade'),
+      ...reported.filter(item => String(item.type).toLowerCase().includes('trade'))
+    ].map(item => item.player.name.toLowerCase()));
     const deduped = enriched.filter(item => !([...tradeNames].some(name => item.description.toLowerCase().includes(name)) && item.type === 'Trade'));
-    const transactions = [...reported, ...trades, ...additions, ...deduped].sort((a, b) => (Date.parse(b.date) || 0) - (Date.parse(a.date) || 0));
-    return { ...base, count: transactions.length, transactions };
+    const mergeUnique = rows => {
+      const seen = new Set();
+      return rows.filter(item => {
+        const player = normalize(item.player?.name || item.description);
+        const day = String(item.date || '').slice(0, 10);
+        const key = `${day}|${player}|${item.team.abbreviation}|${String(item.type).toLowerCase().replace('re-signed','signed')}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    };
+    const transactions = mergeUnique([...liveReports, ...lateReports, ...statusUpdates, ...reported, ...trades, ...additions, ...deduped]).sort((a, b) => (Date.parse(b.date) || 0) - (Date.parse(a.date) || 0));
+    return {
+      ...base,
+      count: transactions.length,
+      sources: ['ESPN/Shams live headlines', 'ESPN public transactions', 'NBA offseason trackers', 'manual fallbacks'],
+      manualVerifiedAt: [offseasonReportedTransactions, offseasonStatusUpdates, offseasonTrades].flat().map(item => item.verifiedAt).filter(Boolean).sort().at(-1) || null,
+      transactions
+    };
   } catch (_) {
     return base;
   }
@@ -202,6 +335,12 @@ const server = http.createServer(async (req, res) => {
   if (urlPath === '/api/transactions') {
     try { return json(res, 200, await transactionsWithRosterReconciliation()); }
     catch (error) { return json(res, 502, { error: 'Transactions unavailable', detail: error.message }); }
+  }
+  if (urlPath === '/api/shams-updates') {
+    try {
+      const limit = Number(new URL(req.url, 'http://localhost').searchParams.get('limit') || 12);
+      return json(res, 200, await espn.shamsUpdates(limit));
+    } catch (error) { return json(res, 502, { error: 'Shams updates unavailable', detail: error.message }); }
   }
   const playerMatch = urlPath.match(/^\/api\/players\/(\d+)$/);
   if (playerMatch) {
