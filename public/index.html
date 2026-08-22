@@ -23,7 +23,7 @@
       <button data-view="standings">Standings</button>
       <button data-view="teamsView">Teams</button>
       <button data-view="injuriesView">Injuries</button>
-      <button data-view="transactionsView">Moves</button>
+      <button data-view="transactionsView">Moves Tracker</button>
       <button data-view="freeAgentsView">Free Agents</button>
       <button data-view="futures">Futures</button>
     </nav>
@@ -81,13 +81,13 @@
     </section>
 
     <section id="transactionsView" class="view">
-      <div class="section-heading"><div><p class="eyebrow">LEAGUE ACTIVITY</p><h1>Transactions</h1></div><div class="transaction-filters"><button class="refresh-button" data-refresh="transactions">Refresh</button><select id="transactionTeam" class="team-picker" aria-label="Filter transactions by team"><option value="all">All teams</option></select><select id="transactionType" class="team-picker" aria-label="Filter transactions by type"><option value="all">All moves</option></select></div></div>
+      <div class="section-heading"><div><p class="eyebrow">LEAGUE ACTIVITY</p><h1>Offseason moves tracker</h1></div><div class="transaction-filters"><button class="refresh-button" data-refresh="transactions">Refresh</button><select id="transactionTeam" class="team-picker" aria-label="Filter transactions by team"><option value="all">All teams</option></select><select id="transactionType" class="team-picker" aria-label="Filter transactions by type"><option value="all">All moves</option></select></div></div>
+      <section class="panel shams-panel"><div class="panel-title"><div><p class="eyebrow">ESPN / SHAMS WATCH</p><h2>Offseason moves tracker</h2></div><span class="pill" id="shamsPollStatus">Polling ESPN</span></div><p class="muted" id="shamsTimestamp">Searching for roster updates...</p><div id="shamsUpdateList"><div class="empty-state compact-empty">Loading ESPN updates...</div></div></section>
       <section class="panel transaction-panel"><p class="muted" id="transactionTimestamp">Loading transactions…</p><div id="transactionList"></div></section>
     </section>
 
     <section id="freeAgentsView" class="view">
       <div class="section-heading"><div><p class="eyebrow">OFFSEASON MARKET</p><h1>Free agents</h1></div><div class="transaction-filters"><button class="refresh-button" data-refresh="free-agents">Refresh</button><input id="freeAgentSearch" class="team-picker" type="search" placeholder="Search player"><select id="freeAgentPosition" class="team-picker"><option value="all">All positions</option></select><select id="freeAgentSort" class="team-picker"><option value="best">Best available</option><option value="ppg">Points</option><option value="age">Youngest</option><option value="name">Name</option></select><select id="freeAgentStatus" class="team-picker"><option value="Available">Available</option><option value="Signed">Signed</option><option value="all">All players</option></select><select id="freeAgentType" class="team-picker"><option value="all">UFA & RFA</option><option value="UFA">Unrestricted</option><option value="RFA">Restricted</option></select></div></div>
-      <section class="panel shams-panel"><div class="panel-title"><div><p class="eyebrow">SHAMS / ESPN WATCH</p><h2>Roster news stream</h2></div><span class="pill" id="shamsPollStatus">Polling ESPN</span></div><p class="muted" id="shamsTimestamp">Searching for roster updates...</p><div id="shamsUpdateList"><div class="empty-state compact-empty">Loading ESPN updates...</div></div></section>
       <section class="panel"><p class="muted" id="freeAgentTimestamp">Loading official tracker…</p><div id="freeAgentTable"><div class="empty-state">Loading free agents…</div></div></section>
     </section>
 

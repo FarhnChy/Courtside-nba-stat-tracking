@@ -21,6 +21,7 @@ for (const label of ['Scores', 'Schedule', 'Standings', 'Futures', 'gameCenter']
 }
 assert.equal(html.includes('id="predict"'), true, 'app should still include the playoff predictor view');
 assert.equal(html.includes('id="openBracketTool"'), true, 'profile should open the playoff predictor');
+assert.equal(html.includes('Offseason moves tracker'), true, 'moves tab should present the offseason moves tracker');
 
 const serverSource = fs.readFileSync(path.join(root, 'server.js'), 'utf8');
 assert.equal(serverSource.includes('/api/scoreboard'), true, 'server should expose the live scoreboard adapter');

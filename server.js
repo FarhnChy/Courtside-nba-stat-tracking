@@ -81,6 +81,9 @@ async function transactionsWithRosterReconciliation() {
       const actualMatch = playerName && actualTransactionText.includes(normalize(playerName));
       if (actualMatch) return { status: 'confirmed', source: 'ESPN public transactions', detail: 'Player appears in ESPN transaction feed.' };
       if (player?.availability === 'Signed' && (!teamCode || player.newTeam === teamCode)) {
+        if (player.reconciled === 'ESPN/Shams reported contract') {
+          return { status: 'matched', source: 'ESPN/Shams report + tracker label', detail: `Free-agent tracker references the report and Courtside has reported terms for ${player.name}; awaiting transaction-feed confirmation.` };
+        }
         return { status: 'confirmed', source: 'NBA free-agent tracker', detail: `Tracker lists ${player.name} as signed${player.newTeam ? ` with ${player.newTeam}` : ''}.` };
       }
       if (player?.newTeam) return { status: 'matched', source: 'NBA free-agent tracker', detail: `Tracker links this report to ${player.newTeam}; awaiting transaction-feed confirmation.` };
