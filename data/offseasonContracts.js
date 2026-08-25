@@ -1,7 +1,13 @@
-// Confirmed/reported 2026 offseason contract terms reconciled against NBA.com's
-// all-team offseason tracker on 2026-08-11. Rumors and unresolved negotiations
-// are excluded.
+// Confirmed/reported 2026 offseason contract terms reconciled against NBA.com
+// trackers and ESPN/Shams reporting on 2026-08-21. Rumors and unresolved
+// negotiations are excluded.
 module.exports = [
+  ['2026-08-21','DeMar DeRozan','DEN','Signed',1,3900000,null,'201942','https://www.espn.com/nba/story/_/id/49684447/nuggets-signing-6-all-star-demar-derozan-1-year-deal'],
+  ['2026-08-21','Klay Thompson','MIA','Signed',2,13000000,'Nearly $13 million after Mavericks buyout','202691','https://www.espn.com/nba/story/_/id/49683637/mavs-buy-klay-thompson-deal-heat-move-deck-sources-say'],
+  ['2026-08-20','James Harden','CLE','Re-signed',3,97000000,null,'201935','https://www.espn.com/nba/story/_/id/49671792/james-harden-agrees-3-year-97m-deal-remain-cavaliers'],
+  ['2026-08-20','Peyton Watson','CLE','Sign-and-trade',4,88000000,'Player option; trade kicker','1631212','https://www.espn.com/nba/story/_/id/49664656/peyton-watson-cavaliers-max-strus-clippers-part-multi-team-trade-nuggets'],
+  ['2026-08-17','Trendon Watford','NOP','Signed',1,2900000,null,'1630570','https://www.espn.com/nba/story/_/id/49638189/trendon-watford-pelicans-agree-1-year-29m-deal'],
+  ['2026-08-14','Bradley Beal','LAC','Re-signed',2,13200000,null,'203078'],
   ['2026-08-06','Marcus Smart','HOU','Signed',2,11000000,null],
   ['2026-08-06','Bogdan Bogdanovic','HOU','Signed',1,3600000,null],
   ['2026-08-06','Dean Wade','PHI','Signed',4,39000000,null],
@@ -35,4 +41,4 @@ module.exports = [
   ['2026-06-21','Jordan Goodwin','PHX','Re-signed',3,19000000,'Player option in year 3'],
   ['2026-06-21','CJ McCollum','ATL','Extension',1,21000000,'Trade kicker'],
   ['2026-06-20','Collin Gillespie','PHX','Re-signed',4,48000000,null]
-].map(([date, player, team, type, years, value, details, playerId]) => ({ date, player, playerId: playerId || null, team, type, contract: { years, value, details } }));
+].map(([date, player, team, type, years, value, details, playerId, source]) => ({ date, player, playerId: playerId || null, team, type, source: source || null, contract: { years, value, details } }));
