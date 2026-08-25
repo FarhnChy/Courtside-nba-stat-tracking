@@ -102,6 +102,8 @@ assert.equal(html.includes('data-predict-mode="custom"'), true, 'predictor shoul
 assert.equal(html.includes('id="bracketSeason"'), true, 'predictor should allow archived season selection');
 assert.equal(html.includes('id="addPastBracket"'), true, 'predictor should allow adding a past-season bracket');
 assert.equal(appSource.includes('courtsideBracketsBySeason'), true, 'brackets should be stored separately by season');
+assert.equal(appSource.includes('Actual playoff bracket'), true, 'past seasons should show actual playoff results');
+assert.equal(serverSource.includes('/api/playoffs'), true, 'server should expose historical playoff results');
 assert.equal(serverSource.includes('/api/search'), true, 'server should expose global player and team search');
 for (const id of ['searchDialog','favoriteDashboard','comparisonDialog','transactionDialog','freeAgentSort']) assert.equal(html.includes(`id="${id}"`), true, `app shell should include ${id}`);
 assert.equal(html.includes('data-roster-mode="coaches"'), true, 'team pages should offer a coaching staff view');

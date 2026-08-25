@@ -59,6 +59,14 @@
 .predict-grid.custom-bracket-mode { grid-template-columns: 1fr; }
 .bracket-season-controls { display: flex; align-items: end; gap: 8px; }
 .bracket-season-controls label { display: grid; gap: 3px; color: var(--muted); font-size: 8px; text-transform: uppercase; }
+.actual-playoff-tree { display: grid; grid-template-columns: repeat(5,minmax(190px,1fr)); gap: 16px; overflow-x: auto; padding-bottom: 10px; }
+.actual-playoff-round { display: flex; flex-direction: column; justify-content: space-around; gap: 12px; min-width: 190px; }
+.actual-playoff-round h3 { margin: 0 0 4px; font: 600 15px Oswald; text-transform: uppercase; }
+.actual-series { padding: 8px; border: 1px solid var(--line); border-radius: 8px; background: rgba(255,255,255,.02); }
+.actual-series > small { display: block; margin-bottom: 4px; color: var(--muted); font-size: 8px; text-transform: uppercase; }
+.actual-series > div { display: grid; grid-template-columns: 24px 1fr auto; gap: 6px; align-items: center; padding: 5px; color: var(--muted); font-size: 10px; }
+.actual-series img { width: 24px; height: 24px; object-fit: contain; }
+.actual-series .series-winner { color: var(--text); background: rgba(64,217,148,.08); border-radius: 5px; }
 .bracket-intro { display: flex; justify-content: space-between; gap: 20px; align-items: center; margin-bottom: 22px; }
 .bracket-intro h2, .conference-bracket h3, .nba-finals h3 { margin: 2px 0; font: 600 22px Oswald; }
 .bracket-intro p { color: var(--muted); font-size: 10px; }

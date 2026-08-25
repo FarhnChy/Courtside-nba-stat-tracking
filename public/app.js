@@ -181,6 +181,22 @@ function selectBracketSeason(season) {
   bracketState.season = season;
   bracketState.picks = bracketState.store.seasons[season]?.picks || {};
 }
+function renderActualPlayoffs(actual) {
+  const roundHtml = actual.rounds.map(round => `<section class="actual-playoff-round"><h3>${escapeHtml(round.name)}</h3>${round.series.map(series => `<article class="actual-series"><small>${escapeHtml(series.conference)}</small>${series.teams.slice().sort((a,b)=>b.wins-a.wins).map(team => `<div class="${String(team.id)===String(series.winner)?'series-winner':''}">${team.logo?`<img src="${escapeHtml(team.logo)}" alt="">`:''}<span>${team.seed?`${team.seed}. `:''}${escapeHtml(team.displayName)}</span><strong>${team.wins}</strong></div>`).join('')}</article>`).join('')}</section>`).join('');
+  return `<div class="bracket-intro"><div><p class="eyebrow">${escapeHtml(actual.season)} · FINAL RESULTS</p><h2>Actual playoff bracket</h2><p>This archived tree shows the completed series and real winners from ESPN's postseason results.</p></div></div><div class="actual-playoff-tree">${roundHtml}</div>`;
+}
+async function loadActualBracket(season) {
+  const entry=bracketState.store.seasons[season];
+  if(!entry||entry.actual||season===bracketState.currentSeason)return;
+  const root=document.querySelector('#bracket');
+  root.innerHTML='<div class="empty-state">Loading actual playoff results…</div>';
+  try {
+    const endYear=Number(season.slice(0,4))+1;
+    const response=await fetchApi(`/api/playoffs?season=${endYear}`);
+    if(!response.ok)throw new Error();
+    entry.actual=await response.json(); saveBracket(); renderPredict();
+  } catch (_) { root.innerHTML='<div class="empty-state">Actual playoff results are unavailable for this season.</div>'; }
+}
 function bracketWinner(key,a,b){const pick=bracketState.picks[key];return pick&&(String(pick)===String(a?.id)||String(pick)===String(b?.id))?(String(pick)===String(a?.id)?a:b):null}
 function bracketLoser(key,a,b){const winner=bracketWinner(key,a,b);return winner?(String(winner.id)===String(a?.id)?b:a):null}
 function bracketMatch(key,a,b,label){return `<article class="user-match"><small>${label}</small>${[a,b].map(team=>team?`<button class="${String(bracketState.picks[key])===String(team.id)?'picked':''}" data-bracket-key="${key}" data-bracket-team="${escapeHtml(team.id)}">${team.logo?`<img src="${escapeHtml(team.logo)}" alt="">`:''}<span>${escapeHtml(team.seed?`${team.seed}. ${team.displayName}`:team.displayName)}</span></button>`:'<button disabled><span>Winner TBD</span></button>').join('')}</article>`}
@@ -257,7 +273,15 @@ function renderPredict() {
   const seasonPicker = document.querySelector('#bracketSeason');
   const seasons = Object.keys(bracketState.store.seasons).sort().reverse();
   seasonPicker.innerHTML = seasons.map(season => `<option value="${escapeHtml(season)}" ${season===bracketState.season?'selected':''}>${escapeHtml(season)}${season===bracketState.currentSeason?' · Current':''}</option>`).join('');
-  const conferences = bracketState.store.seasons[bracketState.season]?.conferences;
+  const selectedEntry = bracketState.store.seasons[bracketState.season];
+  if (bracketState.season !== bracketState.currentSeason) {
+    document.querySelector('#resetBracket').hidden = true;
+    card.hidden = true;
+    if (selectedEntry?.actual) bracket.innerHTML = renderActualPlayoffs(selectedEntry.actual);
+    else loadActualBracket(bracketState.season);
+    return;
+  }
+  const conferences = selectedEntry?.conferences;
   if (!conferences?.every(conference => conference.teams.length >= 10)) {
     bracket.innerHTML = '<div class="empty-state designed-empty"><strong>Bracket seeding is loading</strong><span>The top 10 teams in each conference will appear when standings are available.</span></div>';
     card.hidden = true;
@@ -379,11 +403,12 @@ document.querySelector('#addPastBracket').onclick=async()=>{
   const label=match[0];
   if(bracketState.store.seasons[label]){selectBracketSeason(label);renderPredict();return;}
   try{
-    const response=await fetchApi(`/api/standings?season=${Number(match[1])+1}`);
+    const response=await fetchApi(`/api/playoffs?season=${Number(match[1])+1}`);
     if(!response.ok)throw new Error();
     const payload=await response.json();
-    if(!payload.conferences?.every(conference=>conference.teams.length>=10))throw new Error();
-    ensureBracketSeason(label,payload.conferences);
+    if(!payload.rounds?.length)throw new Error();
+    ensureBracketSeason(label,null);
+    bracketState.store.seasons[label].actual=payload;
     selectBracketSeason(label);saveBracket();renderPredict();
   }catch(_){alert('That season\'s standings are not available right now.');}
 };

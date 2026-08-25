@@ -322,6 +322,13 @@ const server = http.createServer(async (req, res) => {
       return json(res, 200, await espn.standings(season));
     } catch (error) { return json(res, 502, { error: 'Live standings unavailable', detail: error.message }); }
   }
+  if (urlPath === '/api/playoffs') {
+    try {
+      const season = new URL(req.url, 'http://localhost').searchParams.get('season') || '';
+      if (!/^\d{4}$/.test(season)) return json(res, 400, { error: 'Season must be a four-digit ending year' });
+      return json(res, 200, await espn.playoffBracket(season));
+    } catch (error) { return json(res, 502, { error: 'Historical playoffs unavailable', detail: error.message }); }
+  }
   if (urlPath === '/api/teams') {
     try { return json(res, 200, await espn.teamsList()); }
     catch (error) { return json(res, 502, { error: 'Team directory unavailable', detail: error.message }); }
