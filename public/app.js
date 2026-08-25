@@ -152,8 +152,35 @@ function renderSide(){document.querySelector('#leaders').innerHTML='<div class="
 const standings=[['CLE',49,11,'.817','—','8–2'],['BOS',44,16,'.733','5.0','7–3'],['NYK',38,22,'.633','11.0','6–4'],['MIL',35,25,'.583','14.0','7–3'],['ORL',33,28,'.541','16.5','5–5'],['PHI',31,29,'.517','18.0','6–4']];
 function renderStandings(){document.querySelector('#standingsTable').innerHTML=`<table class="standings-table"><thead><tr><th>#</th><th>Team</th><th>W</th><th>L</th><th>PCT</th><th>GB</th><th>L10</th></tr></thead><tbody>${standings.map((r,i)=>`<tr><td>${i+1}</td><td>${logo(r[0],'mini-logo')}<b>${teams[r[0]].city} ${teams[r[0]].name}</b></td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td><td>${r[4]}</td><td>${r[5]}</td></tr>`).join('')}</tbody></table>`}
 const match=(a,ap,b,bp)=>`<div class="matchup"><div class="fav"><span>${a}</span><b>${ap}%</b></div><div><span>${b}</span><span>${bp}%</span></div></div>`;
-const bracketState={mode:'model',picks:(()=>{try{return JSON.parse(localStorage.getItem('courtsideBracket')||'{}')}catch(_){return {}}})()};
-const saveBracket=()=>localStorage.setItem('courtsideBracket',JSON.stringify(bracketState.picks));
+const bracketStoreKey = 'courtsideBracketsBySeason';
+function loadBracketSeasons() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(bracketStoreKey) || '{}');
+    if (saved && saved.seasons) return saved;
+    const legacy = JSON.parse(localStorage.getItem('courtsideBracket') || '{}');
+    return { seasons:{}, legacyPicks:legacy };
+  } catch (_) { return { seasons:{} }; }
+}
+const bracketState={mode:'model',season:null,currentSeason:null,store:loadBracketSeasons(),picks:{}};
+const seasonLabel = value => String(value || '').match(/^\d{4}-\d{2}$/)?.[0] || String(value || 'Current season');
+function ensureBracketSeason(season, conferences, useLegacy=false) {
+  const key = seasonLabel(season);
+  if (!bracketState.store.seasons[key]) {
+    bracketState.store.seasons[key] = { picks:useLegacy ? (bracketState.store.legacyPicks || {}) : {}, conferences:conferences || null, createdAt:new Date().toISOString() };
+    delete bracketState.store.legacyPicks;
+  } else if (conferences) bracketState.store.seasons[key].conferences = conferences;
+  return key;
+}
+function saveBracket() {
+  const entry = bracketState.store.seasons[bracketState.season];
+  if (entry) entry.picks = bracketState.picks;
+  localStorage.setItem(bracketStoreKey, JSON.stringify(bracketState.store));
+  localStorage.removeItem('courtsideBracket');
+}
+function selectBracketSeason(season) {
+  bracketState.season = season;
+  bracketState.picks = bracketState.store.seasons[season]?.picks || {};
+}
 function bracketWinner(key,a,b){const pick=bracketState.picks[key];return pick&&(String(pick)===String(a?.id)||String(pick)===String(b?.id))?(String(pick)===String(a?.id)?a:b):null}
 function bracketLoser(key,a,b){const winner=bracketWinner(key,a,b);return winner?(String(winner.id)===String(a?.id)?b:a):null}
 function bracketMatch(key,a,b,label){return `<article class="user-match"><small>${label}</small>${[a,b].map(team=>team?`<button class="${String(bracketState.picks[key])===String(team.id)?'picked':''}" data-bracket-key="${key}" data-bracket-team="${escapeHtml(team.id)}">${team.logo?`<img src="${escapeHtml(team.logo)}" alt="">`:''}<span>${escapeHtml(team.seed?`${team.seed}. ${team.displayName}`:team.displayName)}</span></button>`:'<button disabled><span>Winner TBD</span></button>').join('')}</article>`}
@@ -209,6 +236,7 @@ function renderPredict() {
     button.classList.toggle('active', button.dataset.predictMode === bracketState.mode);
   });
   document.querySelector('#resetBracket').hidden = bracketState.mode !== 'custom';
+  document.querySelector('#bracketSeasonControls').hidden = bracketState.mode !== 'custom';
   document.querySelector('.predict-grid').classList.toggle('custom-bracket-mode', bracketState.mode === 'custom');
 
   if (bracketState.mode === 'model') {
@@ -218,7 +246,18 @@ function renderPredict() {
     return;
   }
 
-  const conferences = liveStandings.data?.conferences;
+  const liveConferences = liveStandings.data?.conferences;
+  if (liveConferences?.every(conference => conference.teams.length >= 10)) {
+    const incomingSeason = seasonLabel(liveStandings.data.season || currentSeasonEndYear());
+    const isFirstSeason = !Object.keys(bracketState.store.seasons).length;
+    bracketState.currentSeason = ensureBracketSeason(incomingSeason, liveConferences, isFirstSeason);
+    if (!bracketState.season) selectBracketSeason(bracketState.currentSeason);
+    saveBracket();
+  }
+  const seasonPicker = document.querySelector('#bracketSeason');
+  const seasons = Object.keys(bracketState.store.seasons).sort().reverse();
+  seasonPicker.innerHTML = seasons.map(season => `<option value="${escapeHtml(season)}" ${season===bracketState.season?'selected':''}>${escapeHtml(season)}${season===bracketState.currentSeason?' · Current':''}</option>`).join('');
+  const conferences = bracketState.store.seasons[bracketState.season]?.conferences;
   if (!conferences?.every(conference => conference.teams.length >= 10)) {
     bracket.innerHTML = '<div class="empty-state designed-empty"><strong>Bracket seeding is loading</strong><span>The top 10 teams in each conference will appear when standings are available.</span></div>';
     card.hidden = true;
@@ -228,7 +267,7 @@ function renderPredict() {
   const east = conferenceBracket(conferences.find(item => item.id === 'east'));
   const west = conferenceBracket(conferences.find(item => item.id === 'west'));
   const champion = bracketWinner('nba-final', east.champion, west.champion);
-  bracket.innerHTML = `<div class="bracket-intro"><div><p class="eyebrow">SAVED ON THIS DEVICE</p><h2>My playoff bracket</h2><p>East and West feed into the NBA Finals. Pick play-in winners first, then advance teams through each side.</p></div>${champion ? `<div class="bracket-champion">${champion.logo ? `<img src="${escapeHtml(champion.logo)}" alt="">` : ''}<span>Your champion</span><strong>${escapeHtml(champion.displayName)}</strong></div>` : ''}</div><div class="playoff-bracket-layout"><div class="bracket-side east-side">${east.html}</div><section class="nba-finals"><h3>NBA Finals</h3>${bracketMatch('nba-final', east.champion, west.champion, 'NBA championship')}</section><div class="bracket-side west-side">${west.html}</div></div>`;
+  bracket.innerHTML = `<div class="bracket-intro"><div><p class="eyebrow">${escapeHtml(bracketState.season)} · SAVED ON THIS DEVICE</p><h2>My playoff bracket</h2><p>East and West feed into the NBA Finals. Pick play-in winners first, then advance teams through each side.</p></div>${champion ? `<div class="bracket-champion">${champion.logo ? `<img src="${escapeHtml(champion.logo)}" alt="">` : ''}<span>Your champion</span><strong>${escapeHtml(champion.displayName)}</strong></div>` : ''}</div><div class="playoff-bracket-layout"><div class="bracket-side east-side">${east.html}</div><section class="nba-finals"><h3>NBA Finals</h3>${bracketMatch('nba-final', east.champion, west.champion, 'NBA championship')}</section><div class="bracket-side west-side">${west.html}</div></div>`;
   card.hidden = true;
   bracket.querySelectorAll('[data-bracket-key]').forEach(button => {
     button.onclick = () => {
@@ -331,6 +370,23 @@ window.addEventListener('hashchange', openRoute);
 openRoute();
 document.querySelectorAll('[data-predict-mode]').forEach(button=>button.onclick=()=>{bracketState.mode=button.dataset.predictMode;renderPredict()});
 document.querySelector('#resetBracket').onclick=()=>{bracketState.picks={};saveBracket();renderPredict()};
+document.querySelector('#bracketSeason').onchange=event=>{selectBracketSeason(event.target.value);renderPredict()};
+document.querySelector('#addPastBracket').onclick=async()=>{
+  const value=prompt('Enter the past NBA season (for example, 2024-25):');
+  if(!value)return;
+  const match=value.trim().match(/^(\d{4})-(\d{2})$/);
+  if(!match||Number(match[2])!==(Number(match[1])+1)%100){alert('Use a season like 2024-25.');return;}
+  const label=match[0];
+  if(bracketState.store.seasons[label]){selectBracketSeason(label);renderPredict();return;}
+  try{
+    const response=await fetchApi(`/api/standings?season=${Number(match[1])+1}`);
+    if(!response.ok)throw new Error();
+    const payload=await response.json();
+    if(!payload.conferences?.every(conference=>conference.teams.length>=10))throw new Error();
+    ensureBracketSeason(label,payload.conferences);
+    selectBracketSeason(label);saveBracket();renderPredict();
+  }catch(_){alert('That season\'s standings are not available right now.');}
+};
 document.querySelector('#prevDay').onclick=()=>{dayOffset--;renderDates();loadScheduleWindow()};document.querySelector('#nextDay').onclick=()=>{dayOffset++;renderDates();loadScheduleWindow()};
 renderDates();loadScheduleWindow();loadScheduleHub();renderCards();renderGame();renderSide();renderStandings();renderPredict();
 
