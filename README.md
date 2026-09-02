@@ -2,7 +2,7 @@
 
 Courtside is a responsive NBA game center and roster-economics dashboard. It combines live scores and full game details with standings, rosters, injuries, transactions, contracts, free agency, and salary-cap context in one original interface.
 
-[Live website](https://courtside-nba-stat-tracking.onrender.com/) · Demo video coming soon
+Vercel deployment ready · Demo video coming soon
 
 ![Courtside desktop dashboard](docs/screenshots/layout-desktop.png)
 
@@ -28,14 +28,14 @@ The prediction, futures, shot-chart, and win-probability surfaces currently demo
 Browser UI
    |
    v
-Node HTTP server  --> short-lived normalized cache
+Browser / Vercel CDN  --> Node serverless API + short-lived normalized cache
    |
    +--> ESPN site feeds: games, standings, teams, players, injuries, moves
    +--> NBA sources: free agency and official cap thresholds
    +--> Basketball Reference / SalarySwish: contracts and cap holds
 ```
 
-The browser consumes only Courtside's stable local JSON shapes. Provider-specific parsing, validation, and caching remain on the server so upstream response changes do not spread through the interface.
+The browser consumes only Courtside's stable local JSON shapes. Provider-specific parsing, validation, and caching remain in the API so upstream response changes do not spread through the interface. On Vercel, CDN revalidation refreshes scores after 15 seconds; injuries, transactions, and ESPN/Shams news after 60 seconds; schedules after two minutes; and financial/free-agent pages after 15 minutes. Visitor requests trigger refresh automatically, so routine data updates require no code edit or redeploy.
 
 ## Run locally
 
@@ -85,11 +85,26 @@ The test suite checks the app shell, provider normalization, finance invariants,
 
 The ESPN site endpoints used by this prototype are unofficial and may change. Financial figures can also change during the offseason, so relevant screens expose source and retrieval context.
 
-## Deployment
+## Deploy to Vercel
 
-Live site: [https://courtside-nba-stat-tracking.onrender.com/](https://courtside-nba-stat-tracking.onrender.com/)
+The repository includes `vercel.json` and a catch-all Node Function for the existing `/api/*` routes. No secrets are currently required.
 
-The repository includes a Render blueprint, health endpoint, and GitHub Actions test workflow. Deploy the Node service with `npm start`; Render can read `render.yaml` directly.
+1. Import this GitHub repository at [vercel.com/new](https://vercel.com/new).
+2. Leave Framework Preset as **Other**, Root Directory as the repository root, and the build/output fields at their defaults.
+3. Deploy. Vercel serves `public/` and routes `/api/*` through `api/index.js`.
+4. In the Vercel project, open **Settings → Domains** to attach a custom domain if wanted.
+
+The old Render blueprint has been removed. Vercel Hobby cron jobs are limited to once daily, so Courtside uses automatic on-request revalidation instead of a constant background process. This gives active visitors fresh data for free without storing scraped copies. Truly always-on ingestion would require an external scheduler and persistent database.
+
+## Live and fallback sources
+
+- ESPN public site APIs: live scores, schedules, box scores, standings, team rosters, injuries, transactions, player pages, NBA news, and ESPN articles attributed to Shams Charania.
+- NBA.com: free-agent tracker and roster reconciliation; NBA Communications for cap thresholds.
+- Basketball Reference: team payroll and contract tables.
+- SalarySwish: projected cap holds.
+- Repository snapshots in `data/`: fallback/offseason rows used when a live source is missing or for manually verified historical context.
+
+Courtside does not scrape X/Twitter directly. X access is brittle and generally requires a paid API; Shams updates currently enter through ESPN's NBA news feed, where his reporting is published, and retain their source links. These public endpoints are unofficial integrations and can change, so review provider terms before commercial use.
 
 ## Roadmap
 

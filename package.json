@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "node server.js",
+    "vercel-build": "node -e \"console.log('Courtside uses Vercel static files and Node Functions')\"",
     "start": "node server.js",
     "test": "node test/smoke.js && node test/adapters.js && node test/server.js && node test/a11y.js",
     "audit:data": "node scripts/audit-data.js"

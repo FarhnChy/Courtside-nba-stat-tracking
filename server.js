@@ -13,7 +13,10 @@ const types = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=
 let searchCache = null;
 
 function json(res, status, body) {
-  res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'strict-origin-when-cross-origin' });
+  const cacheControl = status === 200 && res.courtsideCacheSeconds
+    ? `public, s-maxage=${res.courtsideCacheSeconds}, stale-while-revalidate=${Math.max(60, res.courtsideCacheSeconds * 5)}`
+    : 'no-store';
+  res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': cacheControl, 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'strict-origin-when-cross-origin' });
   res.end(JSON.stringify(body));
 }
 
@@ -265,8 +268,19 @@ async function searchableDirectory() {
   searchCache={time:Date.now(),items}; return items;
 }
 
-const server = http.createServer(async (req, res) => {
-  const urlPath = decodeURIComponent(req.url.split('?')[0]);
+async function requestHandler(req, res) {
+  const requestUrl = new URL(req.url, 'http://localhost');
+  const rewrittenRoute = requestUrl.searchParams.get('__route');
+  const urlPath = rewrittenRoute
+    ? `/api/${decodeURIComponent(rewrittenRoute).replace(/^\/+/, '')}`
+    : decodeURIComponent(requestUrl.pathname);
+  // Short CDN lifetimes keep live feeds fresh without a paid background worker.
+  res.courtsideCacheSeconds = urlPath === '/api/scoreboard' ? 15
+    : ['/api/injuries', '/api/transactions', '/api/shams-updates'].includes(urlPath) ? 60
+      : urlPath === '/api/schedule' ? 120
+        : ['/api/teams', '/api/standings'].includes(urlPath) ? 300
+          : urlPath.startsWith('/api/finance/') || urlPath === '/api/free-agents' ? 900
+            : urlPath === '/api/health' ? 0 : 300;
   if (urlPath === '/api/health') return json(res, 200, { ok: true, provider: 'espn-site-api' });
   if (urlPath === '/api/search') {
     const query = new URL(req.url, 'http://localhost').searchParams.get('q')?.trim() || '';
@@ -371,7 +385,9 @@ const server = http.createServer(async (req, res) => {
     res.writeHead(200, { 'Content-Type': types[path.extname(file)] || 'application/octet-stream', 'Cache-Control': 'no-cache', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'strict-origin-when-cross-origin', 'X-Frame-Options': 'SAMEORIGIN' });
     res.end(data);
   });
-});
+}
+
+const server = http.createServer(requestHandler);
 
 if (require.main === module) {
   const port = Number(process.env.PORT) || 3000;
@@ -379,4 +395,4 @@ if (require.main === module) {
   server.listen(port, host, () => console.log(`Courtside running at http://${host}:${port}`));
 }
 
-module.exports = { server };
+module.exports = { server, requestHandler };

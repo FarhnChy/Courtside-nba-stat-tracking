@@ -11,6 +11,10 @@ async function run() {
     assert.deepEqual(await health.json(), { ok: true, provider: 'espn-site-api' });
     assert.equal(health.headers.get('x-content-type-options'), 'nosniff');
 
+    const vercelRewrite = await fetch(`${base}/api?__route=health`);
+    assert.equal(vercelRewrite.status, 200);
+    assert.deepEqual(await vercelRewrite.json(), { ok: true, provider: 'espn-site-api' });
+
     const badDate = await fetch(`${base}/api/scoreboard?date=not-a-date`);
     assert.equal(badDate.status, 400);
     const badSchedule = await fetch(`${base}/api/schedule?start=not-a-date`);
@@ -19,6 +23,7 @@ async function run() {
     assert.equal(tooWideSchedule.status, 400);
     const shortSearch = await fetch(`${base}/api/search?q=a`);
     assert.equal(shortSearch.status, 400);
+    assert.equal(shortSearch.headers.get('cache-control'), 'no-store');
 
     const home = await fetch(base);
     assert.equal(home.status, 200);
