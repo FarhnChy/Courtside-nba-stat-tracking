@@ -98,7 +98,7 @@ The old Render blueprint has been removed. Vercel Hobby cron jobs are limited to
 
 ## Live and fallback sources
 
-- ESPN public site APIs: live scores, schedules, box scores, standings, team rosters, injuries, transactions, player pages, NBA news, and ESPN articles attributed to Shams Charania.
+- ESPN public site APIs with ESPN CDN failover: live scores, schedules, box scores, standings, team rosters, injuries, transactions, player pages, NBA news, and ESPN articles attributed to Shams Charania.
 - NBA.com: free-agent tracker and roster reconciliation; NBA Communications for cap thresholds.
 - Basketball Reference: team payroll and contract tables.
 - SalarySwish: projected cap holds.
