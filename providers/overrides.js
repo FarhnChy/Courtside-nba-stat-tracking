@@ -50,7 +50,7 @@ function getInjuries(options = {}) {
   return {
     meta: {
       source: 'manual-overrides',
-      provider: 'RimRelay manual overrides',
+      provider: 'Courtside manual overrides',
       generatedAt: new Date().toISOString(),
       dataQuality: 'manual'
     },

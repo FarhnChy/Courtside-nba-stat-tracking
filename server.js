@@ -85,7 +85,7 @@ async function transactionsWithRosterReconciliation() {
       if (actualMatch) return { status: 'confirmed', source: 'ESPN public transactions', detail: 'Player appears in ESPN transaction feed.' };
       if (player?.availability === 'Signed' && (!teamCode || player.newTeam === teamCode)) {
         if (player.reconciled === 'ESPN/Shams reported contract') {
-          return { status: 'matched', source: 'ESPN/Shams report + tracker label', detail: `Free-agent tracker references the report and RimRelay has reported terms for ${player.name}; awaiting transaction-feed confirmation.` };
+          return { status: 'matched', source: 'ESPN/Shams report + tracker label', detail: `Free-agent tracker references the report and Courtside has reported terms for ${player.name}; awaiting transaction-feed confirmation.` };
         }
         return { status: 'confirmed', source: 'NBA free-agent tracker', detail: `Tracker lists ${player.name} as signed${player.newTeam ? ` with ${player.newTeam}` : ''}.` };
       }
@@ -392,7 +392,7 @@ const server = http.createServer(requestHandler);
 if (require.main === module) {
   const port = Number(process.env.PORT) || 3000;
   const host = process.env.HOST || '0.0.0.0';
-  server.listen(port, host, () => console.log(`RimRelay running at http://${host}:${port}`));
+  server.listen(port, host, () => console.log(`Courtside running at http://${host}:${port}`));
 }
 
 module.exports = { server, requestHandler };

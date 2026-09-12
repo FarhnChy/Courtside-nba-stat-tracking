@@ -4,9 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#09111f" />
-  <title>RimRelay</title>
-  <link rel="icon" type="image/svg+xml" href="rimrelay.svg" />
-  <link rel="apple-touch-icon" href="rimrelay.svg" />
+  <title>Courtside</title>
+  <link rel="icon" type="image/png" href="courtside.png" />
+  <link rel="apple-touch-icon" href="courtside.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap" rel="stylesheet">
@@ -16,8 +16,8 @@
 </head>
 <body>
   <header class="topbar">
-    <div class="brand"><a class="brand-logo-link" href="#scores" aria-label="RimRelay home"><img class="brand-logo-image" src="rimrelay.svg" alt=""><span class="brand-wordmark">RimRelay<small>KEEP THE GAME CLOSE</small></span></a></div>
-    <div class="global-search"><button id="searchButton" aria-label="Search RimRelay">⌕ <span>Search</span></button></div>
+    <div class="brand"><a class="brand-logo-link" href="#scores" aria-label="Courtside home"><img class="brand-logo-image" src="courtside.png" alt="Courtside"></a></div>
+    <div class="global-search"><button id="searchButton" aria-label="Search Courtside">⌕ <span>Search</span></button></div>
     <nav id="nav" aria-label="Main navigation">
       <button class="active" data-view="scores">Scores</button>
       <button data-view="scheduleView">Schedule</button>
@@ -28,7 +28,7 @@
       <button data-view="freeAgentsView">Free Agents</button>
       <button data-view="futures">Futures</button>
     </nav>
-    <div class="top-actions"><button class="fantasy-home" id="fantasyHubButton" title="Open fantasy team" aria-label="Open fantasy team">Fantasy</button><button class="live-home" id="liveHome" title="Go to today's scores"><span class="live-dot"></span> LIVE</button><button class="brand-account top-account" id="userHubButton" aria-label="Open account and preferences" title="Account and preferences"><img class="account-logo-image" src="rimrelay.svg" alt="" aria-hidden="true"><img class="account-avatar-image" id="brandAccountImage" alt=""></button></div>
+    <div class="top-actions"><button class="fantasy-home" id="fantasyHubButton" title="Open fantasy team" aria-label="Open fantasy team">Fantasy</button><button class="live-home" id="liveHome" title="Go to today's scores"><span class="live-dot"></span> LIVE</button><button class="brand-account top-account" id="userHubButton" aria-label="Open account and preferences" title="Account and preferences"><img class="account-logo-image" src="courtside.png" alt="" aria-hidden="true"><img class="account-avatar-image" id="brandAccountImage" alt=""></button></div>
   </header>
 
   <main>
@@ -97,13 +97,13 @@
       <div class="futures-grid" id="futuresGrid"></div>
     </section>
   </main>
-  <dialog id="searchDialog" class="search-dialog" aria-labelledby="searchTitle"><button class="dialog-close" id="closeSearch" aria-label="Close search">×</button><h2 id="searchTitle">Search RimRelay</h2><input id="globalSearchInput" type="search" placeholder="Player, team, or game" autocomplete="off"><div id="searchResults"><div class="empty-state compact-empty">Start typing to search.</div></div></dialog>
+  <dialog id="searchDialog" class="search-dialog" aria-labelledby="searchTitle"><button class="dialog-close" id="closeSearch" aria-label="Close search">×</button><h2 id="searchTitle">Search Courtside</h2><input id="globalSearchInput" type="search" placeholder="Player, team, or game" autocomplete="off"><div id="searchResults"><div class="empty-state compact-empty">Start typing to search.</div></div></dialog>
   <div id="compareTray" class="compare-tray" hidden><span id="compareCount">0 players selected</span><button id="openComparison">Compare</button><button id="clearComparison">Clear</button></div>
   <dialog id="comparisonDialog" class="player-dialog" aria-labelledby="comparisonTitle"><button class="dialog-close" id="closeComparison" aria-label="Close comparison">×</button><div id="comparisonContent"><h2 id="comparisonTitle">Player comparison</h2></div></dialog>
   <dialog id="transactionDialog" class="player-dialog transaction-dialog" aria-labelledby="transactionDialogTitle"><button class="dialog-close" id="closeTransactionDialog" aria-label="Close transaction">×</button><div id="transactionDetail"></div></dialog>
   <dialog id="userHubDialog" class="user-hub-dialog" aria-labelledby="userHubTitle">
     <button class="dialog-close" id="closeUserHub" aria-label="Close preferences">×</button>
-    <div class="hub-heading"><p class="eyebrow">YOUR RIMRELAY</p><h2 id="userHubTitle">Preferences</h2><p>Personalize this browser without creating an account.</p></div>
+    <div class="hub-heading"><p class="eyebrow">YOUR COURTSIDE</p><h2 id="userHubTitle">Preferences</h2><p>Personalize this browser without creating an account.</p></div>
     <div class="hub-account-card" aria-label="Account details">
       <div class="hub-profile-preview" id="hubProfilePreview"><img class="account-avatar-image hub-profile-image" id="hubProfileImage" alt=""></div>
       <div><strong>Account details</strong><small>Profile picture preview</small></div>
@@ -113,7 +113,7 @@
       <section class="hub-section"><h3>Favorite team</h3><label class="hub-field"><span>Team</span><select id="favoriteTeam"><option value="">No favorite selected</option></select></label><button class="hub-link" id="openFavoriteTeam" disabled>Open team page</button></section>
       <section class="hub-section"><h3>Playoff bracket</h3><p>Open your saved bracket from profile instead of the main navigation.</p><button class="primary-action" id="openBracketTool" type="button">Open bracket predictor</button></section>
       <section class="hub-section"><h3>Notifications</h3><label class="setting-row"><span><strong>Game alerts</strong><small>Browser alerts for your favorite team</small></span><input type="checkbox" data-notification="games"></label><label class="setting-row"><span><strong>Injury updates</strong><small>Track availability changes</small></span><input type="checkbox" data-notification="injuries"></label><label class="setting-row"><span><strong>League moves</strong><small>Trades and signings</small></span><input type="checkbox" data-notification="moves"></label><p class="hub-note" id="notificationNote">Preferences are saved on this device.</p></section>
-      <section class="hub-section hub-about"><h3>About & help</h3><p>RimRelay combines NBA scores, standings, rosters, moves, and salary context in one independent dashboard.</p><details><summary>How is my information stored?</summary><p>Theme, favorite team, fantasy names, and notification preferences stay in this browser using local storage.</p></details><details><summary>Is fantasy connected to a provider?</summary><p>Not yet. This first version saves your league shortcut; live ESPN or Yahoo league syncing requires a future account connection.</p></details><a href="https://github.com/FarhnChy/Courtside-nba-stat-tracking/issues" target="_blank" rel="noreferrer">Report a problem ↗</a></section>
+      <section class="hub-section hub-about"><h3>About & help</h3><p>Courtside combines NBA scores, standings, rosters, moves, and salary context in one independent dashboard.</p><details><summary>How is my information stored?</summary><p>Theme, favorite team, fantasy names, and notification preferences stay in this browser using local storage.</p></details><details><summary>Is fantasy connected to a provider?</summary><p>Not yet. This first version saves your league shortcut; live ESPN or Yahoo league syncing requires a future account connection.</p></details><a href="https://github.com/FarhnChy/Courtside-nba-stat-tracking/issues" target="_blank" rel="noreferrer">Report a problem ↗</a></section>
     </div>
   </dialog>
   <dialog id="fantasyDialog" class="user-hub-dialog fantasy-dialog" aria-labelledby="fantasyDialogTitle">
@@ -122,7 +122,7 @@
     <section class="hub-section hub-fantasy standalone-fantasy"><h3>My league</h3><p id="fantasyStatus">No fantasy league saved yet.</p><div class="hub-actions"><button class="primary-action" id="startFantasy">Start fantasy team</button><button class="secondary-action" id="checkFantasy">Check my league</button></div><form id="fantasyForm" hidden><label class="hub-field"><span>League name</span><input id="fantasyLeagueName" maxlength="40" required placeholder="Friends League"></label><label class="hub-field"><span>Team name</span><input id="fantasyTeamName" maxlength="40" required placeholder="My Team"></label><button class="primary-action" type="submit">Save league</button></form></section>
   </dialog>
   <dialog id="playerDialog" class="player-dialog" aria-labelledby="playerDialogTitle"><button class="dialog-close" id="closePlayerDialog" aria-label="Close player profile">×</button><div id="playerProfile"></div></dialog>
-  <footer>RIMRELAY LABS <span>Independent basketball analytics concept · Not affiliated with the NBA or ESPN</span></footer>
+  <footer>COURTSIDE LABS <span>Independent basketball analytics concept · Not affiliated with the NBA or ESPN</span></footer>
   <script src="app.js"></script>
   <script src="pinned-score.js"></script>
 </body>

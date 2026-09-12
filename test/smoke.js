@@ -8,7 +8,7 @@ for (const file of textFiles) {
   const source = fs.readFileSync(path.join(root, file), 'utf8');
   for (const marker of ['\u00c2\u00b7','\u00e2\u20ac\u201d','\u00e2\u20ac\u201c','\u00e2\u20ac\u00a6','\u00c3\u2014']) assert.equal(source.includes(marker), false, `${file} should not contain mojibake`);
 }
-for (const file of ['public/index.html', 'public/styles.css', 'public/app.js', 'public/rimrelay.svg']) {
+for (const file of ['public/index.html', 'public/styles.css', 'public/app.js', 'public/courtside.png']) {
   assert.equal(fs.existsSync(path.join(root, file)), true, `${file} should exist`);
 }
 
@@ -110,8 +110,8 @@ assert.equal(html.includes('data-roster-mode="coaches"'), true, 'team pages shou
 assert.equal(appSource.includes('coaching-grid'), true, 'team pages should render coaching staff cards');
 assert.equal(html.includes('id="calendarDate"'), true, 'date strip should include a calendar picker');
 assert.equal(html.includes('brand-logo-image'), true, 'Courtside image logo should be the home link separate from account picture');
-assert.equal(html.includes('brand-wordmark'), true, 'topbar should display the RimRelay wordmark');
-assert.equal(html.includes('<title>RimRelay</title>'), true);
+assert.equal(html.includes('brand-wordmark'), false, 'topbar should use the original Courtside logo');
+assert.equal(html.includes('<title>Courtside</title>'), true);
 assert.equal(html.includes('AWARDS & SEED RACE'), true, 'futures tab should present awards and seed races');
 for (const feature of ['awardRaces','seedChanceRows','upcomingScheduleEdge','No. 1 seed chances','Model board, not betting odds']) assert.equal(appSource.includes(feature), true, `race center should include ${feature}`);
 assert.equal(html.includes('Boston Celtics'), false, 'published playoff UI should not hard-code Boston as the favorite');

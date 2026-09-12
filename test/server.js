@@ -27,7 +27,7 @@ async function run() {
 
     const home = await fetch(base);
     assert.equal(home.status, 200);
-    assert.match(await home.text(), /RIMRELAY/);
+    assert.match(await home.text(), /COURTSIDE/);
     assert.equal(home.headers.get('x-frame-options'), 'SAMEORIGIN');
 
     const logo = await fetch(`${base}/courtside.png`);

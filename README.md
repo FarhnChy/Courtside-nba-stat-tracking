@@ -1,122 +1,90 @@
-# RimRelay
+# Courtside
 
-RimRelay is a responsive NBA game center and roster-economics dashboard. It combines live scores and full game details with standings, rosters, injuries, transactions, contracts, free agency, and salary-cap context in one original interface.
+**NBA scores, game details, and trade news in one place.**
 
-Vercel deployment ready · Demo video coming soon
+I built Courtside because I kept checking ESPN to keep up with games. I wanted an easier way to follow scores and roster moves from one dashboard, with a small pinned scoreboard I could keep nearby while doing other things.
 
-![RimRelay desktop dashboard](docs/screenshots/layout-desktop.png)
+Built with **JavaScript, HTML, CSS, and Node.js**, with deployment support for **Vercel**.
 
-## Current features
+![Courtside desktop dashboard showing NBA scores and game details](docs/screenshots/layout-desktop.png)
 
-- Pin a game to either bottom corner, with a saved selection and independent 20-second refresh
-- Float the pinned score above other desktop windows in browsers supporting Document Picture-in-Picture (HTTPS or localhost; keep the app tab open)
-- Locally bundled logos for all 30 teams, including the pinned score
-- Daily NBA scoreboard with 20-second live refresh and offline fallback
-- Released NBA schedule hub with date, team, status filters, and calendar game-count markers
-- Full player box scores, team statistics, period scoring, and play-by-play
-- East and West standings with playoff and play-in indicators
-- All 30 teams, searchable rosters, coaches, and injury availability
-- Clickable player profiles with headshots, season statistics, honors, and news
-- Recent transactions with team and move-type filters
-- Official cap thresholds, payroll rankings, and multi-year contracts
-- Player/team contract options, free agents, and projected cap holds
-- Awards Race Center with MVP/award boards and East/West No. 1 seed model views
-- Shareable screen routes, responsive navigation, and keyboard interaction
+## What you can do
 
-The prediction, futures, shot-chart, and win-probability surfaces currently demonstrate the intended product experience. Calibrated historical models and live shot-coordinate animation are roadmap work and are not presented as production forecasts.
+- **Follow games:** scores refresh every 20 seconds, with box scores, quarter-by-quarter scoring, team stats, and play-by-play.
+- **Keep a score close:** pin a game to either bottom corner. In supported browsers, float it above other desktop windows while the app tab stays open.
+- **Catch up on the league:** browse trades, signings, injuries, and ESPN news updates, including reporting from Shams Charania.
+- **Explore teams and players:** view standings, schedules, all 30 team rosters, and player profiles.
+- **Understand roster moves:** check contracts, payrolls, salary-cap context, and free-agent status.
 
-## Architecture
+Team logos are bundled locally. Theme, favorite-team preferences, and the pinned-game selection are saved in your browser.
+
+## Engineering highlights
+
+Courtside connects a browser interface to a Node.js API that normalizes data from multiple basketball sources.
+
+- **Consistent data shapes:** provider adapters handle upstream responses so the interface can work with a common format.
+- **Resilient score updates:** caching and fallback data help when feeds are unavailable. Saved scoreboard data is labeled offline, and older requests cannot overwrite a newer date selection.
+- **Independent score tracking:** the pinned widget refreshes its chosen game even when you browse another scoreboard date.
+- **Responsive interaction:** desktop and mobile layouts, keyboard controls, and labeled dialogs support different ways of using the app.
+- **Automated checks:** tests cover provider normalization, finance invariants, HTTP validation, security headers, accessibility guardrails, score-request ordering, and bundled logos.
 
 ```text
-Browser UI
-   |
-   v
-Browser / Vercel CDN  --> Node serverless API + short-lived normalized cache
-   |
-   +--> ESPN site feeds: games, standings, teams, players, injuries, moves
-   +--> NBA sources: free agency and official cap thresholds
-   +--> Basketball Reference / SalarySwish: contracts and cap holds
+Browser interface --> Node.js API --> Basketball data sources
+                         |
+                Normalization + caching
 ```
 
-The browser consumes only RimRelay's stable local JSON shapes. Provider-specific parsing, validation, and caching remain in the API so upstream response changes do not spread through the interface. On Vercel, CDN revalidation refreshes scores after 15 seconds; injuries, transactions, and ESPN/Shams news after 60 seconds; schedules after two minutes; and financial/free-agent pages after 15 minutes. Visitor requests trigger refresh automatically, so routine data updates require no code edit or redeploy.
+<details>
+<summary>View the mobile layout</summary>
+
+<img src="docs/screenshots/layout-mobile.png" alt="Courtside mobile layout" width="340">
+
+</details>
 
 ## Run locally
 
 Requires Node.js 18 or newer.
 
-```powershell
-npm.cmd install
-npm.cmd run dev
+```sh
+git clone https://github.com/FarhnChy/Courtside-nba-stat-tracking.git
+cd Courtside-nba-stat-tracking
+npm install
+npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [localhost:3000](http://localhost:3000).
 
-```powershell
-npm.cmd test
-npm.cmd run audit:data
+```sh
+npm test             # Run automated checks
+npm run audit:data   # Check manual snapshots for stale data
 ```
 
-The test suite checks the app shell, provider normalization, finance invariants, HTTP validation, security headers, static accessibility guardrails, and static serving. The data audit reports stale manual snapshots without blocking local development unless run with `node scripts/audit-data.js --strict`.
+On Windows PowerShell, use `npm.cmd` if script execution settings prevent `npm` from running.
 
-## API routes
+<details>
+<summary>Project structure and deployment</summary>
 
-- `GET /api/scoreboard?date=YYYY-MM-DD`
-- `GET /api/schedule?start=YYYY-MM-DD&days=7`
-- `GET /api/games/:eventId`
-- `GET /api/standings`
-- `GET /api/teams`
-- `GET /api/teams/:teamId/roster`
-- `GET /api/players/:playerId`
-- `GET /api/injuries`
-- `GET /api/transactions`
-- `GET /api/free-agents`
-- `GET /api/finance/cap`
-- `GET /api/finance/payrolls`
-- `GET /api/finance/teams/:abbr/contracts`
-- `GET /api/finance/teams/:abbr/cap-holds`
-- `GET /api/health`
+| Location | Purpose |
+| --- | --- |
+| `public/` | Browser interface, styles, pinned scoreboard, and team logos |
+| `server.js` | Local server and API routes |
+| `lib/` and `providers/` | Data adapters and normalization |
+| `data/` | Fallback snapshots and curated roster context |
+| `api/` and `vercel.json` | Vercel deployment configuration |
+| `test/` | Automated checks |
 
-## Data references
+To deploy, import the repository into Vercel using the **Other** framework preset. The project includes static assets and a Node Function for API requests. No API keys are required by the current configuration.
 
-- [hoopR](https://github.com/sportsdataverse/hoopR) informed the ESPN adapter structure.
-- [NBA.com schedule and key dates](https://www.nba.com/schedule) provide released schedule context for the calendar and upcoming games.
-- [NBA Communications](https://pr.nba.com/) supplies official salary-cap thresholds.
-- [NBA Free Agent Tracker](https://www.nba.com/players/free-agent-tracker) supplies free-agent status and movement data.
-- [Basketball Reference contracts](https://www.basketball-reference.com/contracts/) supplies cached payroll and contract summaries.
-- [SalarySwish](https://www.salaryswish.com/) supplies projected cap holds.
-- [nba_data](https://github.com/llimllib/nba_data) and [awesome-nba-data](https://github.com/JovaniPink/awesome-nba-data) are being evaluated for historical modeling inputs.
+</details>
 
-The ESPN site endpoints used by this prototype are unofficial and may change. Financial figures can also change during the offseason, so relevant screens expose source and retrieval context.
+## Data and project status
 
-## Deploy to Vercel
+Scores and league updates use ESPN public site feeds. Free-agent and cap information draws on NBA.com, NBA Communications, Basketball Reference, and SalarySwish. Repository snapshots provide additional fallback context. These integrations are unofficial, and availability or freshness can vary by source.
 
-The repository includes `vercel.json` and a catch-all Node Function for the existing `/api/*` routes. No secrets are currently required.
+The core project focuses on scores and league tracking. Prediction, awards-race, shot-chart, and win-probability views are **demonstrations, not validated forecasts**. Fantasy currently saves local league details; it does not sync with ESPN or Yahoo accounts. Desktop floating requires Document Picture-in-Picture support and HTTPS or localhost; the corner widget is available without that feature.
 
-1. Import this GitHub repository at [vercel.com/new](https://vercel.com/new).
-2. Leave Framework Preset as **Other**, Root Directory as the repository root, and the build/output fields at their defaults.
-3. Deploy. Vercel serves `public/` and routes `/api/*` through `api/index.js`.
-4. In the Vercel project, open **Settings → Domains** to attach a custom domain if wanted.
+Next steps include broader browser testing, fantasy-provider integration, and backtested prediction models.
 
-The old Render blueprint has been removed. Vercel Hobby cron jobs are limited to once daily, so RimRelay uses automatic on-request revalidation instead of a constant background process. This gives active visitors fresh data for free without storing scraped copies. Truly always-on ingestion would require an external scheduler and persistent database.
+---
 
-## Live and fallback sources
-
-- ESPN public site APIs with ESPN CDN failover: live scores, schedules, box scores, standings, team rosters, injuries, transactions, player pages, NBA news, and ESPN articles attributed to Shams Charania.
-- NBA.com: free-agent tracker and roster reconciliation; NBA Communications for cap thresholds.
-- Basketball Reference: team payroll and contract tables.
-- SalarySwish: projected cap holds.
-- Repository snapshots in `data/`: fallback/offseason rows used when a live source is missing or for manually verified historical context.
-
-RimRelay does not scrape X/Twitter directly. X access is brittle and generally requires a paid API; Shams updates currently enter through ESPN's NBA news feed, where his reporting is published, and retain their source links. These public endpoints are unofficial integrations and can change, so review provider terms before commercial use.
-
-## Roadmap
-
-1. Public deployment and cross-device release testing
-2. Expanded player and team detail pages
-3. Focused Fantasy Lab with configurable scoring and saved lineups
-4. Backtested playoff and championship probability models
-5. Live win probability and shot-by-shot animation
-
-## Disclaimer
-
-RimRelay is an independent educational portfolio project and is not affiliated with or endorsed by ESPN or the NBA. Provider terms and data licenses should be reviewed before any commercial distribution.
+Courtside is an independent portfolio project, not affiliated with or endorsed by ESPN or the NBA. Team names and logos belong to their respective owners.

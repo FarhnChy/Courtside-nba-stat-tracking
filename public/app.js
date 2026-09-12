@@ -17,7 +17,7 @@ const errorState = (message,retry) => `<div class="empty-state designed-empty"><
 function sourceBadge(source, retrievedAt, label = 'Source') {
   const time = retrievedAt ? new Date(retrievedAt) : null;
   const stamp = time && Number.isFinite(time.getTime()) ? time.toLocaleString() : 'not refreshed';
-  return `<span class="source-badge"><strong>${escapeHtml(label)}</strong>${escapeHtml(source || 'RimRelay model')} - ${escapeHtml(stamp)}</span>`;
+  return `<span class="source-badge"><strong>${escapeHtml(label)}</strong>${escapeHtml(source || 'Courtside model')} - ${escapeHtml(stamp)}</span>`;
 }
 const savedHub = (() => { try { return JSON.parse(localStorage.getItem('courtsideHub') || '{}'); } catch (_) { return {}; } })();
 const hubState = {
@@ -378,7 +378,7 @@ function seedRows(conferenceId, label) {
 }
 function renderFutures(){
   const root=document.querySelector('#futuresGrid');
-  root.innerHTML=`<section class="demo-disclosure futures-disclosure"><strong>Model board, not betting odds</strong><span>Awards and No. 1 seed chances are a RimRelay demo model based on team record, form, role, and released schedule context. Use it as a product surface until calibrated historical models are added.</span><span>${sourceBadge('RimRelay demo model',liveStandings.updatedAt,'Race model')} ${sourceBadge(raceSchedule.source,raceSchedule.retrievedAt,'Schedule')}</span></section><section class="panel award-race-card"><div class="panel-title"><div><p class="eyebrow">AWARDS RACE</p><h2>MVP and award boards</h2></div><span class="pill">Top candidates</span></div><div class="award-board">${awardRaces.map(race=>`<section><h3>${escapeHtml(race.label)}</h3>${awardRows(race)}</section>`).join('')}</div></section>${seedRows('east','East')}${seedRows('west','West')}`;
+  root.innerHTML=`<section class="demo-disclosure futures-disclosure"><strong>Model board, not betting odds</strong><span>Awards and No. 1 seed chances are a Courtside demo model based on team record, form, role, and released schedule context. Use it as a product surface until calibrated historical models are added.</span><span>${sourceBadge('Courtside demo model',liveStandings.updatedAt,'Race model')} ${sourceBadge(raceSchedule.source,raceSchedule.retrievedAt,'Schedule')}</span></section><section class="panel award-race-card"><div class="panel-title"><div><p class="eyebrow">AWARDS RACE</p><h2>MVP and award boards</h2></div><span class="pill">Top candidates</span></div><div class="award-board">${awardRaces.map(race=>`<section><h3>${escapeHtml(race.label)}</h3>${awardRows(race)}</section>`).join('')}</div></section>${seedRows('east','East')}${seedRows('west','West')}`;
 }
 const viewRoutes = { scores:'scores', schedule:'scheduleView', standings:'standings', teams:'teamsView', injuries:'injuriesView', moves:'transactionsView', finance:'teamsView', 'free-agents':'freeAgentsView', predict:'predict', futures:'futures' };
 const routeForView = viewId => Object.entries(viewRoutes).find(([,id]) => id === viewId)?.[0] || 'scores';
@@ -649,7 +649,7 @@ function profileFallbackStats(player) {
     ['REB', Number(stats.rpg || 0).toFixed(1)],
     ['AST', Number(stats.apg || 0).toFixed(1)]
   ];
-  return `<div class="profile-stats">${values.map(([label, value]) => `<div><strong>${escapeHtml(value)}</strong><small>${label}</small></div>`).join('')}</div><div class="profile-section"><h3>NBA season history</h3><p>The full ESPN season-history table is not available for this player ID, so RimRelay is showing the free-agent tracker averages used in the table.</p></div>`;
+  return `<div class="profile-stats">${values.map(([label, value]) => `<div><strong>${escapeHtml(value)}</strong><small>${label}</small></div>`).join('')}</div><div class="profile-section"><h3>NBA season history</h3><p>The full ESPN season-history table is not available for this player ID, so Courtside is showing the free-agent tracker averages used in the table.</p></div>`;
 }
 
 function renderProfileHistory(history) {

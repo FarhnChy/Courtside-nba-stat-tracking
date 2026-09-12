@@ -9,7 +9,7 @@
   const panel = document.createElement('aside');
   panel.className = 'pinned-score';
   panel.setAttribute('aria-label', 'Pinned score');
-  panel.innerHTML = '<div class="pin-header"><strong>RIMRELAY</strong><button type="button" data-close aria-label="Unpin score">Ã—</button></div><div data-score></div><p class="pin-status" role="status" data-status></p><div class="pin-actions"><button type="button" data-corner>Move corner</button><button type="button" data-desktop>Float on desktop</button></div>';
+  panel.innerHTML = '<div class="pin-header"><strong>COURTSIDE</strong><button type="button" data-close aria-label="Unpin score">Ã—</button></div><div data-score></div><p class="pin-status" role="status" data-status></p><div class="pin-actions"><button type="button" data-corner>Move corner</button><button type="button" data-desktop>Float on desktop</button></div>';
   document.body.append(panel);
   const persist = () => { try { if(game)localStorage.setItem(key, JSON.stringify({ game, corner }));else localStorage.removeItem(key); } catch (_) {} };
   const status = message => { panel.querySelector('[data-status]').textContent = message; };
@@ -80,7 +80,7 @@
     if (desktop) { desktop.close(); return; }
     try {
       desktop = await window.documentPictureInPicture.requestWindow({ width:350, height:290 });
-      desktop.document.title = 'RimRelay Â· Pinned score';
+      desktop.document.title = 'Courtside Â· Pinned score';
       const style = desktop.document.createElement('link');
       style.rel = 'stylesheet'; style.href = new URL('pinned-score.css', location.href).href;
       desktop.document.head.append(style);
