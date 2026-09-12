@@ -10,14 +10,14 @@ const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&
 async function fetchApi(url) {
   let lastError;
   for(let attempt=0;attempt<2;attempt++)try{const response=await window.fetch(url);if(!response.ok)throw new Error(`Request failed (${response.status})`);try{localStorage.setItem(`apiCache:${url}`,await response.clone().text())}catch(_){}return response}catch(error){lastError=error}
-  const cached=localStorage.getItem(`apiCache:${url}`);if(cached!=null)return new Response(cached,{status:200,headers:{'content-type':'application/json','x-courtside-cache':'stale'}});throw lastError;
+  let cached;try{cached=localStorage.getItem(`apiCache:${url}`)}catch(_){}if(cached!=null)return new Response(cached,{status:200,headers:{'content-type':'application/json','x-courtside-cache':'stale'}});throw lastError;
 }
 const loadingState = (kind='cards') => `<div class="loading-state ${kind}" aria-label="Loading content" aria-busy="true">${Array.from({length:kind==='table'?6:3},(_,index)=>`<span class="skeleton skeleton-${index}"></span>`).join('')}</div>`;
 const errorState = (message,retry) => `<div class="empty-state designed-empty"><strong>${escapeHtml(message)}</strong><span>Live data could not be refreshed. Saved data will appear automatically when available.</span><button class="secondary-action" data-retry="${retry}">Try again</button></div>`;
 function sourceBadge(source, retrievedAt, label = 'Source') {
   const time = retrievedAt ? new Date(retrievedAt) : null;
   const stamp = time && Number.isFinite(time.getTime()) ? time.toLocaleString() : 'not refreshed';
-  return `<span class="source-badge"><strong>${escapeHtml(label)}</strong>${escapeHtml(source || 'Courtside model')} - ${escapeHtml(stamp)}</span>`;
+  return `<span class="source-badge"><strong>${escapeHtml(label)}</strong>${escapeHtml(source || 'RimRelay model')} - ${escapeHtml(stamp)}</span>`;
 }
 const savedHub = (() => { try { return JSON.parse(localStorage.getItem('courtsideHub') || '{}'); } catch (_) { return {}; } })();
 const hubState = {
@@ -28,7 +28,7 @@ const hubState = {
   notifications: { games:false, injuries:false, moves:false, ...(savedHub.notifications || {}) },
   teams: []
 };
-const saveHub = () => localStorage.setItem('courtsideHub', JSON.stringify({ theme:hubState.theme, favoriteTeam:hubState.favoriteTeam, profileImage:hubState.profileImage, fantasy:hubState.fantasy, notifications:hubState.notifications }));
+const saveHub = () => { try { localStorage.setItem('courtsideHub', JSON.stringify({ theme:hubState.theme, favoriteTeam:hubState.favoriteTeam, profileImage:hubState.profileImage, fantasy:hubState.fantasy, notifications:hubState.notifications })); } catch (_) {} };
 function applyTheme(theme) {
   hubState.theme = theme === 'light' ? 'light' : 'dark';
   document.documentElement.dataset.theme = hubState.theme;
@@ -93,7 +93,12 @@ let selected=games[0], dayOffset=0;
 const scheduleWindow = { loading:false, days:new Map(), requestedStart:'' };
 const scheduleHub = { days:[], teams:[], retrievedAt:null, source:'ESPN public scoreboard', query:{ start:'', days:'7', team:'all', status:'all' } };
 const raceSchedule = { days:[], retrievedAt:null, source:'ESPN public scoreboard' };
-const logo=(code,cls='team-logo')=>teams[code]?.logo?`<img class="${cls} real-team-logo" src="${escapeHtml(teams[code].logo)}" alt="${escapeHtml(teams[code].name||code)} logo">`:`<span class="${cls}" style="--team:${teams[code]?.color||'#334155'}">${code}</span>`;
+const teamLogoPath = code => {
+  const aliases = { NO:'NOP', NY:'NYK', GS:'GSW', SA:'SAS', UTAH:'UTA', WSH:'WAS', PHO:'PHX' };
+  const normalized = aliases[String(code).toUpperCase()] || String(code).toUpperCase();
+  return `team-logos/${normalized.toLowerCase()}.png`;
+};
+const logo=(code,cls='team-logo')=>`<img class="${cls} real-team-logo" src="${escapeHtml(teamLogoPath(code))}" alt="${escapeHtml(teams[code]?.name||code)} logo">`;
 function dateValue(date){return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`}
 function visibleDateValues(){return Array.from({length:7},(_,index)=>{const d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()+index-3+dayOffset);return dateValue(d)})}
 function scheduleMarker(value){const day=scheduleWindow.days.get(value);if(!day)return scheduleWindow.loading?'...':'';return day.count?`${day.count} game${day.count===1?'':'s'}`:'Off'}
@@ -373,7 +378,7 @@ function seedRows(conferenceId, label) {
 }
 function renderFutures(){
   const root=document.querySelector('#futuresGrid');
-  root.innerHTML=`<section class="demo-disclosure futures-disclosure"><strong>Model board, not betting odds</strong><span>Awards and No. 1 seed chances are a Courtside demo model based on team record, form, role, and released schedule context. Use it as a product surface until calibrated historical models are added.</span><span>${sourceBadge('Courtside demo model',liveStandings.updatedAt,'Race model')} ${sourceBadge(raceSchedule.source,raceSchedule.retrievedAt,'Schedule')}</span></section><section class="panel award-race-card"><div class="panel-title"><div><p class="eyebrow">AWARDS RACE</p><h2>MVP and award boards</h2></div><span class="pill">Top candidates</span></div><div class="award-board">${awardRaces.map(race=>`<section><h3>${escapeHtml(race.label)}</h3>${awardRows(race)}</section>`).join('')}</div></section>${seedRows('east','East')}${seedRows('west','West')}`;
+  root.innerHTML=`<section class="demo-disclosure futures-disclosure"><strong>Model board, not betting odds</strong><span>Awards and No. 1 seed chances are a RimRelay demo model based on team record, form, role, and released schedule context. Use it as a product surface until calibrated historical models are added.</span><span>${sourceBadge('RimRelay demo model',liveStandings.updatedAt,'Race model')} ${sourceBadge(raceSchedule.source,raceSchedule.retrievedAt,'Schedule')}</span></section><section class="panel award-race-card"><div class="panel-title"><div><p class="eyebrow">AWARDS RACE</p><h2>MVP and award boards</h2></div><span class="pill">Top candidates</span></div><div class="award-board">${awardRaces.map(race=>`<section><h3>${escapeHtml(race.label)}</h3>${awardRows(race)}</section>`).join('')}</div></section>${seedRows('east','East')}${seedRows('west','West')}`;
 }
 const viewRoutes = { scores:'scores', schedule:'scheduleView', standings:'standings', teams:'teamsView', injuries:'injuriesView', moves:'transactionsView', finance:'teamsView', 'free-agents':'freeAgentsView', predict:'predict', futures:'futures' };
 const routeForView = viewId => Object.entries(viewRoutes).find(([,id]) => id === viewId)?.[0] || 'scores';
@@ -424,6 +429,7 @@ const statusLabel = status => status.state === 'in' && status.period ? `Q${statu
 function installLiveGames(payload) {
   if (!payload.games.length) {
     games.splice(0, games.length);
+    selected = null;
     document.querySelector('#scoreGrid').innerHTML = '<div class="empty-state designed-empty schedule-empty"><strong>No NBA games scheduled</strong><span>This date is clear. Browse another day or catch up around the league.</span><div><button class="secondary-action" data-empty-view="transactionsView">Latest moves</button><button class="secondary-action" data-empty-view="standings">Standings</button></div></div>';
     document.querySelector('#gameCenter').innerHTML = '<div class="empty-state designed-empty"><strong>Nothing on the scoreboard today</strong><span>Game details will appear here as soon as a matchup is selected.</span></div>';
     document.querySelector('#leaders').innerHTML = '<div class="panel-title"><h2>Game leaders</h2><span class="pill">PTS</span></div><div class="empty-state compact-empty">No game is selected.</div>';
@@ -439,15 +445,18 @@ function installLiveGames(payload) {
   renderCards(); enhanceScoreCards(); loadGame(selected.id, true);
 }
 
+let scoreboardRequest = 0;
 async function loadScoreboard(quiet = false) {
+  const request = ++scoreboardRequest;
   const status = document.querySelector('#feedStatus');
   if (status && !quiet) status.textContent = 'Loading live NBA data…';
   try {
     const response = await fetchApi(`/api/scoreboard?date=${isoDate(live.date)}`);
     if (!response.ok) throw new Error('Feed unavailable');
-    const payload = await response.json(); live.source = 'live'; installLiveGames(payload);
+    const payload = await response.json(); if(request !== scoreboardRequest)return; live.source = 'live'; installLiveGames(payload);
+    if(response.headers.get('x-courtside-cache') === 'stale'){if(status)status.textContent='Offline ? showing saved scores';return;}
     if (status) status.textContent = `${payload.season || 'NBA'} · Live feed · refreshes every 20s`;
-  } catch (error) { live.source = 'demo'; if (status) status.textContent = 'Offline demo · live feed unavailable'; }
+  } catch (error) { if(request !== scoreboardRequest)return; live.source = 'demo'; if (status) status.textContent = 'Offline demo · live feed unavailable'; }
 }
 
 function summaryTabs(summary, active = 'box') {
@@ -504,7 +513,9 @@ function renderPlayByPlay(plays) {
   return `<div class="play-list full">${plays.map(play=>`<div class="play"><time>Q${play.period} ${escapeHtml(play.clock)}</time><div><strong>${escapeHtml(play.awayScore)}–${escapeHtml(play.homeScore)}</strong>${escapeHtml(play.text)}</div></div>`).join('')}</div>`;
 }
 
+let gameRequest = 0;
 async function loadGame(id, quiet = false) {
+  const request = ++gameRequest;
   if (live.source !== 'live') return renderGame();
   const root = document.querySelector('#gameCenter');
   root.setAttribute('aria-busy','true');
@@ -515,10 +526,11 @@ async function loadGame(id, quiet = false) {
     const maxAge = selectedGame?.status === 'LIVE' ? 15_000 : 300_000;
     let summary = cached && Date.now() - cached.time < maxAge ? cached.data : null;
     if (!summary) { const response = await fetch(`/api/games/${id}`); if (!response.ok) throw new Error('Summary unavailable'); summary = await response.json(); live.summaries.set(id, { data: summary, time: Date.now() }); }
+    if(request !== gameRequest || String(selected?.id) !== String(id))return;
     const activeTab = root.querySelector('[data-summary-tab].active')?.dataset.summaryTab || 'box';
     summaryTabs(summary, activeTab);
-  } catch (error) { if (!quiet || !root.querySelector('.summary-content')) root.innerHTML = '<div class="empty-state">Game details are not available yet.</div>'; }
-  finally { root.setAttribute('aria-busy','false'); }
+  } catch (error) { if(request !== gameRequest || String(selected?.id) !== String(id))return; if (!quiet || !root.querySelector('.summary-content')) root.innerHTML = '<div class="empty-state">Game details are not available yet.</div>'; }
+  finally { if(request === gameRequest)root.setAttribute('aria-busy','false'); }
 }
 
 function enhanceScoreCards() {
@@ -637,7 +649,7 @@ function profileFallbackStats(player) {
     ['REB', Number(stats.rpg || 0).toFixed(1)],
     ['AST', Number(stats.apg || 0).toFixed(1)]
   ];
-  return `<div class="profile-stats">${values.map(([label, value]) => `<div><strong>${escapeHtml(value)}</strong><small>${label}</small></div>`).join('')}</div><div class="profile-section"><h3>NBA season history</h3><p>The full ESPN season-history table is not available for this player ID, so Courtside is showing the free-agent tracker averages used in the table.</p></div>`;
+  return `<div class="profile-stats">${values.map(([label, value]) => `<div><strong>${escapeHtml(value)}</strong><small>${label}</small></div>`).join('')}</div><div class="profile-section"><h3>NBA season history</h3><p>The full ESPN season-history table is not available for this player ID, so RimRelay is showing the free-agent tracker averages used in the table.</p></div>`;
 }
 
 function renderProfileHistory(history) {

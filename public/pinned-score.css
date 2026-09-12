@@ -1,0 +1,22 @@
+.brand-logo-link { display:flex; width:auto; gap:10px; text-decoration:none; }
+.brand-logo-image { width:44px; height:44px; }
+.brand-wordmark { font-size:22px; font-weight:800; color:var(--text, #eef2f8); letter-spacing:-.7px; }
+.brand-wordmark small { display:block; font-size:8px; letter-spacing:1.6px; color:#ff853b; }
+.pin-game { margin-top:12px; width:100%; padding:8px; border:1px solid #67758b; border-radius:8px; background:transparent; color:inherit; cursor:pointer; }
+.pinned-score { position:fixed; bottom:24px; right:24px; z-index:100; width:min(330px, calc(100vw - 24px)); box-sizing:border-box; padding:16px; border:1px solid #586780; border-top:3px solid #ff853b; border-radius:16px; background:#101a2a; color:#f3f6fa; box-shadow:0 12px 48px #0008; font:14px system-ui,sans-serif; }
+.pinned-score[hidden] { display:none; }
+.pinned-score[data-corner="left"] { right:auto; left:12px; }
+.pin-header,.pin-team,.pin-actions { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.pin-header strong { color:#ff9b60; letter-spacing:1px; }
+.pinned-score button { cursor:pointer; background:#223149; color:#f3f6fa; border:1px solid #66758d; border-radius:7px; padding:7px 10px; font:inherit; }
+.pinned-score button:focus-visible,.pin-game:focus-visible { outline:3px solid #65e0cb; outline-offset:3px; }
+.pin-team { margin:12px 0; font-weight:650; }
+.pin-team b { font-size:28px; font-variant-numeric:tabular-nums; }
+.pin-status { color:#b9c7da; font-size:12px; line-height:1.5; }
+.pin-actions { margin-top:12px; }
+.pin-desktop { margin:0; background:#101a2a; }
+.pin-desktop .pinned-score { position:static; width:100%; min-height:100vh; border-radius:0; box-shadow:none; }
+@media(max-width:600px) { .brand-wordmark { font-size:17px; } .brand-wordmark small { display:none; } .brand-logo-link { display:flex; width:auto; } .brand-logo-image { width:32px; } .pinned-score { bottom:12px; right:12px; } }
+
+.pin-identity { display:flex; align-items:center; gap:10px; }
+.pin-identity img { object-fit:contain; flex-shrink:0; }

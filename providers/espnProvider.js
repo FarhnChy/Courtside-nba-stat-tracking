@@ -325,7 +325,7 @@ function createEspnProvider(options = {}) {
     const response = await fetch(url, {
       headers: {
         Accept: 'application/json',
-        'User-Agent': 'Courtside/0.1 local project'
+        'User-Agent': 'RimRelay/0.1 local project'
       }
     });
 

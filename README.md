@@ -1,13 +1,16 @@
-# Courtside
+# RimRelay
 
-Courtside is a responsive NBA game center and roster-economics dashboard. It combines live scores and full game details with standings, rosters, injuries, transactions, contracts, free agency, and salary-cap context in one original interface.
+RimRelay is a responsive NBA game center and roster-economics dashboard. It combines live scores and full game details with standings, rosters, injuries, transactions, contracts, free agency, and salary-cap context in one original interface.
 
 Vercel deployment ready · Demo video coming soon
 
-![Courtside desktop dashboard](docs/screenshots/layout-desktop.png)
+![RimRelay desktop dashboard](docs/screenshots/layout-desktop.png)
 
 ## Current features
 
+- Pin a game to either bottom corner, with a saved selection and independent 20-second refresh
+- Float the pinned score above other desktop windows in browsers supporting Document Picture-in-Picture (HTTPS or localhost; keep the app tab open)
+- Locally bundled logos for all 30 teams, including the pinned score
 - Daily NBA scoreboard with 20-second live refresh and offline fallback
 - Released NBA schedule hub with date, team, status filters, and calendar game-count markers
 - Full player box scores, team statistics, period scoring, and play-by-play
@@ -35,7 +38,7 @@ Browser / Vercel CDN  --> Node serverless API + short-lived normalized cache
    +--> Basketball Reference / SalarySwish: contracts and cap holds
 ```
 
-The browser consumes only Courtside's stable local JSON shapes. Provider-specific parsing, validation, and caching remain in the API so upstream response changes do not spread through the interface. On Vercel, CDN revalidation refreshes scores after 15 seconds; injuries, transactions, and ESPN/Shams news after 60 seconds; schedules after two minutes; and financial/free-agent pages after 15 minutes. Visitor requests trigger refresh automatically, so routine data updates require no code edit or redeploy.
+The browser consumes only RimRelay's stable local JSON shapes. Provider-specific parsing, validation, and caching remain in the API so upstream response changes do not spread through the interface. On Vercel, CDN revalidation refreshes scores after 15 seconds; injuries, transactions, and ESPN/Shams news after 60 seconds; schedules after two minutes; and financial/free-agent pages after 15 minutes. Visitor requests trigger refresh automatically, so routine data updates require no code edit or redeploy.
 
 ## Run locally
 
@@ -94,7 +97,7 @@ The repository includes `vercel.json` and a catch-all Node Function for the exis
 3. Deploy. Vercel serves `public/` and routes `/api/*` through `api/index.js`.
 4. In the Vercel project, open **Settings → Domains** to attach a custom domain if wanted.
 
-The old Render blueprint has been removed. Vercel Hobby cron jobs are limited to once daily, so Courtside uses automatic on-request revalidation instead of a constant background process. This gives active visitors fresh data for free without storing scraped copies. Truly always-on ingestion would require an external scheduler and persistent database.
+The old Render blueprint has been removed. Vercel Hobby cron jobs are limited to once daily, so RimRelay uses automatic on-request revalidation instead of a constant background process. This gives active visitors fresh data for free without storing scraped copies. Truly always-on ingestion would require an external scheduler and persistent database.
 
 ## Live and fallback sources
 
@@ -104,7 +107,7 @@ The old Render blueprint has been removed. Vercel Hobby cron jobs are limited to
 - SalarySwish: projected cap holds.
 - Repository snapshots in `data/`: fallback/offseason rows used when a live source is missing or for manually verified historical context.
 
-Courtside does not scrape X/Twitter directly. X access is brittle and generally requires a paid API; Shams updates currently enter through ESPN's NBA news feed, where his reporting is published, and retain their source links. These public endpoints are unofficial integrations and can change, so review provider terms before commercial use.
+RimRelay does not scrape X/Twitter directly. X access is brittle and generally requires a paid API; Shams updates currently enter through ESPN's NBA news feed, where his reporting is published, and retain their source links. These public endpoints are unofficial integrations and can change, so review provider terms before commercial use.
 
 ## Roadmap
 
@@ -116,4 +119,4 @@ Courtside does not scrape X/Twitter directly. X access is brittle and generally 
 
 ## Disclaimer
 
-Courtside is an independent educational portfolio project and is not affiliated with or endorsed by ESPN or the NBA. Provider terms and data licenses should be reviewed before any commercial distribution.
+RimRelay is an independent educational portfolio project and is not affiliated with or endorsed by ESPN or the NBA. Provider terms and data licenses should be reviewed before any commercial distribution.
