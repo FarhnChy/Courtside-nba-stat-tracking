@@ -6,7 +6,7 @@ I built Courtside because I kept checking ESPN to keep up with games. I wanted a
 
 Built with **JavaScript, HTML, CSS, and Node.js**, with deployment support for **Vercel**.
 
-![Courtside desktop dashboard showing NBA scores and game details](docs/screenshots/layout-desktop.png)
+![Courtside free-agent tracker with player filters, availability, and season statistics](docs/screenshots/readme-desktop.webp)
 
 ## What you can do
 
