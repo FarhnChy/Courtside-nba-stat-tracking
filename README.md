@@ -10,11 +10,11 @@ Built with **JavaScript, HTML, CSS, and Node.js**, with deployment support for *
 
 ## What you can do
 
-- **Follow games:** scores refresh every 20 seconds, with box scores, quarter-by-quarter scoring, team stats, and play-by-play.
+- **Follow games:** scores refresh every 20 seconds, with box scores, team stats, and play-by-play.
 - **Keep a score close:** pin a game to either bottom corner. In supported browsers, float it above other desktop windows while the app tab stays open.
-- **Catch up on the league:** browse trades, signings, injuries, and ESPN news updates, including reporting from Shams Charania.
-- **Explore teams and players:** view standings, schedules, all 30 team rosters, and player profiles.
-- **Understand roster moves:** check contracts, payrolls, salary-cap context, and free-agent status.
+- **Catch up on the league news:** browse trades, signings, injuries, and ESPN news updates.
+- **Explore teams and players:** view standings, schedules, rosters, and player profiles.
+- **Understand roster moves:** check contracts, payrolls, salary-caps, and free-agent status.
 
 Team logos are bundled locally. Theme, favorite-team preferences, and the pinned-game selection are saved in your browser.
 
