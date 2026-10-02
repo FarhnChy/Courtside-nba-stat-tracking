@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="live.css" />
   <link rel="stylesheet" href="pinned-score.css" />
+  <link rel="stylesheet" href="features.css" />
 </head>
 <body>
   <header class="topbar">
@@ -83,6 +84,7 @@
 
     <section id="transactionsView" class="view">
       <div class="section-heading"><div><p class="eyebrow">LEAGUE ACTIVITY</p><h1>Offseason moves tracker</h1></div><div class="transaction-filters"><button class="refresh-button" data-refresh="transactions">Refresh</button><select id="transactionTeam" class="team-picker" aria-label="Filter transactions by team"><option value="all">All teams</option></select><select id="transactionType" class="team-picker" aria-label="Filter transactions by type"><option value="all">All moves</option></select></div></div>
+      <section class="panel" id="tradeTimeline" aria-label="Trade-news timeline"></section>
       <section class="panel shams-panel"><div class="panel-title"><div><p class="eyebrow">ESPN / SHAMS WATCH</p><h2>Offseason moves tracker</h2></div><span class="pill" id="shamsPollStatus">Polling ESPN</span></div><p class="muted" id="shamsTimestamp">Searching for roster updates...</p><div id="shamsUpdateList"><div class="empty-state compact-empty">Loading ESPN updates...</div></div></section>
       <section class="panel transaction-panel"><p class="muted" id="transactionTimestamp">Loading transactions…</p><div id="transactionList"></div></section>
     </section>
@@ -112,18 +114,14 @@
       <section class="hub-section"><h3>Appearance</h3><div class="theme-picker" role="group" aria-label="Color theme"><button data-theme-choice="dark">Dark</button><button data-theme-choice="light">Light</button></div><label class="hub-field"><span>Account picture</span><input id="profileImageInput" type="file" accept="image/*" aria-label="Choose account picture"></label><button class="hub-link" id="clearProfileImage" type="button">Use default profile circle</button></section>
       <section class="hub-section"><h3>Favorite team</h3><label class="hub-field"><span>Team</span><select id="favoriteTeam"><option value="">No favorite selected</option></select></label><button class="hub-link" id="openFavoriteTeam" disabled>Open team page</button></section>
       <section class="hub-section"><h3>Playoff bracket</h3><p>Open your saved bracket from profile instead of the main navigation.</p><button class="primary-action" id="openBracketTool" type="button">Open bracket predictor</button></section>
-      <section class="hub-section"><h3>Notifications</h3><label class="setting-row"><span><strong>Game alerts</strong><small>Browser alerts for your favorite team</small></span><input type="checkbox" data-notification="games"></label><label class="setting-row"><span><strong>Injury updates</strong><small>Track availability changes</small></span><input type="checkbox" data-notification="injuries"></label><label class="setting-row"><span><strong>League moves</strong><small>Trades and signings</small></span><input type="checkbox" data-notification="moves"></label><p class="hub-note" id="notificationNote">Preferences are saved on this device.</p></section>
-      <section class="hub-section hub-about"><h3>About & help</h3><p>Courtside combines NBA scores, standings, rosters, moves, and salary context in one independent dashboard.</p><details><summary>How is my information stored?</summary><p>Theme, favorite team, fantasy names, and notification preferences stay in this browser using local storage.</p></details><details><summary>Is fantasy connected to a provider?</summary><p>Not yet. This first version saves your league shortcut; live ESPN or Yahoo league syncing requires a future account connection.</p></details><a href="https://github.com/FarhnChy/Courtside-nba-stat-tracking/issues" target="_blank" rel="noreferrer">Report a problem ↗</a></section>
+      <section class="hub-section"><h3>Notifications</h3><label class="setting-row"><span><strong>Tip-off</strong><small>Browser alerts for your favorite team</small></span><input type="checkbox" data-notification="tipoff"></label><label class="setting-row"><span><strong>Close fourth quarters</strong><small>Within 5 points in the last 5 minutes</small></span><input type="checkbox" data-notification="close"></label><label class="setting-row"><span><strong>League moves</strong><small>Trades and signings</small></span><input type="checkbox" data-notification="moves"></label><label class="setting-row"><span><strong>Final scores</strong><small>Your favorite team?s result</small></span><input type="checkbox" data-notification="final"></label><button class="secondary-action" id="enableAlerts">Enable browser notifications</button><p class="hub-note" id="notificationNote">Optional alerts for your favorite team while this app is open. Choose a team to start.</p></section>
+      <section class="hub-section hub-about"><h3>About & help</h3><p>Courtside combines NBA scores, standings, rosters, moves, and salary context in one independent dashboard.</p><details><summary>How is my information stored?</summary><p>Theme, favorite team, and notification preferences stay in this browser. Fantasy leagues are saved on the server; your private team key is saved in this browser.</p></details><details><summary>Can I play fantasy with friends?</summary><p>Yes. Create a private Courtside league, share an invite, and draft NBA players. Save your private recovery key to access your team on another device.</p><a href="/fantasy.html">Open Courtside Fantasy</a></details><a href="https://github.com/FarhnChy/Courtside-nba-stat-tracking/issues" target="_blank" rel="noreferrer">Report a problem ↗</a></section>
     </div>
-  </dialog>
-  <dialog id="fantasyDialog" class="user-hub-dialog fantasy-dialog" aria-labelledby="fantasyDialogTitle">
-    <button class="dialog-close" id="closeFantasyDialog" aria-label="Close fantasy">×</button>
-    <div class="hub-heading"><p class="eyebrow">FANTASY LAB</p><h2 id="fantasyDialogTitle">Fantasy team</h2><p>Saved locally in this browser. No account required.</p></div>
-    <section class="hub-section hub-fantasy standalone-fantasy"><h3>My league</h3><p id="fantasyStatus">No fantasy league saved yet.</p><div class="hub-actions"><button class="primary-action" id="startFantasy">Start fantasy team</button><button class="secondary-action" id="checkFantasy">Check my league</button></div><form id="fantasyForm" hidden><label class="hub-field"><span>League name</span><input id="fantasyLeagueName" maxlength="40" required placeholder="Friends League"></label><label class="hub-field"><span>Team name</span><input id="fantasyTeamName" maxlength="40" required placeholder="My Team"></label><button class="primary-action" type="submit">Save league</button></form></section>
   </dialog>
   <dialog id="playerDialog" class="player-dialog" aria-labelledby="playerDialogTitle"><button class="dialog-close" id="closePlayerDialog" aria-label="Close player profile">×</button><div id="playerProfile"></div></dialog>
   <footer>COURTSIDE LABS <span>Independent basketball analytics concept · Not affiliated with the NBA or ESPN</span></footer>
   <script src="app.js"></script>
+  <script src="features.js"></script>
   <script src="pinned-score.js"></script>
 </body>
 </html>

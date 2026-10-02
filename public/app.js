@@ -54,10 +54,6 @@ function updateHubIdentity() {
   open.textContent = favorite ? `Open ${favorite.abbreviation || 'team'} page` : 'Open team page';
   renderFavoriteDashboard();
 }
-function renderFantasyStatus() {
-  const root = document.querySelector('#fantasyStatus');
-  root.innerHTML = hubState.fantasy ? `<strong>${escapeHtml(hubState.fantasy.team)}</strong> · ${escapeHtml(hubState.fantasy.league)}<br><small>Saved locally · provider syncing is not connected yet</small>` : 'No fantasy league saved yet.';
-}
 function populateFavoriteTeams(teamList) {
   hubState.teams = teamList;
   const picker = document.querySelector('#favoriteTeam');
@@ -67,23 +63,17 @@ function populateFavoriteTeams(teamList) {
 }
 applyTheme(hubState.theme);
 updateHubIdentity();
-document.querySelector('#userHubButton').onclick=()=>{renderFantasyStatus();document.querySelector('#userHubDialog').showModal()};
+document.querySelector('#userHubButton').onclick=()=>{document.querySelector('#userHubDialog').showModal()};
 document.querySelector('#closeUserHub').onclick=()=>document.querySelector('#userHubDialog').close();
 document.querySelector('#userHubDialog').onclick=event=>{if(event.target===event.currentTarget)event.currentTarget.close()};
-document.querySelector('#fantasyHubButton').onclick=()=>{renderFantasyStatus();document.querySelector('#fantasyDialog').showModal()};
-document.querySelector('#closeFantasyDialog').onclick=()=>document.querySelector('#fantasyDialog').close();
-document.querySelector('#fantasyDialog').onclick=event=>{if(event.target===event.currentTarget)event.currentTarget.close()};
+document.querySelector('#fantasyHubButton').onclick=()=>{window.location.href='/fantasy.html'};
 document.querySelectorAll('[data-theme-choice]').forEach(button=>button.onclick=()=>applyTheme(button.dataset.themeChoice));
 document.querySelector('#favoriteTeam').onchange=event=>{hubState.favoriteTeam=event.target.value;saveHub();updateHubIdentity()};
 document.querySelector('#openFavoriteTeam').onclick=()=>{if(hubState.favoriteTeam){document.querySelector('#userHubDialog').close();openTeamRoster(hubState.favoriteTeam)}};
 document.querySelector('#openBracketTool').onclick=()=>{document.querySelector('#userHubDialog').close();bracketState.mode='custom';renderPredict();activateView('predict')};
 document.querySelector('#profileImageInput').onchange=event=>{const file=event.target.files?.[0];if(!file)return;if(!file.type.startsWith('image/'))return;const reader=new FileReader();reader.onload=()=>{hubState.profileImage=String(reader.result||'');saveHub();updateHubIdentity()};reader.readAsDataURL(file)};
 document.querySelector('#clearProfileImage').onclick=()=>{hubState.profileImage='';document.querySelector('#profileImageInput').value='';saveHub();updateHubIdentity()};
-document.querySelectorAll('[data-notification]').forEach(input=>{input.checked=Boolean(hubState.notifications[input.dataset.notification]);input.onchange=()=>{hubState.notifications[input.dataset.notification]=input.checked;saveHub();document.querySelector('#notificationNote').textContent='Preferences saved. Browser delivery will be added with live alert support.'}});
-const showFantasyForm = () => { const form=document.querySelector('#fantasyForm');form.hidden=false;document.querySelector('#fantasyLeagueName').value=hubState.fantasy?.league||'';document.querySelector('#fantasyTeamName').value=hubState.fantasy?.team||'';document.querySelector('#fantasyLeagueName').focus() };
-document.querySelector('#startFantasy').onclick=showFantasyForm;
-document.querySelector('#checkFantasy').onclick=()=>{if(hubState.fantasy)renderFantasyStatus();else showFantasyForm()};
-document.querySelector('#fantasyForm').onsubmit=event=>{event.preventDefault();hubState.fantasy={league:document.querySelector('#fantasyLeagueName').value.trim(),team:document.querySelector('#fantasyTeamName').value.trim()};saveHub();event.currentTarget.hidden=true;renderFantasyStatus()};
+document.querySelectorAll('[data-notification]').forEach(input=>{input.checked=Boolean(hubState.notifications[input.dataset.notification]);input.onchange=()=>{hubState.notifications[input.dataset.notification]=input.checked;saveHub();document.querySelector('#notificationNote').textContent='Preferences saved. Alerts are delivered while Courtside is open.'}});
 const games=[
  {id:1,away:'BOS',home:'NYK',as:87,hs:84,status:'LIVE',detail:'Q4 · 6:42',records:['44–16','38–22'],prob:[61,39]},
  {id:2,away:'DEN',home:'OKC',as:112,hs:118,status:'FINAL',detail:'Final',records:['40–21','48–12'],prob:[0,100]},
@@ -423,10 +413,11 @@ renderDates();loadScheduleWindow();loadScheduleHub();renderCards();renderGame();
 // Live data layer. The demo above remains an offline fallback.
 const live = { date: new Date(), timer: null, summaries: new Map(), source: 'demo' };
 const isoDate = date => `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
-function selectScoreDate(value) { const [year,month,day]=value.split('-').map(Number); const next=new Date(year,month-1,day,12); const today=new Date(); today.setHours(12,0,0,0); live.date=next; dayOffset=Math.round((next-today)/86400000); renderDates(); loadScheduleWindow(); loadScoreboard(); }
+function selectScoreDate(value) { const [year,month,day]=value.split('-').map(Number); const next=new Date(year,month-1,day,12); const today=new Date(); today.setHours(12,0,0,0); live.date=next; dayOffset=Math.round((next-today)/86400000); renderDates(); loadScheduleWindow(); return loadScoreboard(); }
 const statusLabel = status => status.state === 'in' && status.period ? `Q${status.period} · ${status.clock}` : status.detail;
 
 function installLiveGames(payload) {
+  const previousScores = new Map(games.map(game => [String(game.id), game]));
   if (!payload.games.length) {
     games.splice(0, games.length);
     selected = null;
@@ -443,6 +434,14 @@ function installLiveGames(payload) {
   games.splice(0, games.length, ...normalized);
   selected = games.find(game => String(game.id) === String(previousId)) || games[0];
   renderCards(); enhanceScoreCards(); loadGame(selected.id, true);
+  document.querySelectorAll('.score-card').forEach(card => {
+    const old = previousScores.get(String(card.dataset.id));
+    const next = games.find(game => String(game.id) === String(card.dataset.id));
+    if (!old || old.status !== 'LIVE' || !next) return;
+    card.querySelectorAll('.team-score').forEach((score, index) => {
+      if (Number(index ? old.hs : old.as) !== Number(index ? next.hs : next.as)) score.classList.add('score-changed');
+    });
+  });
 }
 
 let scoreboardRequest = 0;
@@ -463,14 +462,14 @@ function summaryTabs(summary, active = 'box') {
   const game = selected;
   renderGameLeaders(summary);
   const button = (id, label) => `<button class="summary-tab ${active===id?'active':''}" data-summary-tab="${id}">${label}</button>`;
-  const content = active === 'box' ? renderBoxScore(summary.boxscore) : active === 'stats' ? renderTeamStats(summary.teamStats) : renderPlayByPlay(summary.plays);
+  const content = active === 'recap' ? renderRecap(summary) : active === 'box' ? renderBoxScore(summary.boxscore) : active === 'stats' ? renderTeamStats(summary.teamStats) : renderPlayByPlay(summary.plays);
   const lineTeams = [summary.game?.away, summary.game?.home].filter(Boolean); const periods = Math.max(4,...lineTeams.map(team=>team.lineScores?.length||0));
   const finalGame = game.status === 'FINAL';
   const awayWon = finalGame && Number(game.as) > Number(game.hs);
   const homeWon = finalGame && Number(game.hs) > Number(game.as);
   const lineScore = lineTeams.length===2 ? `<div class="table-scroll"><table class="line-score"><caption class="sr-only">Quarter by quarter scoring</caption><thead><tr><th>Team</th>${Array.from({length:periods},(_,i)=>`<th>${i<4?i+1:`OT${i-3}`}</th>`).join('')}<th>T</th></tr></thead><tbody>${lineTeams.map((team,index)=>`<tr><td>${escapeHtml(team.abbreviation)}</td>${Array.from({length:periods},(_,i)=>`<td>${team.lineScores?.[i]?.value??'—'}</td>`).join('')}<td><strong class="${index===0&&awayWon||index===1&&homeWon?'winning-score':''}">${team.score}</strong></td></tr>`).join('')}</tbody></table></div>`:'';
   const context = [game.raw?.venue,...(game.raw?.broadcasts||[])].filter(Boolean).join(' · ');
-  document.querySelector('#gameCenter').innerHTML = `<div class="panel-title"><div><h2>${escapeHtml(game.away)} at ${escapeHtml(game.home)}</h2>${context?`<p class="game-context">${escapeHtml(context)}</p>`:''}</div><span class="pill">${escapeHtml(game.detail)}</span></div><div class="game-scoreboard compact"><button class="big-team summary-team-link" data-summary-team="${escapeHtml(teams[game.away]?.id||'')}">${logo(game.away,'team-logo big-logo')}<strong>${escapeHtml(teams[game.away].name)}</strong></button><div class="score-main"><span class="${awayWon?'winning-score':''}">${game.as}</span><small>–</small><span class="${homeWon?'winning-score':''}">${game.hs}</span></div><button class="big-team summary-team-link" data-summary-team="${escapeHtml(teams[game.home]?.id||'')}">${logo(game.home,'team-logo big-logo')}<strong>${escapeHtml(teams[game.home].name)}</strong></button></div>${lineScore}<div class="tabs">${button('box','Box score')}${button('stats','Team stats')}${button('plays','Play-by-play')}</div><div class="summary-content">${content}</div>`;
+  document.querySelector('#gameCenter').innerHTML = `<div class="panel-title"><div><h2>${escapeHtml(game.away)} at ${escapeHtml(game.home)}</h2>${context?`<p class="game-context">${escapeHtml(context)}</p>`:''}</div><span class="pill">${escapeHtml(game.detail)}</span></div><div class="game-scoreboard compact"><button class="big-team summary-team-link" data-summary-team="${escapeHtml(teams[game.away]?.id||'')}">${logo(game.away,'team-logo big-logo')}<strong>${escapeHtml(teams[game.away].name)}</strong></button><div class="score-main"><span class="${awayWon?'winning-score':''}">${game.as}</span><small>–</small><span class="${homeWon?'winning-score':''}">${game.hs}</span></div><button class="big-team summary-team-link" data-summary-team="${escapeHtml(teams[game.home]?.id||'')}">${logo(game.home,'team-logo big-logo')}<strong>${escapeHtml(teams[game.home].name)}</strong></button></div>${lineScore}<div class="tabs">${finalGame?button('recap','Game recap'):''}${button('box','Box score')}${button('stats','Team stats')}${button('plays','Play-by-play')}</div><div class="summary-content">${content}</div>`;
   document.querySelectorAll('[data-summary-tab]').forEach(el => el.onclick = () => summaryTabs(summary, el.dataset.summaryTab));
   document.querySelectorAll('[data-summary-team]').forEach(el=>el.onclick=()=>{if(el.dataset.summaryTeam)openTeamRoster(el.dataset.summaryTeam)});
   document.querySelectorAll('.box-player[data-player-id]').forEach(button => {
@@ -527,7 +526,7 @@ async function loadGame(id, quiet = false) {
     let summary = cached && Date.now() - cached.time < maxAge ? cached.data : null;
     if (!summary) { const response = await fetch(`/api/games/${id}`); if (!response.ok) throw new Error('Summary unavailable'); summary = await response.json(); live.summaries.set(id, { data: summary, time: Date.now() }); }
     if(request !== gameRequest || String(selected?.id) !== String(id))return;
-    const activeTab = root.querySelector('[data-summary-tab].active')?.dataset.summaryTab || 'box';
+    const activeTab = root.querySelector('[data-summary-tab].active')?.dataset.summaryTab || (selectedGame?.status === 'FINAL' ? 'recap' : 'box');
     summaryTabs(summary, activeTab);
   } catch (error) { if(request !== gameRequest || String(selected?.id) !== String(id))return; if (!quiet || !root.querySelector('.summary-content')) root.innerHTML = '<div class="empty-state">Game details are not available yet.</div>'; }
   finally { if(request === gameRequest)root.setAttribute('aria-busy','false'); }
@@ -544,8 +543,8 @@ function enhanceScoreCards() {
 
 document.querySelector('#scoreGrid').addEventListener('click', event => { const card = event.target.closest('.score-card'); if (card && live.source === 'live') setTimeout(() => { enhanceScoreCards(); loadGame(card.dataset.id); }, 0); });
 enhanceScoreCards();
-document.querySelector('#prevDay').onclick = () => { live.date.setDate(live.date.getDate()-1); dayOffset--; renderDates(); loadScheduleWindow(); loadScoreboard(); };
-document.querySelector('#nextDay').onclick = () => { live.date.setDate(live.date.getDate()+1); dayOffset++; renderDates(); loadScheduleWindow(); loadScoreboard(); };
+document.querySelector('#prevDay').onclick = () => { live.date.setDate(live.date.getDate()-1); dayOffset--; renderDates(); loadScheduleWindow(); return loadScoreboard(); };
+document.querySelector('#nextDay').onclick = () => { live.date.setDate(live.date.getDate()+1); dayOffset++; renderDates(); loadScheduleWindow(); return loadScoreboard(); };
 document.querySelector('#calendarDate').onchange = event => { if (event.target.value) selectScoreDate(event.target.value); };
 document.querySelector('#calendarButton').onclick = () => { const picker=document.querySelector('#calendarDate'); if (typeof picker.showPicker==='function') picker.showPicker(); else picker.click(); };
 document.querySelector('#liveHome').onclick = () => { live.date=new Date(); dayOffset=0; renderDates(); loadScheduleWindow(); activateView('scores'); loadScoreboard(); };
@@ -730,6 +729,7 @@ loadTeams(); loadInjuries();
 
 const transactionState = { data: [], team: 'all', type: 'all' };
 function renderTransactions() {
+  window.CourtsideFeatures?.timeline(transactionState.data);
   const filtered = transactionState.data.filter(item => (transactionState.team === 'all' || item.team.id === transactionState.team) && (transactionState.type === 'all' || item.type === transactionState.type));
   document.querySelector('#transactionList').innerHTML = filtered.length ? `<div class="transaction-list">${filtered.map(item=>`<article class="transaction-item">${item.player?.headshot?`<img class="transaction-player-photo" src="${escapeHtml(item.player.headshot)}" alt="${escapeHtml(item.player.name)}">`:item.team.logo?`<img src="${escapeHtml(item.team.logo)}" alt="">`:''}<div><div class="transaction-meta"><span class="move-type">${escapeHtml(item.type)}</span><time>${item.date?`${item.dateLabel?`${escapeHtml(item.dateLabel)} `:''}${new Date(item.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}`:'Date unavailable'}</time></div><strong>${escapeHtml(item.team.displayName)}</strong><p>${escapeHtml(item.description)}</p>${item.contract?`<div class="move-contract"><strong>${item.contract.years} year${item.contract.years===1?'':'s'} · ${money(item.contract.value)}</strong>${item.contract.details?`<span>${escapeHtml(item.contract.details)}</span>`:''}</div>`:''}${item.verification?`<div class="move-verification ${escapeHtml(item.verification.status)}"><strong>${escapeHtml(item.verification.status)}</strong><span>${escapeHtml(item.verification.source)}</span></div>`:''}<a class="transaction-link" href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">View source ↗</a></div></article>`).join('')}</div>` : '<div class="empty-state">No transactions match these filters.</div>';
   document.querySelectorAll('.transaction-item').forEach((card,index)=>{card.tabIndex=0;const open=event=>{if(event?.target?.closest('a'))return;openTransactionDetail(filtered[index])};card.onclick=open;card.onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();open(event)}}});
@@ -916,9 +916,7 @@ searchDialog.onclick=event=>{if(event.target===searchDialog)searchDialog.close()
 document.querySelector('#globalSearchInput').oninput=event=>{clearTimeout(searchTimer);const query=event.target.value.trim();const root=document.querySelector('#searchResults');if(query.length<2){root.innerHTML='<div class="empty-state compact-empty">Enter at least two characters.</div>';return}root.innerHTML='<div class="empty-state compact-empty">Searching players, teams, and games…</div>';searchTimer=setTimeout(async()=>{try{const response=await fetch(`/api/search?q=${encodeURIComponent(query)}`);if(!response.ok)throw new Error();const payload=await response.json();root.innerHTML=payload.results.length?payload.results.map((item,index)=>`<button class="search-result" data-search-index="${index}">${item.logo||item.headshot?`<img src="${escapeHtml(item.logo||item.headshot)}" alt="">`:'<span class="search-icon">⌕</span>'}<span><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(item.subtitle)}</small></span><em>${escapeHtml(item.kind)}</em></button>`).join(''):'<div class="empty-state compact-empty">No matching players, teams, or games.</div>';root.querySelectorAll('[data-search-index]').forEach(button=>button.onclick=()=>{const item=payload.results[Number(button.dataset.searchIndex)];searchDialog.close();if(item.kind==='team')openTeamRoster(item.id);else if(item.kind==='player')openPlayerProfile(item.id,{id:item.id,name:item.name,position:item.position,headshot:item.headshot},item.teamName);else{activateView('scores');const game=games.find(game=>String(game.id)===String(item.id));if(game){selected=game;renderCards();loadGame(game.id)}}})}catch(_){root.innerHTML='<div class="empty-state compact-empty">Search is temporarily unavailable. Try again.</div>'}},250)};
 
 async function renderFavoriteDashboard() {
-  const root=document.querySelector('#favoriteDashboard'); const favorite=hubState.teams.find(team=>String(team.id)===String(hubState.favoriteTeam));
-  if(!favorite){root.hidden=true;return}root.hidden=false;root.innerHTML='<div class="panel empty-state compact-empty">Loading your favorite team…</div>';
-  try{const [roster,standingPayload,injuryPayload,movesPayload]=await Promise.all([fetch(`/api/teams/${favorite.id}/roster`).then(r=>r.ok?r.json():Promise.reject()),fetch(`/api/standings?season=${currentSeasonEndYear()}`).then(r=>r.ok?r.json():null),fetch('/api/injuries').then(r=>r.ok?r.json():null),fetch('/api/transactions').then(r=>r.ok?r.json():null)]);const standing=standingPayload?.conferences.flatMap(group=>group.teams).find(team=>String(team.id)===String(favorite.id));const injuries=injuryPayload?.teams.find(team=>team.displayName===favorite.displayName)?.injuries||[];const moves=(movesPayload?.transactions||[]).filter(item=>item.team.abbreviation===favorite.abbreviation||String(item.team.id)===String(favorite.id)).slice(0,2);const game=games.find(item=>item.away===favorite.abbreviation||item.home===favorite.abbreviation);root.innerHTML=`<div class="favorite-head">${favorite.logo?`<img src="${escapeHtml(favorite.logo)}" alt="">`:''}<div><p class="eyebrow">YOUR TEAM</p><h2>${escapeHtml(favorite.displayName)}</h2><p>${standing?`${standing.wins}–${standing.losses} · ${standing.seed} seed`:'Season record loading'}</p></div><button class="secondary-action" id="favoriteTeamPage">Open team dashboard</button></div><div class="favorite-metrics"><div><small>Next/current game</small><strong>${game?`${game.away} ${game.detail} ${game.home}`:'No game today'}</strong></div><div><small>Roster</small><strong>${roster.players.length} players</strong></div><div><small>Injuries</small><strong>${injuries.length} listed</strong></div><div><small>Latest move</small><strong>${escapeHtml(moves[0]?.description||'No recent move')}</strong></div></div>`;document.querySelector('#favoriteTeamPage').onclick=()=>openTeamRoster(favorite.id)}catch(_){root.innerHTML='<div class="panel empty-state compact-empty">Favorite-team summary is temporarily unavailable.</div>'}
+  if (window.CourtsideFeatures) return window.CourtsideFeatures.favorite();
 }
 
 async function renderTeamDashboard(roster) {
@@ -936,3 +934,12 @@ function openTransactionDetail(item){if(!item)return;const root=document.querySe
 document.querySelector('#closeTransactionDialog').onclick=()=>document.querySelector('#transactionDialog').close();
 document.querySelectorAll('[data-refresh]').forEach(button=>button.onclick=()=>{button.disabled=true;button.textContent='Refreshing...';const tasks={transactions:()=>Promise.all([loadTransactions(),loadShamsUpdates()]),'free-agents':loadFreeAgents,standings:loadStandings,injuries:loadInjuries,finance:loadCapOverview,schedule:loadScheduleHub,futures:()=>{renderFutures();return Promise.all([loadStandings(),loadRaceSchedule()])}};const task=tasks[button.dataset.refresh]?.();Promise.resolve(task).finally(()=>{button.disabled=false;button.textContent='Refresh'})});
 document.body.addEventListener('click',event=>{const view=event.target.closest('[data-empty-view]');if(view)activateView(view.dataset.emptyView);const retry=event.target.closest('[data-retry]');if(retry){const tasks={transactions:loadTransactions,'free-agents':loadFreeAgents,'shams-updates':loadShamsUpdates,standings:loadStandings,injuries:loadInjuries,finance:loadCapOverview,schedule:loadScheduleHub,teams:loadTeams,roster:()=>loadRoster(document.querySelector('#teamPicker').value)};tasks[retry.dataset.retry]?.()}if(event.target.closest('[data-clear-free-agents]')){freeAgentState.status='all';freeAgentState.type='all';freeAgentState.position='all';freeAgentState.sort='best';freeAgentState.query='';document.querySelector('#freeAgentStatus').value='all';document.querySelector('#freeAgentType').value='all';document.querySelector('#freeAgentPosition').value='all';document.querySelector('#freeAgentSort').value='best';document.querySelector('#freeAgentSearch').value='';renderFreeAgents()}});
+
+function renderRecap(summary) {
+  const leaders = (summary.boxscore || []).flatMap(group => (group.sections || []).flatMap(section => {
+    const index = section.labels.indexOf('PTS');
+    return index < 0 ? [] : section.athletes.filter(player => !player.didNotPlay).map(player => ({name:player.name, team:group.team.abbreviation, points:Number(player.stats[index])}));
+  })).filter(player => Number.isFinite(player.points)).sort((a,b)=>b.points-a.points).slice(0,3);
+  const keyPlays = (summary.plays || []).filter(play => play.scoring && play.period >= 4).slice(0,5);
+  return `<section class="recap"><h3>Game at a glance</h3><p>${escapeHtml(selected.away)} ${escapeHtml(selected.as)} ? ${escapeHtml(selected.home)} ${escapeHtml(selected.hs)} ? Final</p><h3>Leading players</h3><div class="recap-leaders">${leaders.map(player=>`<article><strong>${escapeHtml(player.name)}</strong><span>${escapeHtml(player.team)} ? ${player.points} PTS</span></article>`).join('') || '<p>Player stats unavailable.</p>'}</div><h3>Key plays ? late scoring</h3>${renderPlayByPlay(keyPlays)}<p class="muted">Quarter breakdown above. Key plays show the latest available fourth-quarter and overtime scoring plays.</p></section>`;
+}

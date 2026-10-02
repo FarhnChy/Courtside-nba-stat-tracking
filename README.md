@@ -10,6 +10,11 @@ Built with **JavaScript, HTML, CSS, and Node.js**, with deployment support for *
 
 ## What you can do
 
+- **Your team at home:** choose a favorite team for its next game within 14 days, injuries, moves, and news.
+- **Fantasy with friends:** create private Courtside leagues, share invites, run a snake draft, set daily lineups, and follow head-to-head points and standings. Hosted deployment requires shared fantasy storage.
+- **Catch up quickly:** final games open a recap with leading scorers, quarter totals, and late scoring plays. Live score changes animate with reduced-motion support.
+- **Optional alerts:** enable browser notifications in Preferences for tip-off, close finishes, final scores, and team moves while Courtside stays open.
+- **Follow reporting:** filter the trade timeline by reported, confirmed, or official updates, with sources and timestamps.
 - **Follow games:** scores refresh every 20 seconds, with box scores, quarter-by-quarter scoring, team stats, and play-by-play.
 - **Keep a score close:** pin a game to either bottom corner. In supported browsers, float it above other desktop windows while the app tab stays open.
 - **Catch up on the league:** browse trades, signings, injuries, and ESPN news updates, including reporting from Shams Charania.
@@ -73,7 +78,7 @@ On Windows PowerShell, use `npm.cmd` if script execution settings prevent `npm` 
 | `api/` and `vercel.json` | Vercel deployment configuration |
 | `test/` | Automated checks |
 
-To deploy, import the repository into Vercel using the **Other** framework preset. The project includes static assets and a Node Function for API requests. No API keys are required by the current configuration.
+To deploy, import the repository into Vercel using the **Other** framework preset. The project includes static assets and a Node Function for API requests. NBA feeds need no API key. Shared fantasy leagues require server-side storage credentials; see [fantasy deployment setup](docs/fantasy.md).
 
 </details>
 
@@ -81,9 +86,11 @@ To deploy, import the repository into Vercel using the **Other** framework prese
 
 Scores and league updates use ESPN public site feeds. Free-agent and cap information draws on NBA.com, NBA Communications, Basketball Reference, and SalarySwish. Repository snapshots provide additional fallback context. These integrations are unofficial, and availability or freshness can vary by source.
 
-The core project focuses on scores and league tracking. Prediction, awards-race, shot-chart, and win-probability views are **demonstrations, not validated forecasts**. Fantasy currently saves local league details; it does not sync with ESPN or Yahoo accounts. Desktop floating requires Document Picture-in-Picture support and HTTPS or localhost; the corner widget is available without that feature.
+The core project focuses on scores and league tracking. Prediction, awards-race, shot-chart, and win-probability views are **demonstrations, not validated forecasts**. Fantasy runs private Courtside leagues with server-side storage and scoring; it does not sync with ESPN or Yahoo fantasy accounts. Desktop floating requires Document Picture-in-Picture support and HTTPS or localhost; the corner widget is available without that feature.
 
-Next steps include broader browser testing, fantasy-provider integration, and backtested prediction models.
+Fantasy supports invite-only membership, private team recovery keys, snake drafting, daily utility lineups, first-come adds/drops, seven-day matchups, and standings. It does not yet include waivers, trades, playoffs, email account recovery, or timed/ranked auto-drafting. See [fantasy setup and rules](docs/fantasy.md) before inviting friends.
+
+Next steps include broader browser testing, fantasy waivers/trades/playoffs, and backtested prediction models.
 
 ---
 

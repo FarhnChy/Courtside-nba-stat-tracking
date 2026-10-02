@@ -6,7 +6,7 @@
     "dev": "node server.js",
     "vercel-build": "node -e \"console.log('Courtside uses Vercel static files and Node Functions')\"",
     "start": "node server.js",
-    "test": "node test/smoke.js && node test/adapters.js && node test/server.js && node test/a11y.js && node test/score-updates.js",
+    "test": "node test/smoke.js && node test/adapters.js && node test/server.js && node test/a11y.js && node test/score-updates.js && node test/features.js && node test/fantasy.js",
     "audit:data": "node scripts/audit-data.js"
   },
   "engines": { "node": ">=18" }

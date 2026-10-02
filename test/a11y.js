@@ -6,7 +6,7 @@ const root = path.join(__dirname, '..');
 const html = fs.readFileSync(path.join(root, 'public/index.html'), 'utf8');
 const appSource = fs.readFileSync(path.join(root, 'public/app.js'), 'utf8');
 
-for (const dialog of ['searchDialog', 'comparisonDialog', 'transactionDialog', 'userHubDialog', 'fantasyDialog', 'playerDialog']) {
+for (const dialog of ['searchDialog', 'comparisonDialog', 'transactionDialog', 'userHubDialog', 'playerDialog']) {
   const pattern = new RegExp(`<dialog[^>]+id="${dialog}"[^>]+aria-labelledby="[^"]+"`);
   assert.match(html, pattern, `${dialog} should expose an accessible title`);
 }

@@ -15,6 +15,14 @@ async function run() {
     assert.equal(vercelRewrite.status, 200);
     assert.deepEqual(await vercelRewrite.json(), { ok: true, provider: 'espn-site-api' });
 
+    const fantasyConfig = await fetch(`${base}/api?__route=fantasy/config`);
+    assert.equal(fantasyConfig.status, 200);
+    assert.equal(fantasyConfig.headers.get('cache-control'), 'no-store');
+    assert.equal(typeof (await fantasyConfig.json()).available, 'boolean');
+    const fantasyPage = await fetch(`${base}/fantasy.html`);
+    assert.equal(fantasyPage.status, 200);
+    assert.match(await fantasyPage.text(), /Create a league/);
+
     const badDate = await fetch(`${base}/api/scoreboard?date=not-a-date`);
     assert.equal(badDate.status, 400);
     const badSchedule = await fetch(`${base}/api/schedule?start=not-a-date`);

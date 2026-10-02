@@ -3,6 +3,7 @@ ode_modules/
 .env.*
 !.env.example
 coverage/
+.fantasy-data/
 dist/
 .DS_Store
 Thumbs.db

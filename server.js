@@ -3,6 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const espn = require('./lib/espn');
 const finance = require('./lib/finance');
+const fantasyHandler = require('./lib/fantasy-api').createFantasyHandler();
 const offseasonContracts = require('./data/offseasonContracts');
 const offseasonTrades = require('./data/offseasonTrades');
 const offseasonStatusUpdates = require('./data/offseasonStatusUpdates');
@@ -274,6 +275,7 @@ async function requestHandler(req, res) {
   const urlPath = rewrittenRoute
     ? `/api/${decodeURIComponent(rewrittenRoute).replace(/^\/+/, '')}`
     : decodeURIComponent(requestUrl.pathname);
+  if (urlPath.startsWith('/api/fantasy/')) return fantasyHandler(req, res, urlPath);
   // Short CDN lifetimes keep live feeds fresh without a paid background worker.
   res.courtsideCacheSeconds = urlPath === '/api/scoreboard' ? 15
     : ['/api/injuries', '/api/transactions', '/api/shams-updates'].includes(urlPath) ? 60
@@ -359,6 +361,10 @@ async function requestHandler(req, res) {
   if (urlPath === '/api/transactions') {
     try { return json(res, 200, await transactionsWithRosterReconciliation()); }
     catch (error) { return json(res, 502, { error: 'Transactions unavailable', detail: error.message }); }
+  }
+  if (urlPath === '/api/news') {
+    try { return json(res, 200, await espn.news()); }
+    catch (_) { return json(res, 502, { error: 'News unavailable' }); }
   }
   if (urlPath === '/api/shams-updates') {
     try {

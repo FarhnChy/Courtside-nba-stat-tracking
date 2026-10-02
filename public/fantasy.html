@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>Fantasy Basketball · Courtside</title>
+  <link rel="icon" href="courtside.png">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="fantasy.css">
+</head>
+<body class="fantasy-page">
+  <header class="fantasy-header"><a href="/">COURTSIDE <span>/ FANTASY</span></a><a href="/">NBA dashboard ↗</a></header>
+  <main class="fantasy-main">
+    <div id="fantasyNotice" role="status" aria-live="polite"></div>
+    <section id="welcome">
+      <div class="fantasy-hero"><p class="eyebrow">YOUR FRIENDS. YOUR LEAGUE.</p><h1>A season of bragging rights.</h1><p>Draft NBA players, set your lineup, and go head-to-head in your own private basketball league.</p><div class="fantasy-tags"><span>Snake draft</span><span>Live box-score points</span><span>Private invite codes</span></div></div>
+      <section id="savedLeagues" aria-label="Your saved leagues"></section>
+      <div class="fantasy-columns">
+        <form id="createLeague" class="fantasy-card" method="post">
+          <p class="eyebrow">BE THE COMMISSIONER</p><h2>Create a league</h2>
+          <label>League name<input name="name" required minlength="2" maxlength="40" placeholder="The Group Chat League"></label>
+          <label>Your team name<input name="teamName" required minlength="2" maxlength="40" placeholder="Full Court Pressure"></label>
+          <div class="fantasy-fields"><label>Maximum teams<select name="capacity"><option>2</option><option>4</option><option>6</option><option selected>8</option><option>10</option><option>12</option></select></label><label>Matchup weeks<select name="weeks"><option>4</option><option>8</option><option selected>12</option><option>20</option><option>26</option></select></label></div>
+          <div class="fantasy-fields"><label>Roster size<select name="rosterSize"><option>6</option><option>8</option><option selected>10</option><option>12</option><option>15</option></select></label><label>Daily starters<select name="starters"><option>3</option><option selected>5</option><option>6</option><option>8</option><option>10</option></select></label></div>
+          <button class="primary-action" type="submit">Create league</button>
+        </form>
+        <div class="fantasy-stack">
+          <form id="joinLeague" class="fantasy-card" method="post"><p class="eyebrow">GOT AN INVITE?</p><h2>Join your friends</h2><label>Invite code<input name="code" required pattern="[a-fA-F0-9]{18}" maxlength="18" autocomplete="off" placeholder="18-character league code"></label><label>Your team name<input name="teamName" required minlength="2" maxlength="40" placeholder="Your team name"></label><button class="primary-action" type="submit">Join league</button></form>
+          <form id="recoverTeam" class="fantasy-card" method="post"><h2>Already have a team?</h2><p>Use your private recovery key to open it on another device.</p><label>Private recovery key<input name="recovery" type="password" required autocomplete="off" spellcheck="false"></label><button class="secondary-action" type="submit">Recover team</button></form>
+        </div>
+      </div>
+      <section class="fantasy-card fantasy-rules"><h2>How your league works</h2><p>Points: PTS × 1 · REB × 1.2 · AST × 1.5 · STL × 3 · BLK × 3 · turnovers × −1. All starting spots are utility spots: any position is eligible.</p><p>The commissioner starts the draft once at least two teams join. Draft order is randomized and reverses every round. Picks have no timer; the commissioner can make an alphabetical automatic pick for an absent manager.</p><p>Scoring starts the day after the draft. Each matchup lasts seven days. Lineups lock at midnight New York time and carry forward until changed. Roster moves become eligible the following day. Adds are first come, first served; waivers, trades, and playoffs are not included yet.</p><p>Save your private recovery key. It grants control of your team; share only the invite code with friends. Scores refresh while someone has the league open and catch up after time away.</p></section>
+    </section>
+    <section id="leagueView" hidden>
+      <div class="fantasy-toolbar"><button id="allLeagues" class="secondary-action">← My leagues</button><div><button id="showRecovery" class="secondary-action">My recovery key</button><button id="refreshLeague" class="secondary-action">Refresh</button></div></div>
+      <div id="leagueHeading"></div>
+      <div id="leagueContent"></div>
+    </section>
+  </main>
+  <dialog id="recoveryDialog" aria-labelledby="recoveryTitle"><button id="closeRecovery" class="dialog-close" aria-label="Close recovery key">×</button><h2 id="recoveryTitle">Keep your team key private</h2><p>Save this somewhere safe to access your team on another device. Anyone with this key can manage your team.</p><label>Private recovery key<input id="recoveryValue" readonly autocomplete="off" spellcheck="false"></label><button id="copyRecovery" class="primary-action">Copy recovery key</button></dialog>
+  <script src="fantasy.js"></script>
+</body>
+</html>
