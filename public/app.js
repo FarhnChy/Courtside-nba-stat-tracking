@@ -727,35 +727,60 @@ async function loadInjuries() {
 
 loadTeams(); loadInjuries();
 
-const transactionState = { data: [], team: 'all', type: 'all' };
+const transactionState = { data: [], team: 'all', type: 'all', contract: 'all', query: '', visible: 100, loading: false };
+const contractNote = type => ['Exhibit 9','Exhibit 10','Training camp','Non-guaranteed'].includes(type) ? 'Camp / non-guaranteed deal · regular-season roster spot not assured' : type === 'Two-way' ? 'Two-way contract · distinct from a standard NBA roster contract' : type === '10-day' ? 'Short-term 10-day contract' : '';
 function renderTransactions() {
   window.CourtsideFeatures?.timeline(transactionState.data);
-  const filtered = transactionState.data.filter(item => (transactionState.team === 'all' || item.team.id === transactionState.team) && (transactionState.type === 'all' || item.type === transactionState.type));
-  document.querySelector('#transactionList').innerHTML = filtered.length ? `<div class="transaction-list">${filtered.map(item=>`<article class="transaction-item">${item.player?.headshot?`<img class="transaction-player-photo" src="${escapeHtml(item.player.headshot)}" alt="${escapeHtml(item.player.name)}">`:item.team.logo?`<img src="${escapeHtml(item.team.logo)}" alt="">`:''}<div><div class="transaction-meta"><span class="move-type">${escapeHtml(item.type)}</span><time>${item.date?`${item.dateLabel?`${escapeHtml(item.dateLabel)} `:''}${new Date(item.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}`:'Date unavailable'}</time></div><strong>${escapeHtml(item.team.displayName)}</strong><p>${escapeHtml(item.description)}</p>${item.contract?`<div class="move-contract"><strong>${item.contract.years} year${item.contract.years===1?'':'s'} · ${money(item.contract.value)}</strong>${item.contract.details?`<span>${escapeHtml(item.contract.details)}</span>`:''}</div>`:''}${item.verification?`<div class="move-verification ${escapeHtml(item.verification.status)}"><strong>${escapeHtml(item.verification.status)}</strong><span>${escapeHtml(item.verification.source)}</span></div>`:''}<a class="transaction-link" href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">View source ↗</a></div></article>`).join('')}</div>` : '<div class="empty-state">No transactions match these filters.</div>';
-  document.querySelectorAll('.transaction-item').forEach((card,index)=>{card.tabIndex=0;const open=event=>{if(event?.target?.closest('a'))return;openTransactionDetail(filtered[index])};card.onclick=open;card.onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();open(event)}}});
+  const filtered = transactionState.data.filter(item => (transactionState.team === 'all' || String(item.team.id) === transactionState.team) && (transactionState.type === 'all' || item.type === transactionState.type) && (transactionState.contract === 'all' || item.contractType === transactionState.contract) && `${item.description} ${item.player?.name || ''} ${item.team.displayName}`.toLowerCase().includes(transactionState.query));
+  const shown = filtered.slice(0, transactionState.visible);
+  document.querySelector('#transactionList').innerHTML = filtered.length ? `<p class="muted">Showing ${shown.length} of ${filtered.length} matching updates</p><div class="transaction-list">${shown.map(item=>`<article class="transaction-item">${item.player?.headshot?`<img class="transaction-player-photo" src="${escapeHtml(item.player.headshot)}" alt="${escapeHtml(item.player.name)}">`:item.team.logo?`<img src="${escapeHtml(item.team.logo)}" alt="">`:''}<div><div class="transaction-meta"><span class="move-type">${escapeHtml(item.type)}</span>${item.contractType ? `<span class="move-type">${escapeHtml(item.contractType)}</span>` : ''}<time>${item.date?`${item.dateLabel?`${escapeHtml(item.dateLabel)} `:''}${new Date(item.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',...(item.dateOnly?{timeZone:'UTC'}:{})})}`:'Date unavailable'}</time></div><strong>${escapeHtml(item.team.displayName)}</strong><p>${escapeHtml(item.description)}</p>${contractNote(item.contractType)?`<p class="muted">${escapeHtml(contractNote(item.contractType))}</p>`:''}${item.contract?`<div class="move-contract"><strong>${item.contract.years} year${item.contract.years===1?'':'s'} · ${money(item.contract.value)}</strong>${item.contract.details?`<span>${escapeHtml(item.contract.details)}</span>`:''}</div>`:''}${item.verification?`<div class="move-verification ${escapeHtml(item.verification.status)}"><strong>${escapeHtml(item.verification.status)}</strong><span>${escapeHtml(item.verification.source)}</span></div>`:''}<a class="transaction-link" href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">View source ↗</a></div></article>`).join('')}</div>${shown.length<filtered.length?'<button id="moreTransactions" class="secondary-action">Show 100 more updates</button>':''}` : '<div class="empty-state">No transactions match these filters.</div>';
+  document.querySelectorAll('.transaction-item').forEach((card,index)=>{card.tabIndex=0;const open=event=>{if(event?.target?.closest('a'))return;openTransactionDetail(shown[index])};card.onclick=open;card.onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();open(event)}}});
+  const more = document.querySelector('#moreTransactions');
+  if (more) more.onclick = () => { transactionState.visible += 100; renderTransactions(); };
 }
 
-async function loadTransactions() {
-  document.querySelector('#transactionList').innerHTML=loadingState('cards');
+async function loadTransactions(silent = false) {
+  if (transactionState.loading) return;
+  transactionState.loading = true;
+  if (!silent) document.querySelector('#transactionList').innerHTML=loadingState('cards');
   try {
     const response = await fetchApi('/api/transactions'); if (!response.ok) throw new Error('Transactions unavailable');
     const payload = await response.json(); transactionState.data = payload.transactions;
     const updated = payload.timestamp ? ` · ESPN updated ${new Date(payload.timestamp).toLocaleString()}` : '';
     const manual = payload.manualVerifiedAt ? ` · manual verified ${new Date(payload.manualVerifiedAt).toLocaleDateString()}` : '';
     const sources = payload.sources?.length ? ` · ${payload.sources.join(' + ')}` : '';
-    document.querySelector('#transactionTimestamp').textContent = `${payload.transactions.length} recent moves${updated}${manual}${sources}`;
+    const stale = payload.stale || response.headers.get('x-courtside-cache') === 'stale';
+    document.querySelector('#transactionTimestamp').textContent = `${payload.transactions.length} tracked updates${stale?' · Saved/stale data':''}${updated}${manual}${sources}`;
+    const coverage = payload.coverage;
+    const warnings = [];
+    if (stale) warnings.push('Saved data; current source checks unavailable');
+    if (coverage?.officialFeed !== 'ok') warnings.push('NBA transaction feed unavailable or stale');
+    if (coverage?.failedTeams?.length) warnings.push(`Team announcements unavailable/stale: ${coverage.failedTeams.join(', ')}`);
+    if (coverage?.espn && coverage.espn !== 'ok') warnings.push('ESPN feed is partial or unavailable');
+    if (['unconfigured','unavailable'].includes(coverage?.archive)) warnings.push('Announcement archive unavailable on this server');
+    document.querySelector('#transactionCoverage').textContent = coverage ? `NBA transactions since ${coverage.since} · ${coverage.teamFeedsFresh}/${coverage.teamFeedsChecked} team announcement feeds current · Checked ${new Date(coverage.checkedAt).toLocaleString()}. ${warnings.length ? warnings.join('. ')+'. ' : ''}News feeds update about every 5 minutes while open. Latest team articles plus collected history; source delays and historical gaps are possible.` : 'Source coverage unavailable. Saved updates may be incomplete.';
     const teamPicker = document.querySelector('#transactionTeam');
     const uniqueTeams = [...new Map(payload.transactions.map(item => [item.team.id, item.team])).values()].sort((a,b)=>a.displayName.localeCompare(b.displayName));
     teamPicker.innerHTML = '<option value="all">All teams</option>' + uniqueTeams.map(team=>`<option value="${team.id}">${escapeHtml(team.displayName)}</option>`).join('');
     const typePicker = document.querySelector('#transactionType');
     const types = [...new Set(payload.transactions.map(item=>item.type))].sort();
     typePicker.innerHTML = '<option value="all">All moves</option>' + types.map(type=>`<option value="${escapeHtml(type)}">${escapeHtml(type)}</option>`).join('');
-    teamPicker.onchange = () => { transactionState.team = teamPicker.value; renderTransactions(); };
-    typePicker.onchange = () => { transactionState.type = typePicker.value; renderTransactions(); };
+    const contractPicker = document.querySelector('#transactionContract');
+    contractPicker.innerHTML = '<option value="all">All contract types</option>' + [...new Set(payload.transactions.map(item=>item.contractType).filter(Boolean))].sort().map(type=>`<option value="${escapeHtml(type)}">${escapeHtml(type)}</option>`).join('');
+    for (const [picker, property] of [[teamPicker,'team'],[typePicker,'type'],[contractPicker,'contract']]) {
+      picker.value = transactionState[property];
+      if (!picker.value) { transactionState[property] = 'all'; picker.value = 'all'; }
+      picker.onchange = () => { transactionState[property] = picker.value; transactionState.visible = 100; renderTransactions(); };
+    }
     renderTransactions();
-  } catch (error) { document.querySelector('#transactionList').innerHTML = errorState('Transactions are temporarily unavailable','transactions'); }
+  } catch (error) {
+    if (!silent || !transactionState.data.length) document.querySelector('#transactionList').innerHTML = errorState('Transactions are temporarily unavailable','transactions');
+    document.querySelector('#transactionCoverage').textContent = 'Updates paused. Previously loaded moves may be stale; retrying while this page is open.';
+  } finally { transactionState.loading = false; }
 }
+document.querySelector('#transactionSearch').oninput = event => { transactionState.query = event.target.value.trim().toLowerCase(); transactionState.visible = 100; renderTransactions(); };
 loadTransactions();
+setInterval(() => { if (!document.hidden && document.querySelector('#transactionsView').classList.contains('active-view')) loadTransactions(true); }, 60_000);
 
 const money = value => new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(value);
 async function loadCapOverview() {

@@ -17,7 +17,7 @@ async function run() {
   const handler = createFantasyHandler({
     store: createStore({ FANTASY_DATA_DIR: path.join(temporary, 'leagues') }),
     catalogLoader: async () => Array.from({ length: 24 }, (_, i) => ({ id: String(i + 1), name: `Test Player ${String(i + 1).padStart(2, '0')}`, team: i % 2 ? 'NYK' : 'BOS', position: i % 3 ? 'G' : 'C' })),
-    provider: { scoreboard: async () => ({ games: [] }) }
+    provider: { scoreboard: async () => ({ games: [] }), injuries: async () => ({ teams: [{ injuries: Array.from({ length: 24 }, (_, i) => ({ athleteId: String(i + 1), status: 'Out' })) }] }) }
   });
   const server = http.createServer((req, res) => {
     const route = new URL(req.url, 'http://localhost').pathname;
@@ -75,7 +75,7 @@ async function run() {
     }
     const owner = await page(); const friend = await page(true);
     await owner.navigate(`${base}/fantasy.html`); await owner.wait('document.querySelector("#createLeague") && document.querySelector("#fantasyNotice").textContent.includes("saved on this server")');
-    await owner.evaluate(`(() => { const form = document.querySelector('#createLeague'); form.elements.name.value = 'Browser Friends'; form.elements.teamName.value = 'Home Team'; form.elements.capacity.value = '2'; form.elements.rosterSize.value = '6'; form.elements.starters.value = '3'; form.requestSubmit(); })()`);
+    await owner.evaluate(`(() => { const form = document.querySelector('#createLeague'); form.elements.name.value = 'Browser Friends'; form.elements.teamName.value = 'Home Team'; form.elements.capacity.value = '2'; form.elements.draftSeconds.value = '120'; form.elements.rosterSize.value = '6'; form.elements.starters.value = '3'; form.requestSubmit(); })()`);
     await owner.wait('document.querySelector("#recoveryDialog").open');
     const recovery = await owner.evaluate('document.querySelector("#recoveryValue").value');
     const id = recovery.split('.')[0];
@@ -87,18 +87,32 @@ async function run() {
     await owner.wait('document.querySelector("#startDraft") && !document.querySelector("#startDraft").disabled');
     await owner.evaluate('document.querySelector("#startDraft").click()');
     await owner.wait('Boolean(document.querySelector("#autoPick"))');
+    assert.ok(await owner.evaluate('document.querySelector(".fantasy-turn").textContent.includes("Pick deadline")'));
+    await owner.evaluate('document.querySelector("[data-queue]").click()');
+    await owner.wait('Boolean(document.querySelector("[data-unqueue]"))');
     for (let pick = 0; pick < 12; pick++) {
       await owner.wait(`document.querySelector('.fantasy-turn .eyebrow')?.textContent.includes('PICK ${pick + 1} OF') && !document.querySelector('#autoPick').disabled`);
       await owner.evaluate('document.querySelector("#autoPick").click()');
     }
     await owner.wait('Boolean(document.querySelector("#lineupForm"))');
+    await send('Page.bringToFront', {}, friend.sessionId);
     await friend.wait('Boolean(document.querySelector("#lineupForm"))');
+    await send('Page.bringToFront', {}, owner.sessionId);
     await owner.evaluate(`document.querySelectorAll('#lineupForm input').forEach((input, i) => input.checked = i >= 3); document.querySelector('#lineupForm').requestSubmit()`);
     await owner.wait('document.querySelector("#fantasyNotice").textContent.includes("Lineup saved")');
     await owner.evaluate('document.querySelector("#playerSearch").value = "Test Player 13"; document.querySelector("#playerSearch").dispatchEvent(new Event("input", {bubbles:true}))');
     assert.equal(await owner.evaluate('document.querySelectorAll("#playerPool [data-player]").length'), 1);
     await owner.evaluate(`document.querySelector('#dropPlayer').selectedIndex = 1; document.querySelector('#playerPool [data-player]').click()`);
     await owner.wait('document.querySelector("#lineupForm").textContent.includes("Test Player 13")');
+    await owner.evaluate('document.querySelector("[data-ir]").click()');
+    await owner.wait('Boolean(document.querySelector("[data-activate]"))');
+    await owner.evaluate('document.querySelector("[data-activate]").click()');
+    await owner.wait('!document.querySelector("[data-activate]")');
+    await owner.evaluate('document.querySelector("#tradeForm").requestSubmit()');
+    await send('Page.bringToFront', {}, friend.sessionId);
+    await friend.wait(`Boolean(document.querySelector('[data-trade-action="acceptTrade"]'))`);
+    await friend.evaluate(`document.querySelector('[data-trade-action="acceptTrade"]').click()`);
+    await friend.wait('document.querySelector("#leagueContent").textContent.includes("accepted")');
     assert.equal(await friend.evaluate('document.documentElement.scrollWidth <= innerWidth'), true, 'league screen fits mobile width');
     const recovered = await page(); await recovered.navigate(`${base}/fantasy.html`); await recovered.wait('document.querySelector("#fantasyNotice")?.textContent.includes("saved on this server")');
     await recovered.evaluate(`document.querySelector('#recoverTeam [name=recovery]').value = ${JSON.stringify(recovery)}; document.querySelector('#recoverTeam').requestSubmit()`);
@@ -111,7 +125,7 @@ async function run() {
     }
     assert.deepEqual(errors, [], 'browser should have no runtime exceptions');
     await send('Browser.close');
-    console.log('✓ Two-browser create/join, snake draft, daily lineup, add/drop, recovery, and mobile layout verified');
+    console.log('✓ Two-browser create/join, snake draft, draft queue/clock, daily lineup, add/drop, IR, trades, recovery, and mobile layout verified');
     console.log(`Screenshots: ${artifacts}`);
   } finally {
     socket?.close();

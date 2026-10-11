@@ -4,6 +4,7 @@ ode_modules/
 !.env.example
 coverage/
 .fantasy-data/
+.tracker-data/
 dist/
 .DS_Store
 Thumbs.db

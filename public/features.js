@@ -7,7 +7,7 @@
   const status = item => (item.verification?.status === 'official' || (item.verification?.status === 'confirmed' && /^NBA (trade|free-agent) tracker$/.test(item.verification.source) && /^https:\/\/(www\.)?nba\.com\//.test(safeUrl(item.url || item.source)))) ? 'official' : item.verification?.status === 'confirmed' ? 'confirmed' : 'reported';
   const labels = { reported:'Reported / rumors', confirmed:'Confirmed moves', official:'Official announcements' };
   const entry = item => `<article class="timeline-entry"><span class="pill">${labels[status(item)]}</span><p>${esc(item.headline || item.description)}</p><small><time>${esc(stamp(item.published || item.date))}</time> · ${source(item)}</small></article>`;
-  async function get(url) { try { const response = await fetchApi(url); const data = await response.json(); return {...data, stale:response.headers.get('x-courtside-cache') === 'stale'}; } catch (_) { return null; } }
+  async function get(url) { try { const response = await fetchApi(url); const data = await response.json(); return {...data, stale:Boolean(data.stale) || response.headers.get('x-courtside-cache') === 'stale'}; } catch (_) { return null; } }
   function timeline(items) {
     const root = document.querySelector('#tradeTimeline');
     const rows = items.filter(item => state.filter === 'all' || status(item) === state.filter).slice().sort((a,b)=>(Date.parse(b.date)||0)-(Date.parse(a.date)||0));
