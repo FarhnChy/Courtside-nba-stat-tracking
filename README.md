@@ -17,9 +17,9 @@ Built with **JavaScript, HTML, CSS, and Node.js**, with deployment support for *
 - **Follow reporting:** filter the trade timeline by reported, confirmed, or official updates, with sources and timestamps.
 - **Follow games:** scores refresh every 20 seconds, with box scores, quarter-by-quarter scoring, team stats, and play-by-play.
 - **Keep a score close:** pin a game to either bottom corner. In supported browsers, float it above other desktop windows while the app tab stays open.
-- **Catch up on the league:** browse trades, signings, injuries, and ESPN news updates, including reporting from Shams Charania.
-- **Explore teams and players:** view standings, schedules, all 30 team rosters, and player profiles.
-- **Understand roster moves:** check contracts, payrolls, salary-cap context, and free-agent status.
+- **Catch up on the league news:** browse trades, signings, injuries, and ESPN news updates.
+- **Explore teams and players:** view standings, schedules, rosters, and player profiles.
+- **Understand roster moves:** check contracts, payrolls, salary-caps, and free-agent status.
 
 Team logos are bundled locally. Theme, favorite-team preferences, and the pinned-game selection are saved in your browser.
 
@@ -88,9 +88,11 @@ Scores and league updates use ESPN public site feeds. Free-agent and cap informa
 
 The core project focuses on scores and league tracking. Prediction, awards-race, shot-chart, and win-probability views are **demonstrations, not validated forecasts**. Fantasy runs private Courtside leagues with server-side storage and scoring; it does not sync with ESPN or Yahoo fantasy accounts. Desktop floating requires Document Picture-in-Picture support and HTTPS or localhost; the corner widget is available without that feature.
 
-Fantasy supports invite-only membership, private team recovery keys, snake drafting, daily utility lineups, first-come adds/drops, seven-day matchups, and standings. It does not yet include waivers, trades, playoffs, email account recovery, or timed/ranked auto-drafting. See [fantasy setup and rules](docs/fantasy.md) before inviting friends.
+Fantasy supports private team recovery keys, timed snake drafts with manager queues, daily utility lineups, rolling waivers, one-for-one trades, injured reserve, seven-day matchups, standings, and two- or four-team playoffs. Statistical draft rankings and email account recovery remain future work. See [fantasy setup and rules](docs/fantasy.md) before inviting friends.
 
-Next steps include broader browser testing, fantasy waivers/trades/playoffs, and backtested prediction models.
+Background scoring and news collection run locally with the server, or on Vercel Hobby through the included GitHub Actions schedule after configuration. Follow the [Hobby database and background setup](docs/background-updates.md). The transaction tracker includes official NBA moves and announcements from all 30 teams; see [coverage and limits](docs/moves-tracker.md).
+
+Next steps include hosted two-manager validation, account recovery, richer trade packages, refreshed fantasy player pools, and backtested prediction models.
 
 ---
 
