@@ -12,7 +12,7 @@ Start with an injury report, then check how many games that player's team has ov
 
 These are position matches, not confirmed rotation changes or waiver recommendations. Check the latest lineup, minutes, and your league's player availability before making a move. Injury and schedule source details appear on the board.
 
-![Fantasy impact board showing injury reports and upcoming schedules](docs/screenshots/fantasy-impact.png)
+![Fantasy impact board showing injury reports and upcoming schedules](docs/screenshots/fantasy-impact-updated.png)
 
 ## Fantasy leagues
 
