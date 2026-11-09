@@ -1,6 +1,6 @@
 # Courtside
 
-**NBA scores, game details, and trade news in one place.**
+Courtside is an NBA and fantasy decision tool. Its fantasy impact board connects injury reports with upcoming team schedules and possible same-position replacements, alongside NBA scores, rosters, and other league context.
 
 I built Courtside because I kept checking ESPN to keep up with games. I wanted an easier way to follow scores and roster moves from one dashboard, with a small pinned scoreboard I could keep nearby while doing other things.
 
@@ -9,6 +9,8 @@ Built with **JavaScript, HTML, CSS, and Node.js**, with deployment support for *
 ![Courtside free-agent tracker with player filters, availability, and season statistics](docs/screenshots/readme-desktop.webp)
 
 ## What you can do
+
+- **Fantasy impact:** connect injury reports to the next seven days of games and explore same-position teammates. Position matches are not verified rotation changes or waiver recommendations.
 
 - **Your team at home:** choose a favorite team for its next game within 14 days, injuries, moves, and news.
 - **Fantasy with friends:** create private Courtside leagues, share invites, run a snake draft, set daily lineups, and follow head-to-head points and standings. Hosted deployment requires shared fantasy storage.
@@ -92,7 +94,7 @@ Fantasy supports private team recovery keys, timed snake drafts with manager que
 
 Background scoring and news collection run locally with the server, or on Vercel Hobby through the included GitHub Actions schedule after configuration. Follow the [Hobby database and background setup](docs/background-updates.md). The transaction tracker includes official NBA moves and announcements from all 30 teams; see [coverage and limits](docs/moves-tracker.md).
 
-Next steps include hosted two-manager validation, account recovery, richer trade packages, refreshed fantasy player pools, and backtested prediction models.
+Next steps include hosted two-manager validation, account recovery, richer trade packages, verified minutes and role changes, a lineup-system simulator, and backtested prediction models.
 
 ---
 

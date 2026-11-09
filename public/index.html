@@ -17,10 +17,11 @@
 </head>
 <body>
   <header class="topbar">
-    <div class="brand"><a class="brand-logo-link" href="#scores" aria-label="Courtside home"><img class="brand-logo-image" src="courtside.png" alt="Courtside"></a></div>
+    <div class="brand"><a class="brand-logo-link" href="#fantasy" aria-label="Courtside home"><img class="brand-logo-image" src="courtside.png" alt="Courtside"></a></div>
     <div class="global-search"><button id="searchButton" aria-label="Search Courtside">⌕ <span>Search</span></button></div>
     <nav id="nav" aria-label="Main navigation">
-      <button class="active" data-view="scores">Scores</button>
+      <button class="active" data-view="fantasyImpact">Fantasy impact</button>
+      <button data-view="scores">Scores</button>
       <button data-view="scheduleView">Schedule</button>
       <button data-view="standings">Standings</button>
       <button data-view="teamsView">Teams</button>
@@ -40,7 +41,14 @@
       <button class="arrow" id="nextDay">›</button>
     </section>
 
-    <section id="scores" class="view active-view">
+    <section id="fantasyImpact" class="view active-view">
+      <div class="section-heading"><div><p class="eyebrow">YOUR FANTASY EDGE</p><h1>Fantasy impact</h1><p class="muted">Turn NBA availability and upcoming games into decisions for your roster.</p></div><button class="refresh-button" id="refreshImpact" type="button">Refresh</button></div>
+      <section class="panel impact-intro"><h2>Who could see an opportunity?</h2><p>Check an injury, see the team?s next seven days, and explore healthy teammates at the same position. Confirm the rotation and your league?s waiver availability before adding anyone.</p><p class="muted" id="impactSources" role="status">Loading injury and schedule data?</p></section>
+      <div class="impact-controls"><label for="impactSearch">Find a player or team</label><input id="impactSearch" class="team-picker" type="search" placeholder="Search injuries"></div>
+      <div id="impactBoard" class="impact-grid" aria-live="polite"><div class="panel empty-state">Loading fantasy impact?</div></div>
+    </section>
+
+    <section id="scores" class="view">
       <section id="favoriteDashboard" class="favorite-dashboard" hidden></section>
       <div class="section-heading"><div><p class="eyebrow">NBA GAME CENTER</p><h1>Daily games</h1></div><p class="muted" id="feedStatus" role="status" aria-live="polite">Connecting to live data…</p></div>
       <div class="score-grid" id="scoreGrid"></div>
@@ -123,5 +131,6 @@
   <script src="app.js"></script>
   <script src="features.js"></script>
   <script src="pinned-score.js"></script>
+  <script src="fantasy-impact.js"></script>
 </body>
 </html>

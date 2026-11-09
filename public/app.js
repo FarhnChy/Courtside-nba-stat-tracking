@@ -370,11 +370,12 @@ function renderFutures(){
   const root=document.querySelector('#futuresGrid');
   root.innerHTML=`<section class="demo-disclosure futures-disclosure"><strong>Model board, not betting odds</strong><span>Awards and No. 1 seed chances are a Courtside demo model based on team record, form, role, and released schedule context. Use it as a product surface until calibrated historical models are added.</span><span>${sourceBadge('Courtside demo model',liveStandings.updatedAt,'Race model')} ${sourceBadge(raceSchedule.source,raceSchedule.retrievedAt,'Schedule')}</span></section><section class="panel award-race-card"><div class="panel-title"><div><p class="eyebrow">AWARDS RACE</p><h2>MVP and award boards</h2></div><span class="pill">Top candidates</span></div><div class="award-board">${awardRaces.map(race=>`<section><h3>${escapeHtml(race.label)}</h3>${awardRows(race)}</section>`).join('')}</div></section>${seedRows('east','East')}${seedRows('west','West')}`;
 }
-const viewRoutes = { scores:'scores', schedule:'scheduleView', standings:'standings', teams:'teamsView', injuries:'injuriesView', moves:'transactionsView', finance:'teamsView', 'free-agents':'freeAgentsView', predict:'predict', futures:'futures' };
-const routeForView = viewId => Object.entries(viewRoutes).find(([,id]) => id === viewId)?.[0] || 'scores';
+const viewRoutes = { fantasy:'fantasyImpact', scores:'scores', schedule:'scheduleView', standings:'standings', teams:'teamsView', injuries:'injuriesView', moves:'transactionsView', finance:'teamsView', 'free-agents':'freeAgentsView', predict:'predict', futures:'futures' };
+const routeForView = viewId => Object.entries(viewRoutes).find(([,id]) => id === viewId)?.[0] || 'fantasy';
 function activateView(viewId, updateUrl = true) {
   const target = document.querySelector(`#${viewId}`) || document.querySelector('#scores');
   document.querySelectorAll('.view').forEach(view => view.classList.toggle('active-view', view === target));
+  document.querySelector('.date-strip').hidden = target.id !== 'scores';
   document.querySelectorAll('#nav button').forEach(button => {
     const active = button.dataset.view === target.id;
     button.classList.toggle('active', active);
@@ -384,7 +385,7 @@ function activateView(viewId, updateUrl = true) {
   if (updateUrl) history.pushState({ view: target.id }, '', `#${routeForView(target.id)}`);
 }
 document.querySelectorAll('#nav button').forEach(button => button.onclick = () => activateView(button.dataset.view));
-const openRoute = () => activateView(viewRoutes[location.hash.slice(1)] || 'scores', false);
+const openRoute = () => activateView(viewRoutes[location.hash.slice(1)] || 'fantasyImpact', false);
 window.addEventListener('hashchange', openRoute);
 openRoute();
 document.querySelectorAll('[data-predict-mode]').forEach(button=>button.onclick=()=>{bracketState.mode=button.dataset.predictMode;renderPredict()});
