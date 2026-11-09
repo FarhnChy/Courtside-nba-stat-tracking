@@ -115,7 +115,7 @@ assert.equal(html.includes('brand-logo-image'), true, 'Courtside image logo shou
 assert.equal(html.includes('brand-wordmark'), false, 'topbar should use the original Courtside logo');
 assert.equal(html.includes('<title>Courtside</title>'), true);
 assert.equal(html.includes('AWARDS & CONFERENCE STANDINGS'), true, 'race center should identify standings and awards');
-for (const feature of ['Standings, not forecasts','Current leaders','NBA.com MVP Ladder']) assert.equal(appSource.includes(feature), true, `race center should include ${feature}`);
+for (const feature of ['Rankings and standings, not odds','Current leaders','mvpLadderSnapshot']) assert.equal(appSource.includes(feature), true, `race center should include ${feature}`);
 assert.equal(html.includes('Boston Celtics'), false, 'published playoff UI should not hard-code Boston as the favorite');
 
 console.log('✓ App shell, assets, and core product surfaces verified');

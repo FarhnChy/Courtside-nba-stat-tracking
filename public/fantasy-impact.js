@@ -6,6 +6,8 @@
   let teams = [], schedule = null, injuryTime = null;
   const localDate = date => `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
   const safe = value => escapeHtml(value);
+  const portrait = (name, headshot) => `<span class="impact-portrait" aria-hidden="true"><span class="impact-portrait-fallback">${safe(String(name || '?').trim().split(/\s+/).map(part => part[0]).slice(0, 2).join('').toUpperCase())}</span>${headshot ? `<img src="${safe(headshot)}" alt="" loading="lazy">` : ''}</span>`;
+  board.addEventListener('error', event => { if (event.target.matches('.impact-portrait img')) event.target.remove(); }, true);
   const get = async url => { const response = await fetch(url); if (!response.ok) throw new Error('Unavailable'); return response.json(); };
   function upcoming(team) {
     if (!schedule) return null;
@@ -18,7 +20,7 @@
       const games = upcoming(team);
       const gameText = games === null ? 'Schedule unavailable' : `${games.length} upcoming game${games.length === 1 ? '' : 's'} in 7 days`;
       const dates = games?.map(game => `${game.date.slice(5)} vs ${game.opponent}`).join(' · ');
-      return `<article class="panel impact-card"><div class="impact-card-top"><div><p class="eyebrow">${safe(team.displayName)} · ${safe(injury.position)}</p><h2>${safe(injury.player)}</h2></div><span class="availability limited">${safe(injury.status)}</span></div><p>${safe(injury.shortComment || injury.detail || 'No further injury details provided.')}</p><div class="impact-schedule"><strong>${safe(gameText)}</strong><small>${safe(dates || (games?.length === 0 ? 'No upcoming games found in this window.' : ''))}</small></div><button class="secondary-action impact-replacements" type="button" data-index="${index}" aria-expanded="false">Explore possible replacements</button><div class="impact-result" hidden></div></article>`;
+      return `<article class="panel impact-card"><div class="impact-card-top"><div class="impact-player">${portrait(injury.player, injury.headshot)}<div><p class="eyebrow">${safe(team.displayName)} · ${safe(injury.position)}</p><h2>${safe(injury.player)}</h2></div></div><span class="availability limited">${safe(injury.status)}</span></div><p>${safe(injury.shortComment || injury.detail || 'No further injury details provided.')}</p><div class="impact-schedule"><strong>${safe(gameText)}</strong><small>${safe(dates || (games?.length === 0 ? 'No upcoming games found in this window.' : ''))}</small></div><button class="secondary-action impact-replacements" type="button" data-index="${index}" aria-expanded="false">Explore possible replacements</button><div class="impact-result" hidden></div></article>`;
     }).join('') : `<div class="panel empty-state">${query ? 'No injuries match your search.' : 'No injuries are currently listed.'}</div>`;
     board.querySelectorAll('.impact-replacements').forEach(button => button.addEventListener('click', async () => {
       const {team, injury} = rows[Number(button.dataset.index)];

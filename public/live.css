@@ -477,3 +477,11 @@
 .awards-sources { padding: 22px; }
 .awards-sources p { color: var(--muted); line-height: 1.5; }
 .awards-sources a { display: inline-block; margin: 8px 20px 0 0; }
+.impact-player, .impact-candidate { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.impact-player > div, .impact-candidate > div { min-width: 0; }
+.impact-portrait { position: relative; flex: 0 0 52px; width: 52px; height: 52px; border-radius: 50%; overflow: hidden; background: var(--surface2); border: 1px solid var(--line); }
+.impact-portrait-fallback { display: grid; place-items: center; width: 100%; height: 100%; color: var(--muted); font-size: 13px; font-weight: 700; }
+.impact-portrait img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top; background: var(--surface2); }
+.impact-candidates { display: grid; gap: 10px; margin: 12px 0; }
+.impact-candidate .impact-portrait { flex-basis: 42px; width: 42px; height: 42px; }
+.impact-candidate small { margin-top: 2px; }
