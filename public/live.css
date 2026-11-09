@@ -485,3 +485,7 @@
 .impact-candidates { display: grid; gap: 10px; margin: 12px 0; }
 .impact-candidate .impact-portrait { flex-basis: 42px; width: 42px; height: 42px; }
 .impact-candidate small { margin-top: 2px; }
+.schedule-watch { color: var(--text); font-size: 13px; line-height: 1.4; }
+.schedule-context small { font-size: 11px; }
+.schedule-view-game { margin-top: 5px; font-size: 12px; }
+.mvp-ladder .mvp-headshot { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; object-position: top; background: var(--surface2); border: 1px solid var(--line); }
