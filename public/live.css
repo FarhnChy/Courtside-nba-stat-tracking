@@ -465,3 +465,15 @@
 .impact-schedule { padding: 12px 0; margin: 12px 0; border-top: 1px solid #53617455; border-bottom: 1px solid #53617455; }
 .impact-schedule small, .impact-result small { display: block; margin-top: 6px; line-height: 1.5; }
 .impact-result { margin-top: 14px; }
+/* Team identity and standings */
+.injury-team-header { grid-template-columns: 54px minmax(0, 1fr) auto; gap: 12px; }
+.injury-team-header .injury-team-logo { width: 52px; height: 52px; object-fit: contain; margin: 0; }
+.injury-team-header h2 { overflow-wrap: anywhere; }
+.team-logo-placeholder { display: grid; place-items: center; color: var(--muted); font-size: 11px; }
+.move-team { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.move-team .move-team-logo { width: 32px; height: 32px; object-fit: contain; }
+.seed-chance-row { grid-template-columns: 24px 40px minmax(0, 1fr); }
+.standing-rank { font-weight: 700; color: var(--muted); }
+.awards-sources { padding: 22px; }
+.awards-sources p { color: var(--muted); line-height: 1.5; }
+.awards-sources a { display: inline-block; margin: 8px 20px 0 0; }

@@ -67,7 +67,7 @@ async function run() {
   data.push({ ...official[1], id: 'wiseman', description: 'Knicks signed James Wiseman to an Exhibit 9 contract.' });
   const context = vm.createContext({
     document: { hidden: false, querySelector: node, querySelectorAll: () => [] }, window: {}, setInterval: () => {}, Date, Set, Map,
-    escapeHtml: String, loadingState: () => '', errorState: () => '', money: String, openTransactionDetail: () => {},
+    escapeHtml: String, logo: code => `<img alt="${code} logo">`, loadingState: () => '', errorState: () => '', money: String, openTransactionDetail: () => {},
     fetchApi: async () => ({ ok: true, headers: { get: () => null }, json: async () => ({ transactions: data, coverage: a.coverage }) })
   });
   const source = fs.readFileSync(require('node:path').join(__dirname, '../public/app.js'), 'utf8');

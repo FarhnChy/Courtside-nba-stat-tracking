@@ -28,3 +28,6 @@ assert.equal(standings.conferences[0].teams[0].wins, 60);
 assert.equal(finance.capOverview('2026-27').secondApron, 221686000);
 assert.throws(() => finance.capOverview('1900-01'), /Unsupported/);
 console.log('✓ Provider normalization and finance invariants verified');
+
+const injuryTeams = espn.normalizeInjuries({ injuries: [{ id: '9', displayName: 'Golden State Warriors', injuries: [{ athlete: { displayName: 'Player' } }] }, { id: '22', displayName: 'Portland Trail Blazers', injuries: [{ athlete: { displayName: 'Player' } }] }] });
+assert.deepEqual(injuryTeams.teams.map(team => team.abbreviation), ['GSW', 'POR'], 'multiword team names should resolve to logo abbreviations');

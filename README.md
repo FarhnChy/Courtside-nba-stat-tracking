@@ -1,29 +1,53 @@
 # Courtside
 
-Courtside is an NBA and fantasy decision tool. Its fantasy impact board connects injury reports with upcoming team schedules and possible same-position replacements, alongside NBA scores, rosters, and other league context.
+**NBA context for better fantasy decisions.**
 
-I built Courtside because I kept checking ESPN to keep up with games. I wanted an easier way to follow scores and roster moves from one dashboard, with a small pinned scoreboard I could keep nearby while doing other things.
+Courtside brings injury reports and upcoming schedules together to help answer: *What does what is happening in the NBA mean for my fantasy team?* Explore potential replacements, manage a private fantasy league, and follow the games behind your decisions.
 
 Built with **JavaScript, HTML, CSS, and Node.js**, with deployment support for **Vercel**.
 
+## Fantasy impact
+
+Start with an injury report, then check how many games that player's team has over the next seven days. Open a card to find healthy same-position teammates to investigate as possible replacements.
+
+These are position matches, not confirmed rotation changes or waiver recommendations. Check the latest lineup, minutes, and your league's player availability before making a move. Injury and schedule source details appear on the board.
+
+![Fantasy impact board showing injury reports and upcoming schedules](docs/screenshots/fantasy-impact.png)
+
+## Fantasy leagues
+
+Create a private Courtside league, invite friends, run a timed snake draft, set daily lineups, and follow head-to-head matchups and standings. Leagues also support rolling waivers, trades, injured reserve, and playoffs. Hosted leagues require shared storage; see [fantasy setup and rules](docs/fantasy.md).
+
+## Explore Courtside
+
 ![Courtside free-agent tracker with player filters, availability, and season statistics](docs/screenshots/readme-desktop.webp)
 
-## What you can do
+*The free-agent tracker brings player filters, availability, and season statistics together.*
 
-- **Fantasy impact:** connect injury reports to the next seven days of games and explore same-position teammates. Position matches are not verified rotation changes or waiver recommendations.
+<details>
+<summary>See schedule and moves tracker screenshots</summary>
 
-- **Your team at home:** choose a favorite team for its next game within 14 days, injuries, moves, and news.
-- **Fantasy with friends:** create private Courtside leagues, share invites, run a snake draft, set daily lineups, and follow head-to-head points and standings. Hosted deployment requires shared fantasy storage.
-- **Catch up quickly:** final games open a recap with leading scorers, quarter totals, and late scoring plays. Live score changes animate with reduced-motion support.
-- **Optional alerts:** enable browser notifications in Preferences for tip-off, close finishes, final scores, and team moves while Courtside stays open.
-- **Follow reporting:** filter the trade timeline by reported, confirmed, or official updates, with sources and timestamps.
-- **Follow games:** scores refresh every 20 seconds, with box scores, quarter-by-quarter scoring, team stats, and play-by-play.
-- **Keep a score close:** pin a game to either bottom corner. In supported browsers, float it above other desktop windows while the app tab stays open.
-- **Catch up on the league news:** browse trades, signings, injuries, and ESPN news updates.
-- **Explore teams and players:** view standings, schedules, rosters, and player profiles.
-- **Understand roster moves:** check contracts, payrolls, salary-caps, and free-agent status.
+![Courtside schedule](docs/screenshots/schedule.png)
 
-Team logos are bundled locally. Theme, favorite-team preferences, and the pinned-game selection are saved in your browser.
+![Courtside moves tracker](docs/screenshots/moves.png)
+
+</details>
+
+- **Follow your team:** see its upcoming games, injuries, moves, and news on the home dashboard.
+- **Watch the league:** follow live scores, box scores, game recaps, standings, and schedules. Pin a game to keep its score nearby.
+- **Research players and moves:** browse rosters, player profiles, transactions, contracts, payrolls, and free agents.
+- **Choose your alerts:** enable browser notifications for your favorite team's games and league moves while Courtside is open.
+
+<details>
+<summary>View the mobile layout</summary>
+
+<img src="docs/screenshots/layout-mobile.png" alt="Courtside mobile layout" width="340">
+
+</details>
+
+## Demo video
+
+A demonstration video is planned. It will show the fantasy impact board, a private league, and the NBA context behind a roster decision.
 
 ## Engineering highlights
 
@@ -41,12 +65,7 @@ Browser interface --> Node.js API --> Basketball data sources
                 Normalization + caching
 ```
 
-<details>
-<summary>View the mobile layout</summary>
 
-<img src="docs/screenshots/layout-mobile.png" alt="Courtside mobile layout" width="340">
-
-</details>
 
 ## Run locally
 
@@ -88,7 +107,7 @@ To deploy, import the repository into Vercel using the **Other** framework prese
 
 Scores and league updates use ESPN public site feeds. Free-agent and cap information draws on NBA.com, NBA Communications, Basketball Reference, and SalarySwish. Repository snapshots provide additional fallback context. These integrations are unofficial, and availability or freshness can vary by source.
 
-The core project focuses on scores and league tracking. Prediction, awards-race, shot-chart, and win-probability views are **demonstrations, not validated forecasts**. Fantasy runs private Courtside leagues with server-side storage and scoring; it does not sync with ESPN or Yahoo fantasy accounts. Desktop floating requires Document Picture-in-Picture support and HTTPS or localhost; the corner widget is available without that feature.
+Courtside is moving toward fantasy decisions, supported by scores and league tracking. Prediction, shot-chart, and win-probability views are **demonstrations, not validated forecasts**. The race center shows ESPN conference standings and links to published award coverage. Fantasy runs private Courtside leagues with server-side storage and scoring; it does not sync with ESPN or Yahoo fantasy accounts. Desktop floating requires Document Picture-in-Picture support and HTTPS or localhost; the corner widget is available without that feature.
 
 Fantasy supports private team recovery keys, timed snake drafts with manager queues, daily utility lineups, rolling waivers, one-for-one trades, injured reserve, seven-day matchups, standings, and two- or four-team playoffs. Statistical draft rankings and email account recovery remain future work. See [fantasy setup and rules](docs/fantasy.md) before inviting friends.
 
