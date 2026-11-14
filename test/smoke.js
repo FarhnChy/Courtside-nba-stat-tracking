@@ -114,8 +114,8 @@ assert.equal(html.includes('id="calendarDate"'), true, 'date strip should includ
 assert.equal(html.includes('brand-logo-image'), true, 'Courtside image logo should be the home link separate from account picture');
 assert.equal(html.includes('brand-wordmark'), false, 'topbar should use the original Courtside logo');
 assert.equal(html.includes('<title>Courtside</title>'), true);
-assert.equal(html.includes('AWARDS & SEED RACE'), true, 'futures tab should present awards and seed races');
-for (const feature of ['awardRaces','seedChanceRows','upcomingScheduleEdge','No. 1 seed chances','Model board, not betting odds']) assert.equal(appSource.includes(feature), true, `race center should include ${feature}`);
+assert.equal(html.includes('AWARDS & CONFERENCE STANDINGS'), true, 'race center should identify standings and awards');
+for (const feature of ['Rankings and standings, not odds','Current leaders','mvpLadderSnapshot']) assert.equal(appSource.includes(feature), true, `race center should include ${feature}`);
 assert.equal(html.includes('Boston Celtics'), false, 'published playoff UI should not hard-code Boston as the favorite');
 
 console.log('✓ App shell, assets, and core product surfaces verified');

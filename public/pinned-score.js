@@ -9,7 +9,7 @@
   const panel = document.createElement('aside');
   panel.className = 'pinned-score';
   panel.setAttribute('aria-label', 'Pinned score');
-  panel.innerHTML = '<div class="pin-header"><strong>COURTSIDE</strong><button type="button" data-close aria-label="Unpin score">Ã—</button></div><div data-score></div><p class="pin-status" role="status" data-status></p><div class="pin-actions"><button type="button" data-corner>Move corner</button><button type="button" data-desktop>Float on desktop</button></div>';
+  panel.innerHTML = '<div class="pin-header"><strong>COURTSIDE</strong><button type="button" data-close aria-label="Unpin score">×</button></div><div data-score></div><p class="pin-status" role="status" data-status></p><div class="pin-actions"><button type="button" data-corner>Move corner</button><button type="button" data-desktop>Float on desktop</button></div>';
   document.body.append(panel);
   const persist = () => { try { if(game)localStorage.setItem(key, JSON.stringify({ game, corner }));else localStorage.removeItem(key); } catch (_) {} };
   const status = message => { panel.querySelector('[data-status]').textContent = message; };
@@ -25,7 +25,7 @@
       const image = document.createElement('img'); image.src = new URL(teamLogoPath(side.abbreviation), location.href).href; image.alt = `${side.name || side.abbreviation} logo`; image.width = 36; image.height = 36;
       const name = document.createElement('span'); name.textContent = side.displayName || [side.city, side.name].filter(Boolean).join(' ') || side.abbreviation;
       identity.append(image, name);
-      const points = document.createElement('b'); points.textContent = game.status.state === 'pre' ? 'â€”' : side.score ?? 'â€”';
+      const points = document.createElement('b'); points.textContent = game.status.state === 'pre' ? '-' : side.score ?? '-';
       row.append(identity, points); score.append(row);
     }
     const detail = document.createElement('div'); detail.textContent = game.status.detail || 'Scheduled';
@@ -42,8 +42,8 @@
       if (version !== revision) return;
       if (String(payload.game?.id) !== String(id) || !payload.game?.away || !payload.game?.home || !payload.game?.status) throw new Error('Invalid game');
       game = payload.game; persist(); render();
-      status(`Updated ${new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' })} Â· refreshes every 20s`);
-    } catch (_) { if (version === revision) status('Update unavailable Â· showing last saved score. Retrying automatically.'); }
+      status(`Updated ${new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' })} · refreshes every 20s`);
+    } catch (_) { if (version === revision) status('Update unavailable · showing last saved score. Retrying automatically.'); }
     finally { busy = false; if (version !== revision && game) refresh(); }
   }
   function addButtons() {
@@ -59,7 +59,7 @@
       button.onclick = event => {
         event.stopPropagation();
         revision++; game = candidate.raw; persist(); render();
-        status('Refreshing pinned scoreâ€¦'); refresh();
+        status('Refreshing pinned score…'); refresh();
       };
       card.append(button);
     });
@@ -80,7 +80,7 @@
     if (desktop) { desktop.close(); return; }
     try {
       desktop = await window.documentPictureInPicture.requestWindow({ width:350, height:290 });
-      desktop.document.title = 'Courtside Â· Pinned score';
+      desktop.document.title = 'Courtside · Pinned score';
       const style = desktop.document.createElement('link');
       style.rel = 'stylesheet'; style.href = new URL('pinned-score.css', location.href).href;
       desktop.document.head.append(style);
@@ -97,6 +97,6 @@
     } catch (_) { status('Desktop window could not open. Your score stays pinned here.'); }
   };
   render(); addButtons();
-  if (game) { status('Saved score Â· checking for updatesâ€¦'); refresh(); }
+  if (game) { status('Saved score · checking for updates…'); refresh(); }
   window.setInterval(refresh, 20000);
 })();

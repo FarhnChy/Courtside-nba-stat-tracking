@@ -450,3 +450,42 @@
   .user-hub-dialog { padding: 22px 16px; }
   .shams-feed { grid-template-columns: 1fr; }
 }
+/* Fantasy decision board */
+.date-strip[hidden] { display: none; }
+.impact-intro { padding: 22px; margin-bottom: 20px; }
+.impact-intro h2, .impact-card h2 { margin: 0 0 8px; }
+.impact-intro p { max-width: 760px; line-height: 1.5; }
+.impact-controls { display: flex; align-items: center; gap: 12px; margin: 20px 0; flex-wrap: wrap; }
+.impact-controls label { font-weight: 700; }
+.impact-controls input { min-width: min(100%, 300px); }
+.impact-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr)); gap: 16px; }
+.impact-card { padding: 20px; }
+.impact-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.impact-card p { line-height: 1.5; }
+.impact-schedule { padding: 12px 0; margin: 12px 0; border-top: 1px solid #53617455; border-bottom: 1px solid #53617455; }
+.impact-schedule small, .impact-result small { display: block; margin-top: 6px; line-height: 1.5; }
+.impact-result { margin-top: 14px; }
+/* Team identity and standings */
+.injury-team-header { grid-template-columns: 54px minmax(0, 1fr) auto; gap: 12px; }
+.injury-team-header .injury-team-logo { width: 52px; height: 52px; object-fit: contain; margin: 0; }
+.injury-team-header h2 { overflow-wrap: anywhere; }
+.team-logo-placeholder { display: grid; place-items: center; color: var(--muted); font-size: 11px; }
+.move-team { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.move-team .move-team-logo { width: 32px; height: 32px; object-fit: contain; }
+.seed-chance-row { grid-template-columns: 24px 40px minmax(0, 1fr); }
+.standing-rank { font-weight: 700; color: var(--muted); }
+.awards-sources { padding: 22px; }
+.awards-sources p { color: var(--muted); line-height: 1.5; }
+.awards-sources a { display: inline-block; margin: 8px 20px 0 0; }
+.impact-player, .impact-candidate { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.impact-player > div, .impact-candidate > div { min-width: 0; }
+.impact-portrait { position: relative; flex: 0 0 52px; width: 52px; height: 52px; border-radius: 50%; overflow: hidden; background: var(--surface2); border: 1px solid var(--line); }
+.impact-portrait-fallback { display: grid; place-items: center; width: 100%; height: 100%; color: var(--muted); font-size: 13px; font-weight: 700; }
+.impact-portrait img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top; background: var(--surface2); }
+.impact-candidates { display: grid; gap: 10px; margin: 12px 0; }
+.impact-candidate .impact-portrait { flex-basis: 42px; width: 42px; height: 42px; }
+.impact-candidate small { margin-top: 2px; }
+.schedule-watch { color: var(--text); font-size: 13px; line-height: 1.4; }
+.schedule-context small { font-size: 11px; }
+.schedule-view-game { margin-top: 5px; font-size: 12px; }
+.mvp-ladder .mvp-headshot { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; object-position: top; background: var(--surface2); border: 1px solid var(--line); }
