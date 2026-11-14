@@ -46,7 +46,7 @@
   }
   function render() {
     heading();
-    const nextSignature = JSON.stringify([league.id, league.status, league.picks.length, league.teams.map(team => [team.id, team.roster, team.ir]), league.nextDate, league.claims, league.trades, league.waivers, league.playoffs, league.queue]);
+    const nextSignature = JSON.stringify([league.id, league.status, league.picks.length, league.teams.map(team => [team.id, team.roster, team.ir, team.todayLineup, team.nextLineup]), league.nextDate, league.claims, league.trades, league.waivers, league.playoffs, league.queue]);
     if (signature === nextSignature) { updateScores(); return; }
     signature = nextSignature;
     const root = $('#leagueContent');

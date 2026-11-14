@@ -670,8 +670,12 @@ async function openPlayerProfile(id, playerOverride = null, teamOverride = '') {
   const dialog = document.querySelector('#playerDialog'); const root = document.querySelector('#playerProfile');
   const header = playerProfileHeader(player, teamName);
   root.innerHTML = `${header}<div class="empty-state compact-empty">Loading season statistics…</div>`; dialog.showModal();
+  if (player.idProvider === 'nba' && !player.espnId) {
+    root.innerHTML = `${header}${profileFallbackStats(player)}`;
+    return;
+  }
   try {
-    const response = await fetchApi(`/api/players/${id}`); if (!response.ok) throw new Error('Profile unavailable'); const profile=await response.json();
+    const response = await fetchApi(`/api/players/${player.espnId || id}`); if (!response.ok) throw new Error('Profile unavailable'); const profile=await response.json();
     const history = profile.history || []; const latest = history[history.length-1]; const detailedPlayer={...player,position:profile.positions||player.position}; const detailedHeader=playerProfileHeader(detailedPlayer,teamName); currentProfileCandidate={...detailedPlayer,id,teamName,profile,latest};
     root.innerHTML = `${detailedHeader}${history.length ? renderProfileHistory(history) : profileFallbackStats(player)}${renderAwards(profile.awards)}`;
   } catch(error) { root.innerHTML = `${header}${profileFallbackStats(player)}`; }
@@ -872,6 +876,8 @@ function renderFreeAgents() {
       const freeAgent = players.find(player => String(player.id) === String(button.dataset.freeAgentId));
       openPlayerProfile(button.dataset.freeAgentId, {
         id: button.dataset.freeAgentId,
+        idProvider: 'nba',
+        espnId: freeAgent?.espnId || null,
         name: button.dataset.playerName,
         position: button.dataset.playerPosition,
         headshot: button.dataset.playerHeadshot,
@@ -938,7 +944,7 @@ const searchDialog=document.querySelector('#searchDialog');
 document.querySelector('#searchButton').onclick=()=>{searchDialog.showModal();setTimeout(()=>document.querySelector('#globalSearchInput').focus(),0)};
 document.querySelector('#closeSearch').onclick=()=>searchDialog.close();
 searchDialog.onclick=event=>{if(event.target===searchDialog)searchDialog.close()};
-document.querySelector('#globalSearchInput').oninput=event=>{clearTimeout(searchTimer);const query=event.target.value.trim();const root=document.querySelector('#searchResults');if(query.length<2){root.innerHTML='<div class="empty-state compact-empty">Enter at least two characters.</div>';return}root.innerHTML='<div class="empty-state compact-empty">Searching players, teams, and games…</div>';searchTimer=setTimeout(async()=>{try{const response=await fetch(`/api/search?q=${encodeURIComponent(query)}`);if(!response.ok)throw new Error();const payload=await response.json();root.innerHTML=payload.results.length?payload.results.map((item,index)=>`<button class="search-result" data-search-index="${index}">${item.logo||item.headshot?`<img src="${escapeHtml(item.logo||item.headshot)}" alt="">`:'<span class="search-icon">⌕</span>'}<span><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(item.subtitle)}</small></span><em>${escapeHtml(item.kind)}</em></button>`).join(''):'<div class="empty-state compact-empty">No matching players, teams, or games.</div>';root.querySelectorAll('[data-search-index]').forEach(button=>button.onclick=()=>{const item=payload.results[Number(button.dataset.searchIndex)];searchDialog.close();if(item.kind==='team')openTeamRoster(item.id);else if(item.kind==='player')openPlayerProfile(item.id,{id:item.id,name:item.name,position:item.position,headshot:item.headshot},item.teamName);else{activateView('scores');const game=games.find(game=>String(game.id)===String(item.id));if(game){selected=game;renderCards();loadGame(game.id)}}})}catch(_){root.innerHTML='<div class="empty-state compact-empty">Search is temporarily unavailable. Try again.</div>'}},250)};
+document.querySelector('#globalSearchInput').oninput=event=>{clearTimeout(searchTimer);const query=event.target.value.trim();const root=document.querySelector('#searchResults');if(query.length<2){root.innerHTML='<div class="empty-state compact-empty">Enter at least two characters.</div>';return}root.innerHTML='<div class="empty-state compact-empty">Searching players, teams, and games…</div>';searchTimer=setTimeout(async()=>{try{const response=await fetch(`/api/search?q=${encodeURIComponent(query)}`);if(!response.ok)throw new Error();const payload=await response.json();root.innerHTML=payload.results.length?payload.results.map((item,index)=>`<button class="search-result" data-search-index="${index}">${item.logo||item.headshot?`<img src="${escapeHtml(item.logo||item.headshot)}" alt="">`:'<span class="search-icon">⌕</span>'}<span><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(item.subtitle)}</small></span><em>${escapeHtml(item.kind)}</em></button>`).join(''):'<div class="empty-state compact-empty">No matching players, teams, or games.</div>';root.querySelectorAll('[data-search-index]').forEach(button=>button.onclick=()=>{const item=payload.results[Number(button.dataset.searchIndex)];searchDialog.close();if(item.kind==='team')openTeamRoster(item.id);else if(item.kind==='player')openPlayerProfile(item.id,{id:item.id,idProvider:item.idProvider,espnId:item.espnId,stats:item.stats,name:item.name,position:item.position,headshot:item.headshot},item.teamName);else{activateView('scores');const game=games.find(game=>String(game.id)===String(item.id));if(game){selected=game;renderCards();loadGame(game.id)}}})}catch(_){root.innerHTML='<div class="empty-state compact-empty">Search is temporarily unavailable. Try again.</div>'}},250)};
 
 async function renderFavoriteDashboard() {
   if (window.CourtsideFeatures) return window.CourtsideFeatures.favorite();

@@ -239,7 +239,7 @@ async function searchableDirectory() {
   const players = new Map();
   for (const roster of rosters.filter(Boolean)) for (const player of roster.players) players.set(String(player.id), { kind:'player', id:player.id, name:player.name, subtitle:`${roster.team.displayName} · ${player.position}`, headshot:player.headshot, teamName:roster.team.displayName, position:player.position });
   const rosterNames=new Set([...players.values()].map(player=>player.name.toLowerCase()));
-  for (const player of market.players) if (!players.has(String(player.id))&&!rosterNames.has(player.name.toLowerCase())) players.set(String(player.id), { kind:'player', id:player.id, name:player.name, subtitle:`Free agent · ${player.position}`, headshot:player.headshot, teamName:player.newTeam||player.oldTeam||'NBA free agent', position:player.position });
+  for (const player of market.players) if (!rosterNames.has(player.name.toLowerCase())) players.set(`nba:${player.id}`, { kind:'player', id:player.id, idProvider:'nba', espnId:player.espnId || null, stats:player.stats, name:player.name, subtitle:`Free agent · ${player.position}`, headshot:player.headshot, teamName:player.newTeam||player.oldTeam||'NBA free agent', position:player.position });
   const items = [
     ...directory.teams.map(team=>({kind:'team',id:team.id,name:team.displayName,subtitle:team.abbreviation,logo:team.logo})),
     ...players.values(),
@@ -248,7 +248,7 @@ async function searchableDirectory() {
   searchCache={time:Date.now(),items}; return items;
 }
 
-async function requestHandler(req, res) {
+async function routeRequest(req, res) {
   const requestUrl = new URL(req.url, 'http://localhost');
   const rewrittenRoute = requestUrl.searchParams.get('__route');
   const urlPath = rewrittenRoute
@@ -258,6 +258,7 @@ async function requestHandler(req, res) {
   if (urlPath.startsWith('/api/fantasy/')) return fantasyHandler(req, res, urlPath);
   // Short CDN lifetimes keep live feeds fresh without a paid background worker.
   res.courtsideCacheSeconds = urlPath === '/api/scoreboard' ? 15
+    : /^\/api\/games\/\d+$/.test(urlPath) ? 0
     : ['/api/injuries', '/api/transactions', '/api/shams-updates'].includes(urlPath) ? 60
       : urlPath === '/api/schedule' ? 120
         : ['/api/teams', '/api/standings'].includes(urlPath) ? 300
@@ -375,6 +376,15 @@ async function requestHandler(req, res) {
     res.writeHead(200, { 'Content-Type': types[path.extname(file)] || 'application/octet-stream', 'Cache-Control': 'no-cache', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'strict-origin-when-cross-origin', 'X-Frame-Options': 'SAMEORIGIN' });
     res.end(data);
   });
+}
+
+async function requestHandler(req, res) {
+  try { await routeRequest(req, res); }
+  catch (error) {
+    if (res.headersSent) { res.destroy(); return; }
+    json(res, error instanceof URIError || error.code === 'ERR_INVALID_URL' ? 400 : 500,
+      { error: error instanceof URIError || error.code === 'ERR_INVALID_URL' ? 'Invalid request URL' : 'Request failed' });
+  }
 }
 
 const server = http.createServer(requestHandler);

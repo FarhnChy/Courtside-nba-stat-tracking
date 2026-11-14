@@ -17,7 +17,7 @@ async function run() {
   const handler = createFantasyHandler({
     store: createStore({ FANTASY_DATA_DIR: path.join(temporary, 'leagues') }),
     catalogLoader: async () => Array.from({ length: 24 }, (_, i) => ({ id: String(i + 1), name: `Test Player ${String(i + 1).padStart(2, '0')}`, team: i % 2 ? 'NYK' : 'BOS', position: i % 3 ? 'G' : 'C' })),
-    provider: { scoreboard: async () => ({ games: [] }), injuries: async () => ({ teams: [{ injuries: Array.from({ length: 24 }, (_, i) => ({ athleteId: String(i + 1), status: 'Out' })) }] }) }
+    provider: { scoreboard: async () => ({ coverageComplete: true, games: [] }), injuries: async () => ({ teams: [{ injuries: Array.from({ length: 24 }, (_, i) => ({ athleteId: String(i + 1), status: 'Out' })) }] }) }
   });
   const server = http.createServer((req, res) => {
     const route = new URL(req.url, 'http://localhost').pathname;

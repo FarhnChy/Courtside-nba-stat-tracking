@@ -15,7 +15,7 @@ async function run() {
   let now = new Date('2026-10-01T16:00:00Z');
   let fail = false, correction = 0;
   const provider = {
-    scoreboard: async date => { if (fail) throw new Error('Offline'); return { games: [{ id: date, status: { state: 'post', completed: true } }] }; },
+    scoreboard: async date => { if (fail) throw new Error('Offline'); return { coverageComplete: true, games: [{ id: date, status: { state: 'post', completed: true } }] }; },
     summary: async () => ({ boxscore: [{ sections: [{ labels: ['PTS', 'REB', 'AST', 'STL', 'BLK', 'TO'], athletes: players.map((player, i) => ({ id: player.id, stats: [String((i + 1) * 10 + correction), '5', '2', '1', '1', '2'] })) }] }] })
   };
   const options = { store, provider, clock: () => now, catalogLoader: async () => players };

@@ -12,7 +12,7 @@ async function run() {
   const store = createStore({ FANTASY_DATA_DIR: directory });
   let now = new Date('2026-10-01T16:00:00Z'), injuryDown = false;
   const players = Array.from({ length: 30 }, (_, i) => ({ id: String(i + 1), name: `Player ${String(i + 1).padStart(2, '0')}` }));
-  const provider = { scoreboard: async () => ({ games: [] }), injuries: async () => { if (injuryDown) throw new Error('offline'); return { teams: [{ injuries: [{ athleteId: '1', status: 'Out' }] }] }; } };
+  const provider = { scoreboard: async () => ({ coverageComplete: true, games: [] }), injuries: async () => { if (injuryDown) throw new Error('offline'); return { teams: [{ injuries: [{ athleteId: '1', status: 'Out' }] }] }; } };
   const options = { store, provider, clock: () => now, catalogLoader: async () => players };
   let fantasy = createFantasy(options), server;
   const keys = [secret(), secret(), secret(), secret()];

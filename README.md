@@ -48,6 +48,8 @@ Browser interface --> Node.js API --> Basketball data sources
 
 ## Run locally
 
+For a guided explanation of the code and examples you can use to describe the project, read [Understanding Courtside](docs/architecture.md).
+
 Requires Node.js 18 or newer.
 
 ```sh
